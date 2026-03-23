@@ -1,88 +1,68 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import Image from 'next/image'
+import { getDictionary } from '@/i18n/get-dictionary'
+import { Locale, BASE_URL, getAlternates } from '@/i18n/config'
 
 const TOOL_ICONS: Record<string, string> = {
   '/nitrox': '/Nx.png',
 }
 
-export const metadata: Metadata = {
-  title: 'Orque Tools — Calculateurs gratuits pour plongeurs',
-  description:
-    'Calculateurs gratuits pour plongeurs sous-marins : Nitrox (MOD, EAD, CNS), décompression, flottabilité. Précis, gratuits, sans inscription.',
-  alternates: { canonical: 'https://tools.orque.co' },
+const TOOL_SLUGS = ['/nitrox', '/decompression', '/flottabilite', '/volumes', '/devis']
+const TOOL_STATUSES: ('live' | 'soon')[] = ['live', 'soon', 'soon', 'soon', 'soon']
+const TOOL_ICON_CHARS = ['N\u2082', '\u23F1', '\u2696', '\uD83E\uDEE7', '\uD83D\uDCCB']
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>
+}): Promise<Metadata> {
+  const { locale } = await params
+  const dict = await getDictionary(locale as Locale)
+
+  return {
+    title: dict.metadata.home.title,
+    description: dict.metadata.home.description,
+    alternates: getAlternates(),
+  }
 }
 
-const jsonLd = [
-  {
-    '@context': 'https://schema.org',
-    '@type': 'WebSite',
-    name: 'Orque Tools',
-    url: 'https://tools.orque.co',
-    description:
-      'Calculateurs gratuits pour plongeurs sous-marins : Nitrox, décompression, flottabilité et plus.',
-    inLanguage: 'fr',
-  },
-  {
-    '@context': 'https://schema.org',
-    '@type': 'Organization',
-    name: 'Orque',
-    url: 'https://orque.co',
-    logo: 'https://tools.orque.co/logo-icon-orque-black.jpeg',
-  },
-]
+export default async function HomePage({
+  params,
+}: {
+  params: Promise<{ locale: string }>
+}) {
+  const { locale } = await params
+  const dict = await getDictionary(locale as Locale)
 
-const TOOLS = [
-  {
-    slug: '/nitrox',
-    status: 'live' as const,
-    icon: 'N\u2082',
-    tag: 'Nitrox',
-    title: 'Calculateur Nitrox',
-    description:
-      "MOD, EAD, meilleur mélange et toxicité CNS. Tout ce qu'il faut pour planifier une plongée enrichie.",
-    keywords: ['MOD', 'EAD', 'PPO\u2082', 'CNS', 'EANx'],
-  },
-  {
-    slug: '/decompression',
-    status: 'soon' as const,
-    icon: '\u23F1',
-    tag: 'Décompression',
-    title: 'Planner de décompression',
-    description: 'Paliers, temps de remontée, profil de plongée optimisé.',
-    keywords: ['paliers déco', 'GF', 'Bühlmann'],
-  },
-  {
-    slug: '/flottabilite',
-    status: 'soon' as const,
-    icon: '\u2696',
-    tag: 'Flottabilité',
-    title: 'Calculateur de flottabilité',
-    description: 'Lestage optimal selon ta combinaison, bouteille et équipement.',
-    keywords: ['lest', 'flottabilité', 'combinaison'],
-  },
-  {
-    slug: '/volumes',
-    status: 'soon' as const,
-    icon: '\uD83E\uDEE7',
-    tag: 'Volumes & Pression',
-    title: 'Convertisseur volumes & pressions',
-    description: 'Bar, PSI, litres, cu.ft — toutes les conversions plongée.',
-    keywords: ['bar', 'psi', 'volume bouteille'],
-  },
-  {
-    slug: '/devis',
-    status: 'soon' as const,
-    icon: '\uD83D\uDCCB',
-    tag: 'Devis',
-    title: 'Générateur de devis',
-    description:
-      'Créez et envoyez des devis pros en quelques secondes. Idéal en salon ou en centre pour établir un devis live avec les infos de votre structure.',
-    keywords: ['devis', 'salon plongée', 'centre', 'facturation'],
-  },
-]
+  const TOOLS = dict.home.tools.map((tool, i) => ({
+    slug: `/${locale}${TOOL_SLUGS[i]}`,
+    status: TOOL_STATUSES[i],
+    icon: TOOL_ICON_CHARS[i],
+    tag: tool.tag,
+    title: tool.title,
+    description: tool.description,
+    keywords: tool.keywords,
+  }))
 
-export default function HomePage() {
+  const jsonLd = [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'WebSite',
+      name: 'Orque Tools',
+      url: `${BASE_URL}/${locale}`,
+      description: dict.metadata.home.ogDescription,
+      inLanguage: locale,
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'Organization',
+      name: 'Orque',
+      url: 'https://orque.co',
+      logo: `${BASE_URL}/logo-icon-orque-black.jpeg`,
+    },
+  ]
+
   return (
     <>
       <script
@@ -96,20 +76,19 @@ export default function HomePage() {
           <div className="mx-auto max-w-3xl text-center">
             <div className="mb-6 inline-flex animate-fade-in items-center gap-2 rounded-full border border-gray-200 bg-gray-50 px-4 py-1.5 text-sm text-gray-500">
               <span className="h-1.5 w-1.5 rounded-full bg-green-400" />
-              Gratuit &middot; Sans inscription
+              {dict.home.badge}
             </div>
             <h1 className="animate-slide-up text-4xl font-extrabold tracking-tight text-black md:text-5xl">
-              Les outils du plongeur
+              {dict.home.heroTitle}
             </h1>
             <p className="mt-4 animate-slide-up-1 text-lg leading-relaxed text-gray-500">
-              Calculs Nitrox, planification déco, flottabilité — tout ce dont tu as
-              besoin sur le bateau ou en salle de gonflage.
+              {dict.home.heroSubtitle}
             </p>
             <Link
-              href="/nitrox"
+              href={`/${locale}/nitrox`}
               className="mt-8 inline-flex animate-slide-up-2 items-center gap-2 rounded-xl bg-primary px-6 py-3.5 text-sm font-semibold text-white shadow-[0_2px_12px_rgba(18,132,199,0.3)] transition-all duration-200 ease-out-expo hover:bg-primary-600 hover:shadow-[0_4px_20px_rgba(18,132,199,0.35)] active:scale-95"
             >
-              Essayer le calculateur Nitrox
+              {dict.home.heroCta}
             </Link>
           </div>
         </section>
@@ -117,17 +96,17 @@ export default function HomePage() {
         {/* ── Tool grid ───────────────────────────────────────────── */}
         <section className="mx-auto max-w-5xl px-4 pb-16 sm:px-6">
           <div className="mb-8 flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-black">Tous les outils</h2>
+            <h2 className="text-lg font-semibold text-black">{dict.home.allTools}</h2>
             <span className="rounded-full bg-gray-100 px-3 py-1 text-xs text-gray-400">
-              {TOOLS.filter((t) => t.status === 'live').length} disponible
+              {TOOLS.filter((t) => t.status === 'live').length} {dict.home.available}
               {TOOLS.filter((t) => t.status === 'soon').length > 0 &&
-                ` · ${TOOLS.filter((t) => t.status === 'soon').length} à venir`}
+                ` \u00b7 ${TOOLS.filter((t) => t.status === 'soon').length} ${dict.home.coming}`}
             </span>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
             {TOOLS.map((tool, i) => (
-              <ToolCard key={tool.slug} tool={tool} index={i} />
+              <ToolCard key={tool.slug} tool={tool} index={i} labels={dict.home} />
             ))}
           </div>
         </section>
@@ -136,7 +115,7 @@ export default function HomePage() {
         <section className="border-t border-gray-200 bg-gray-50 px-4 py-14 sm:px-6">
           <div className="mx-auto max-w-2xl text-center">
             <p className="text-xs font-medium uppercase tracking-widest text-gray-400">
-              Réservez vos plongées sur
+              {dict.home.asterSubtitle}
             </p>
             <Image
               src="/logo_black.png"
@@ -146,8 +125,7 @@ export default function HomePage() {
               className="mx-auto mt-4"
             />
             <p className="mt-3 text-gray-500">
-              La marketplace des expériences de plongée. Trouvez et réservez les
-              meilleures sorties avec des centres certifiés partout dans le monde.
+              {dict.home.asterDescription}
             </p>
             <a
               href="https://www.asterdive.com"
@@ -155,7 +133,7 @@ export default function HomePage() {
               rel="noopener noreferrer"
               className="mt-6 inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-6 py-3 text-sm font-medium text-gray-700 shadow-soft transition-all duration-200 ease-out-expo hover:border-primary hover:text-primary hover:shadow-lifted active:scale-95"
             >
-              Découvrir Aster
+              {dict.home.asterCta}
             </a>
           </div>
         </section>
@@ -173,7 +151,25 @@ const staggerClass = [
   'animate-slide-up-4',
 ]
 
-function ToolCard({ tool, index = 0 }: { tool: (typeof TOOLS)[number]; index?: number }) {
+type ToolType = {
+  slug: string
+  status: 'live' | 'soon'
+  icon: string
+  tag: string
+  title: string
+  description: string
+  keywords: string[]
+}
+
+function ToolCard({
+  tool,
+  index = 0,
+  labels,
+}: {
+  tool: ToolType
+  index?: number
+  labels: { openTool: string; soon: string }
+}) {
   const isLive = tool.status === 'live'
 
   const inner = (
@@ -186,9 +182,9 @@ function ToolCard({ tool, index = 0 }: { tool: (typeof TOOLS)[number]; index?: n
     >
       {/* Icon + badge */}
       <div className="mb-4 flex items-start justify-between">
-        {TOOL_ICONS[tool.slug] ? (
+        {TOOL_ICONS[tool.slug.replace(/^\/[a-z]{2}/, '')] ? (
           <Image
-            src={TOOL_ICONS[tool.slug]}
+            src={TOOL_ICONS[tool.slug.replace(/^\/[a-z]{2}/, '')]!}
             alt={tool.title}
             width={44}
             height={44}
@@ -206,7 +202,7 @@ function ToolCard({ tool, index = 0 }: { tool: (typeof TOOLS)[number]; index?: n
               : 'bg-gray-100 text-gray-400'
           }`}
         >
-          {isLive ? tool.tag : 'Bientôt'}
+          {isLive ? tool.tag : labels.soon}
         </span>
       </div>
 
@@ -237,7 +233,7 @@ function ToolCard({ tool, index = 0 }: { tool: (typeof TOOLS)[number]; index?: n
       {/* Hover label */}
       {isLive && (
         <div className="mt-4 flex items-center gap-1 text-xs font-medium text-primary opacity-0 transition-all duration-200 ease-out-expo translate-y-1 group-hover:opacity-100 group-hover:translate-y-0">
-          Ouvrir l&apos;outil
+          {labels.openTool}
         </div>
       )}
     </div>

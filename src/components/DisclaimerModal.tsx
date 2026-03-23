@@ -4,7 +4,18 @@ import { useState, useEffect } from 'react'
 
 const STORAGE_KEY = 'orque-tools-disclaimer-accepted'
 
-export default function DisclaimerModal() {
+export default function DisclaimerModal({
+  labels,
+}: {
+  labels: {
+    title: string
+    body1Bold: string
+    body1: string
+    body2: string
+    accept: string
+    sessionNote: string
+  }
+}) {
   const [visible, setVisible] = useState(false)
 
   useEffect(() => {
@@ -45,30 +56,26 @@ export default function DisclaimerModal() {
         </div>
 
         <h2 className="text-lg font-semibold text-black">
-          Outil à usage éducatif
+          {labels.title}
         </h2>
 
         <p className="mt-3 text-sm leading-relaxed text-gray-500">
-          Ce calculateur est fourni à titre <strong className="text-gray-700">informatif et éducatif uniquement</strong>.
-          Il ne remplace en aucun cas la formation d&apos;un instructeur certifié,
-          un ordinateur de plongée ou les tables de décompression officielles.
+          {labels.body1}
         </p>
 
         <p className="mt-3 text-sm leading-relaxed text-gray-500">
-          Orque ne saurait être tenu responsable de tout incident lié
-          à l&apos;utilisation de ces résultats. Vérifiez systématiquement
-          vos paramètres avant chaque plongée.
+          {labels.body2}
         </p>
 
         <button
           onClick={accept}
           className="mt-6 w-full rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-white shadow-[0_2px_12px_rgba(18,132,199,0.3)] transition-all duration-200 ease-out-expo hover:bg-primary-600 active:scale-[0.98]"
         >
-          J&apos;ai compris
+          {labels.accept}
         </button>
 
         <p className="mt-3 text-center text-[11px] text-gray-400">
-          Ce message s&apos;affiche une fois par session.
+          {labels.sessionNote}
         </p>
       </div>
     </div>

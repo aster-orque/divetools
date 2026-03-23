@@ -21,13 +21,6 @@ const NOAA_TABLE = [
   { ppo2: 1.6, time: 45 },
 ]
 
-const PPO2_HINTS: Record<number, string> = {
-  1.2: 'Très conservateur — profils longs ou technique',
-  1.4: 'Recommandé pour la plongée loisir',
-  1.5: 'Limite recommandée PADI / SSI',
-  1.6: 'Maximum absolu NOAA — ne pas maintenir',
-}
-
 const COMMON_MIXES = [21, 26, 28, 30, 32, 36, 40]
 
 // ── Calculs ───────────────────────────────────────────────────────────────────
@@ -274,8 +267,78 @@ function TabBar({
   )
 }
 
+// ── Labels type ──────────────────────────────────────────────────────────────
+type NitroxLabels = {
+  tabs: { calc: string; bestmix: string; cns: string }
+  calc: {
+    mixSection: string
+    fractionLabel: string
+    ppo2Section: string
+    ppo2Hints: Record<number, string>
+    modSection: string
+    modLabel: string
+    po2AtModLabel: string
+    modVerification: string
+    depthSection: string
+    depthLabel: string
+    resultsAtDepth: string
+    eadLabel: string
+    eadSub: string
+    eadSubAir: string
+    po2AtDepthLabel: string
+    dangerLabel: string
+    warningLabel: string
+    safeLabel: string
+    dangerMsg: string
+    warningMsg: string
+    safeMsg: string
+  }
+  bestmix: {
+    paramsSection: string
+    depthLabel: string
+    ppo2Label: string
+    resultSection: string
+    bestMixLabel: string
+    bestMixCapped: string
+    bestMixMin: string
+    bestMixOptimal: string
+    modLabel: string
+    modSub: string
+    adviceHigh: string
+    adviceMid: string
+    adviceLow: string
+    tableSection: string
+    tableMix: string
+    tableMod14: string
+    tableMod16: string
+    recommended: string
+  }
+  cns: {
+    paramsSection: string
+    fo2Label: string
+    depthLabel: string
+    durationLabel: string
+    initialLabel: string
+    resultSection: string
+    ppo2Label: string
+    noaaLimitLabel: string
+    noaaOutOfRange: string
+    noaaForPpo2: string
+    cnsTotalLabel: string
+    cnsRecommended: string
+    dangerPpo2Msg: string
+    dangerCnsMsg: string
+    warningCnsMsg: string
+    safeCnsMsg: string
+    noaaTableTitle: string
+    noaaTablePpo2: string
+    noaaTableLimit: string
+    noaaTableRate: string
+  }
+}
+
 // ── Main component ────────────────────────────────────────────────────────────
-export default function NitroxCalculator() {
+export default function NitroxCalculator({ labels }: { labels: NitroxLabels }) {
   const [tab, setTab] = useState<Tab>('calc')
   const [fo2, setFo2] = useState(32)
   const [ppo2, setPpo2] = useState(1.4)
@@ -313,9 +376,9 @@ export default function NitroxCalculator() {
     cnsTotal > 100 ? 'danger' : cnsTotal > 80 ? 'warning' : 'safe'
 
   const tabs: { id: Tab; label: string }[] = [
-    { id: 'calc', label: 'Calculateur' },
-    { id: 'bestmix', label: 'Meilleur mélange' },
-    { id: 'cns', label: 'Toxicité CNS' },
+    { id: 'calc', label: labels.tabs.calc },
+    { id: 'bestmix', label: labels.tabs.bestmix },
+    { id: 'cns', label: labels.tabs.cns },
   ]
 
   return (
@@ -328,10 +391,10 @@ export default function NitroxCalculator() {
           {/* Mix */}
           <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-soft">
             <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-gray-400">
-              Mélange (FO&#8322;)
+              {labels.calc.mixSection}
             </p>
             <SliderRow
-              label="Fraction O\u2082"
+              label={labels.calc.fractionLabel}
               id="fo2"
               min={21}
               max={40}
@@ -360,7 +423,7 @@ export default function NitroxCalculator() {
           {/* PPO2 max */}
           <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-soft">
             <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-gray-400">
-              PPO&#8322; maximale
+              {labels.calc.ppo2Section}
             </p>
             <div className="grid grid-cols-4 gap-2">
               {[1.2, 1.4, 1.5, 1.6].map((v) => (
@@ -379,26 +442,26 @@ export default function NitroxCalculator() {
                 </button>
               ))}
             </div>
-            <p className="mt-3 text-xs text-gray-400">{PPO2_HINTS[ppo2]}</p>
+            <p className="mt-3 text-xs text-gray-400">{labels.calc.ppo2Hints[ppo2]}</p>
           </div>
 
           {/* MOD results */}
           <div>
             <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-gray-400">
-              Profondeur maximale
+              {labels.calc.modSection}
             </p>
             <div className="grid grid-cols-2 gap-3">
               <StatCard
-                label="MOD"
+                label={labels.calc.modLabel}
                 value={mod.toFixed(1)}
                 unit="m"
-                sub={`Formule : (${ppo2} / ${fo2Frac.toFixed(2)} − 1) × 10`}
+                sub={`Formule : (${ppo2} / ${fo2Frac.toFixed(2)} \u2212 1) \u00d7 10`}
               />
               <StatCard
-                label="PO\u2082 à la MOD"
+                label={labels.calc.po2AtModLabel}
                 value={po2AtMod.toFixed(2)}
                 unit="bar"
-                sub="Vérification : FO\u2082 × (MOD/10 + 1)"
+                sub={labels.calc.modVerification}
               />
             </div>
             {/* Visual bar */}
@@ -422,10 +485,10 @@ export default function NitroxCalculator() {
           {/* Depth */}
           <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-soft">
             <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-gray-400">
-              Profondeur prévue
+              {labels.calc.depthSection}
             </p>
             <SliderRow
-              label="Profondeur"
+              label={labels.calc.depthLabel}
               id="depth"
               min={5}
               max={60}
@@ -439,30 +502,30 @@ export default function NitroxCalculator() {
           {/* EAD + PO2 at depth */}
           <div>
             <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-gray-400">
-              Résultats à {depth} m
+              {labels.calc.resultsAtDepth.replace('{depth}', String(depth))}
             </p>
             <div className="grid grid-cols-2 gap-3">
               <StatCard
-                label="EAD (profondeur air équiv.)"
+                label={labels.calc.eadLabel}
                 value={ead.toFixed(1)}
                 unit="m"
                 sub={
                   parseFloat(eadSaving) > 0
-                    ? `−${eadSaving} m vs air`
-                    : "Équivalent à l'air"
+                    ? labels.calc.eadSub.replace('{saving}', eadSaving)
+                    : labels.calc.eadSubAir
                 }
               />
               <StatCard
-                label="PO\u2082 à cette profondeur"
+                label={labels.calc.po2AtDepthLabel}
                 value={po2AtDepth.toFixed(2)}
                 unit="bar"
                 alert={depthAlertLevel}
                 sub={
                   depthAlertLevel === 'danger'
-                    ? 'DANGER — dépasse 1.6 bar'
+                    ? labels.calc.dangerLabel
                     : depthAlertLevel === 'warning'
-                    ? 'Attention — au-delà de la PPO\u2082 cible'
-                    : 'Dans les limites'
+                    ? labels.calc.warningLabel
+                    : labels.calc.safeLabel
                 }
               />
             </div>
@@ -473,19 +536,18 @@ export default function NitroxCalculator() {
             >
               {depth > mod ? (
                 <span className="text-red-600">
-                  La profondeur {depth} m dépasse la MOD de {mod.toFixed(1)} m.
-                  PPO&#8322; = {po2AtDepth.toFixed(2)} bar —{' '}
-                  <strong>DANGEREUX</strong>.
+                  {labels.calc.dangerMsg
+                    .replace('{depth}', String(depth))
+                    .replace('{mod}', mod.toFixed(1))
+                    .replace('{po2}', po2AtDepth.toFixed(2))}
                 </span>
               ) : depth > mod * 0.9 ? (
                 <span className="text-amber-600">
-                  Proche de la MOD — il reste {(mod - depth).toFixed(1)} m de
-                  marge. Restez vigilant.
+                  {labels.calc.warningMsg.replace('{margin}', (mod - depth).toFixed(1))}
                 </span>
               ) : (
                 <span className="text-green-600">
-                  Profondeur sûre — {(mod - depth).toFixed(1)} m de marge
-                  jusqu&apos;à la MOD.
+                  {labels.calc.safeMsg.replace('{margin}', (mod - depth).toFixed(1))}
                 </span>
               )}
             </div>
@@ -498,11 +560,11 @@ export default function NitroxCalculator() {
         <div className="space-y-6 animate-slide-up">
           <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-soft">
             <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-gray-400">
-              Paramètres
+              {labels.bestmix.paramsSection}
             </p>
             <div className="grid grid-cols-2 gap-4">
               <NumInput
-                label="Profondeur cible"
+                label={labels.bestmix.depthLabel}
                 value={targetDepth}
                 min={5}
                 max={60}
@@ -511,7 +573,7 @@ export default function NitroxCalculator() {
                 onChange={setTargetDepth}
               />
               <NumInput
-                label="PPO\u2082 cible"
+                label={labels.bestmix.ppo2Label}
                 value={targetPpo2}
                 min={1.0}
                 max={1.6}
@@ -524,55 +586,59 @@ export default function NitroxCalculator() {
 
           <div>
             <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-gray-400">
-              Résultat
+              {labels.bestmix.resultSection}
             </p>
             <div className="grid grid-cols-2 gap-3">
               <StatCard
-                label="Meilleur mélange (FO\u2082)"
+                label={labels.bestmix.bestMixLabel}
                 value={bestFo2.toFixed(1)}
                 unit="%"
                 sub={
                   rawBestFo2 > 40
-                    ? 'Plafonné à EANx40'
+                    ? labels.bestmix.bestMixCapped
                     : rawBestFo2 < 21
-                    ? 'Minimum : air (21%)'
-                    : `EANx${Math.round(bestFo2)} — optimal pour ${targetDepth} m`
+                    ? labels.bestmix.bestMixMin
+                    : labels.bestmix.bestMixOptimal
+                        .replace('{mix}', String(Math.round(bestFo2)))
+                        .replace('{depth}', String(targetDepth))
                 }
               />
               <StatCard
-                label="MOD de ce mélange"
+                label={labels.bestmix.modLabel}
                 value={bestMod.toFixed(1)}
                 unit="m"
-                sub={`Avec PPO\u2082 max ${targetPpo2} bar`}
+                sub={labels.bestmix.modSub.replace('{ppo2}', String(targetPpo2))}
               />
             </div>
 
             <div className="mt-3 rounded-2xl border border-gray-200 bg-gray-50 p-5 text-sm text-gray-500">
               {bestFo2 >= 36
-                ? `EANx${Math.round(bestFo2)} est un mélange très enrichi. Bénéfices décompression optimaux pour ${targetDepth} m. Vérifiez la compatibilité O\u2082 de votre équipement.`
+                ? labels.bestmix.adviceHigh
+                    .replace('{mix}', String(Math.round(bestFo2)))
+                    .replace('{depth}', String(targetDepth))
                 : bestFo2 >= 30
-                ? `EANx${Math.round(bestFo2)} — bon équilibre enrichissement / disponibilité. Standard pour la plongée tropicale entre 25 et 35 m.`
-                : `EANx${Math.round(bestFo2)} — enrichissement modéré. Pour profiter pleinement du nitrox, envisagez un mélange plus riche si la profondeur le permet.`}
+                ? labels.bestmix.adviceMid.replace('{mix}', String(Math.round(bestFo2)))
+                : labels.bestmix.adviceLow.replace('{mix}', String(Math.round(bestFo2)))}
             </div>
           </div>
 
           {/* Reference table */}
           <div>
             <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-gray-400">
-              Tableau de référence — MOD par mélange
+              {labels.bestmix.tableSection}
             </p>
             <div className="overflow-hidden rounded-2xl border border-gray-200 shadow-soft">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-gray-200 bg-gray-50">
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-400">
-                      Mélange
+                      {labels.bestmix.tableMix}
                     </th>
                     <th className="px-4 py-3 text-right text-xs font-medium text-gray-400">
-                      MOD 1.4 bar
+                      {labels.bestmix.tableMod14}
                     </th>
                     <th className="px-4 py-3 text-right text-xs font-medium text-gray-400">
-                      MOD 1.6 bar
+                      {labels.bestmix.tableMod16}
                     </th>
                   </tr>
                 </thead>
@@ -597,7 +663,7 @@ export default function NitroxCalculator() {
                           EANx{mix}
                           {isHighlighted && (
                             <span className="ml-2 text-xs font-normal text-primary opacity-60">
-                              &larr; recommandé
+                              &larr; {labels.bestmix.recommended}
                             </span>
                           )}
                         </td>
@@ -622,11 +688,11 @@ export default function NitroxCalculator() {
         <div className="space-y-6 animate-slide-up">
           <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-soft">
             <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-gray-400">
-              Paramètres de la plongée
+              {labels.cns.paramsSection}
             </p>
             <div className="grid grid-cols-2 gap-4">
               <NumInput
-                label="FO\u2082 du mélange"
+                label={labels.cns.fo2Label}
                 value={cnsFo2}
                 min={21}
                 max={40}
@@ -635,7 +701,7 @@ export default function NitroxCalculator() {
                 onChange={setCnsFo2}
               />
               <NumInput
-                label="Profondeur"
+                label={labels.cns.depthLabel}
                 value={cnsDepth}
                 min={5}
                 max={60}
@@ -644,7 +710,7 @@ export default function NitroxCalculator() {
                 onChange={setCnsDepth}
               />
               <NumInput
-                label="Durée de la plongée"
+                label={labels.cns.durationLabel}
                 value={cnsTime}
                 min={1}
                 max={240}
@@ -653,7 +719,7 @@ export default function NitroxCalculator() {
                 onChange={setCnsTime}
               />
               <NumInput
-                label="% CNS initial"
+                label={labels.cns.initialLabel}
                 value={cnsInitial}
                 min={0}
                 max={100}
@@ -666,23 +732,23 @@ export default function NitroxCalculator() {
 
           <div>
             <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-gray-400">
-              Résultats
+              {labels.cns.resultSection}
             </p>
             <div className="grid grid-cols-2 gap-3">
               <StatCard
-                label="PPO\u2082 calculée"
+                label={labels.cns.ppo2Label}
                 value={cnsPpo2 > 1.6 ? '> 1.6' : cnsPpo2.toFixed(2)}
                 unit="bar"
                 alert={getAlertLevel(cnsPpo2)}
               />
               <StatCard
-                label="Limite NOAA à cette PPO\u2082"
-                value={cnsPpo2 > 1.6 ? '—' : String(cnsLimit)}
+                label={labels.cns.noaaLimitLabel}
+                value={cnsPpo2 > 1.6 ? '\u2014' : String(cnsLimit)}
                 unit={cnsPpo2 > 1.6 ? '' : 'min'}
                 sub={
                   cnsPpo2 > 1.6
-                    ? 'Hors table NOAA'
-                    : `Pour PPO\u2082 = ${(Math.round(cnsPpo2 * 10) / 10).toFixed(1)} bar`
+                    ? labels.cns.noaaOutOfRange
+                    : labels.cns.noaaForPpo2.replace('{ppo2}', (Math.round(cnsPpo2 * 10) / 10).toFixed(1))
                 }
               />
             </div>
@@ -693,7 +759,7 @@ export default function NitroxCalculator() {
             >
               <div className="mb-3 flex items-baseline justify-between">
                 <p className="text-xs font-medium text-gray-400">
-                  CNS total après cette plongée
+                  {labels.cns.cnsTotalLabel}
                 </p>
                 <span
                   key={cnsTotal.toFixed(1)}
@@ -701,7 +767,7 @@ export default function NitroxCalculator() {
                     alertText[cnsAlertLevel] || 'text-black'
                   }`}
                 >
-                  {cnsPpo2 > 1.6 ? '—' : `${cnsTotal.toFixed(1)} %`}
+                  {cnsPpo2 > 1.6 ? '\u2014' : `${cnsTotal.toFixed(1)} %`}
                 </span>
               </div>
               <div className="h-3 w-full overflow-hidden rounded-full bg-gray-200">
@@ -720,7 +786,7 @@ export default function NitroxCalculator() {
               </div>
               <div className="mt-2 flex justify-between text-xs text-gray-400">
                 <span>0 %</span>
-                <span>80 % recommandé / jour</span>
+                <span>{labels.cns.cnsRecommended}</span>
                 <span>100 %</span>
               </div>
             </div>
@@ -731,25 +797,21 @@ export default function NitroxCalculator() {
             >
               {cnsPpo2 > 1.6 ? (
                 <span className="text-red-600">
-                  PPO&#8322; dépasse 1.6 bar — hors limites NOAA. Cette profondeur
-                  n&apos;est pas plongeable en nitrox avec ce mélange.
+                  {labels.cns.dangerPpo2Msg}
                 </span>
               ) : cnsTotal > 100 ? (
                 <span className="text-red-600">
-                  CNS total de {cnsTotal.toFixed(1)} % — dépasse 100 %. Risque de
-                  convulsions O&#8322;. Réduisez la durée ou la profondeur.
+                  {labels.cns.dangerCnsMsg.replace('{cns}', cnsTotal.toFixed(1))}
                 </span>
               ) : cnsTotal > 80 ? (
                 <span className="text-amber-600">
-                  CNS de {cnsTotal.toFixed(1)} % — proche de la limite journalière
-                  recommandée (80 %). Évitez une plongée supplémentaire sans
-                  récupération.
+                  {labels.cns.warningCnsMsg.replace('{cns}', cnsTotal.toFixed(1))}
                 </span>
               ) : (
                 <span className="text-green-600">
-                  CNS de {cnsTotal.toFixed(1)} % — dans les limites acceptables.
-                  Marge restante : {(80 - cnsTotal).toFixed(1)} % avant le seuil de
-                  80 %.
+                  {labels.cns.safeCnsMsg
+                    .replace('{cns}', cnsTotal.toFixed(1))
+                    .replace('{margin}', (80 - cnsTotal).toFixed(1))}
                 </span>
               )}
             </div>
@@ -757,20 +819,20 @@ export default function NitroxCalculator() {
             {/* NOAA mini table */}
             <div className="mt-4">
               <p className="mb-2 text-xs text-gray-400">
-                Table NOAA — limites d&apos;exposition
+                {labels.cns.noaaTableTitle}
               </p>
               <div className="overflow-hidden rounded-2xl border border-gray-200 shadow-soft">
                 <table className="w-full text-xs">
                   <thead>
                     <tr className="border-b border-gray-200 bg-gray-50">
                       <th className="px-3 py-2.5 text-left font-medium text-gray-400">
-                        PPO&#8322;
+                        {labels.cns.noaaTablePpo2}
                       </th>
                       <th className="px-3 py-2.5 text-right font-medium text-gray-400">
-                        Limite unique
+                        {labels.cns.noaaTableLimit}
                       </th>
                       <th className="px-3 py-2.5 text-right font-medium text-gray-400">
-                        % CNS / min
+                        {labels.cns.noaaTableRate}
                       </th>
                     </tr>
                   </thead>
