@@ -70,6 +70,16 @@ const TOOLS = [
     description: 'Bar, PSI, litres, cu.ft — toutes les conversions plongée.',
     keywords: ['bar', 'psi', 'volume bouteille'],
   },
+  {
+    slug: '/devis',
+    status: 'soon' as const,
+    icon: '\uD83D\uDCCB',
+    tag: 'Devis',
+    title: 'Générateur de devis',
+    description:
+      'Créez et envoyez des devis pros en quelques secondes. Idéal en salon ou en centre pour établir un devis live avec les infos de votre structure.',
+    keywords: ['devis', 'salon plongée', 'centre', 'facturation'],
+  },
 ]
 
 export default function HomePage() {
@@ -84,20 +94,20 @@ export default function HomePage() {
         {/* ── Hero ─────────────────────────────────────────────────── */}
         <section className="px-4 py-16 sm:px-6 md:py-24">
           <div className="mx-auto max-w-3xl text-center">
-            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-gray-200 bg-gray-50 px-4 py-1.5 text-sm text-gray-500">
+            <div className="mb-6 inline-flex animate-fade-in items-center gap-2 rounded-full border border-gray-200 bg-gray-50 px-4 py-1.5 text-sm text-gray-500">
               <span className="h-1.5 w-1.5 rounded-full bg-green-400" />
               Gratuit &middot; Sans inscription
             </div>
-            <h1 className="text-4xl font-extrabold tracking-tight text-black md:text-5xl">
+            <h1 className="animate-slide-up text-4xl font-extrabold tracking-tight text-black md:text-5xl">
               Les outils du plongeur
             </h1>
-            <p className="mt-4 text-lg leading-relaxed text-gray-500">
+            <p className="mt-4 animate-slide-up-1 text-lg leading-relaxed text-gray-500">
               Calculs Nitrox, planification déco, flottabilité — tout ce dont tu as
               besoin sur le bateau ou en salle de gonflage.
             </p>
             <Link
               href="/nitrox"
-              className="mt-8 inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-white transition-all hover:bg-primary-600 active:scale-95"
+              className="mt-8 inline-flex animate-slide-up-2 items-center gap-2 rounded-xl bg-primary px-6 py-3.5 text-sm font-semibold text-white shadow-[0_2px_12px_rgba(18,132,199,0.3)] transition-all duration-200 ease-out-expo hover:bg-primary-600 hover:shadow-[0_4px_20px_rgba(18,132,199,0.35)] active:scale-95"
             >
               Essayer le calculateur Nitrox
             </Link>
@@ -116,8 +126,8 @@ export default function HomePage() {
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
-            {TOOLS.map((tool) => (
-              <ToolCard key={tool.slug} tool={tool} />
+            {TOOLS.map((tool, i) => (
+              <ToolCard key={tool.slug} tool={tool} index={i} />
             ))}
           </div>
         </section>
@@ -143,7 +153,7 @@ export default function HomePage() {
               href="https://www.asterdive.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-6 inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-6 py-3 text-sm font-medium text-gray-700 transition-all hover:border-primary hover:text-primary"
+              className="mt-6 inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-6 py-3 text-sm font-medium text-gray-700 shadow-soft transition-all duration-200 ease-out-expo hover:border-primary hover:text-primary hover:shadow-lifted active:scale-95"
             >
               Découvrir Aster
             </a>
@@ -155,14 +165,22 @@ export default function HomePage() {
 }
 
 /* ── Tool card ─────────────────────────────────────────────────────── */
-function ToolCard({ tool }: { tool: (typeof TOOLS)[number] }) {
+const staggerClass = [
+  'animate-slide-up-1',
+  'animate-slide-up-2',
+  'animate-slide-up-3',
+  'animate-slide-up-4',
+  'animate-slide-up-4',
+]
+
+function ToolCard({ tool, index = 0 }: { tool: (typeof TOOLS)[number]; index?: number }) {
   const isLive = tool.status === 'live'
 
   const inner = (
     <div
-      className={`group relative flex h-full flex-col rounded-xl border bg-white p-6 transition-all duration-200 ${
+      className={`group relative flex h-full flex-col rounded-2xl border bg-white p-6 transition-lift ${staggerClass[index] || ''} ${
         isLive
-          ? 'cursor-pointer border-gray-200 shadow-sm hover:shadow-md hover:border-gray-300'
+          ? 'cursor-pointer border-gray-200 shadow-soft hover-lift hover:shadow-float hover:border-gray-300'
           : 'cursor-default border-gray-100 opacity-50'
       }`}
     >
@@ -209,16 +227,16 @@ function ToolCard({ tool }: { tool: (typeof TOOLS)[number] }) {
         {tool.keywords.map((kw) => (
           <span
             key={kw}
-            className="rounded-md bg-gray-100 px-2 py-0.5 text-xs text-gray-400"
+            className="rounded-lg bg-gray-100 px-2 py-0.5 text-xs text-gray-400"
           >
             {kw}
           </span>
         ))}
       </div>
 
-      {/* Arrow */}
+      {/* Hover label */}
       {isLive && (
-        <div className="mt-4 flex items-center gap-1 text-xs font-medium text-primary opacity-0 transition-opacity group-hover:opacity-100">
+        <div className="mt-4 flex items-center gap-1 text-xs font-medium text-primary opacity-0 transition-all duration-200 ease-out-expo translate-y-1 group-hover:opacity-100 group-hover:translate-y-0">
           Ouvrir l&apos;outil
         </div>
       )}

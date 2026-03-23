@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect, useLayoutEffect } from 'react'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 type Tab = 'calc' | 'bestmix' | 'cns'
@@ -57,9 +57,9 @@ function getAlertLevel(po2: number): AlertLevel {
 
 // ── Style helpers ─────────────────────────────────────────────────────────────
 const alertCard: Record<AlertLevel, string> = {
-  safe: 'border-gray-200 bg-white',
-  warning: 'border-amber-200 bg-amber-50',
-  danger: 'border-red-200 bg-red-50',
+  safe: 'border-gray-200 bg-white shadow-soft',
+  warning: 'border-amber-200 bg-amber-50 shadow-soft',
+  danger: 'border-red-200 bg-red-50 shadow-soft',
 }
 
 const alertText: Record<AlertLevel, string> = {
@@ -89,11 +89,14 @@ function StatCard({
   alert?: AlertLevel
 }) {
   return (
-    <div className={`rounded-xl border p-4 transition-colors ${alertCard[alert]}`}>
-      <p className="mb-1 text-xs font-medium text-gray-400">{label}</p>
-      <div className="flex items-baseline gap-1">
+    <div
+      className={`rounded-2xl border p-5 transition-all duration-300 ease-out-expo ${alertCard[alert]}`}
+    >
+      <p className="mb-1.5 text-xs font-medium text-gray-400">{label}</p>
+      <div className="flex items-baseline gap-1.5">
         <span
-          className={`font-mono text-3xl font-bold leading-none ${
+          key={value}
+          className={`font-mono text-3xl font-bold leading-none animate-number-pop ${
             alert !== 'safe' ? alertText[alert] : 'text-black'
           }`}
         >
@@ -103,7 +106,7 @@ function StatCard({
       </div>
       {sub && (
         <p
-          className={`mt-1.5 text-xs leading-relaxed ${
+          className={`mt-2 text-xs leading-relaxed ${
             alert !== 'safe' ? alertText[alert] : 'text-gray-400'
           }`}
         >
@@ -133,27 +136,36 @@ function SliderRow({
   unit: string
   onChange: (v: number) => void
 }) {
+  const pct = ((value - min) / (max - min)) * 100
   return (
-    <div className="space-y-2">
+    <div className="space-y-2.5">
       <div className="flex items-center justify-between text-sm">
         <label htmlFor={id} className="font-medium text-gray-700">
           {label}
         </label>
-        <span className="font-mono font-semibold text-black tabular-nums">
+        <span
+          key={value}
+          className="font-mono font-semibold text-black tabular-nums animate-number-pop"
+        >
           {value}
           {unit}
         </span>
       </div>
-      <input
-        type="range"
-        id={id}
-        min={min}
-        max={max}
-        step={step}
-        value={value}
-        onChange={(e) => onChange(parseFloat(e.target.value))}
-        className="w-full"
-      />
+      <div className="relative">
+        <input
+          type="range"
+          id={id}
+          min={min}
+          max={max}
+          step={step}
+          value={value}
+          onChange={(e) => onChange(parseFloat(e.target.value))}
+          className="w-full"
+          style={{
+            background: `linear-gradient(to right, #1284c7 0%, #1284c7 ${pct}%, #e5e7eb ${pct}%, #e5e7eb 100%)`,
+          }}
+        />
+      </div>
       <div className="flex justify-between text-xs text-gray-300">
         <span>
           {min}
@@ -188,7 +200,7 @@ function NumInput({
   return (
     <div className="space-y-1.5">
       <label className="text-xs font-medium text-gray-500">{label}</label>
-      <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2.5 transition-colors focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/20">
+      <div className="flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3.5 py-3 shadow-soft transition-all duration-200 ease-out-expo focus-within:border-primary focus-within:shadow-[0_0_0_3px_rgba(18,132,199,0.1)]">
         <input
           type="number"
           min={min}
@@ -200,6 +212,64 @@ function NumInput({
         />
         <span className="shrink-0 text-xs text-gray-400">{unit}</span>
       </div>
+    </div>
+  )
+}
+
+// ── Animated tab bar ──────────────────────────────────────────────────────────
+function TabBar({
+  tabs,
+  active,
+  onChange,
+}: {
+  tabs: { id: Tab; label: string }[]
+  active: Tab
+  onChange: (id: Tab) => void
+}) {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [pillStyle, setPillStyle] = useState({ left: 0, width: 0 })
+
+  const updatePill = () => {
+    if (!containerRef.current) return
+    const activeBtn = containerRef.current.querySelector(
+      `[data-tab="${active}"]`
+    ) as HTMLElement | null
+    if (activeBtn) {
+      setPillStyle({
+        left: activeBtn.offsetLeft,
+        width: activeBtn.offsetWidth,
+      })
+    }
+  }
+
+  useLayoutEffect(updatePill, [active])
+  useEffect(() => {
+    window.addEventListener('resize', updatePill)
+    return () => window.removeEventListener('resize', updatePill)
+  }, [active])
+
+  return (
+    <div
+      ref={containerRef}
+      className="relative mb-6 flex gap-1 rounded-2xl border border-gray-200 bg-gray-50 p-1.5"
+    >
+      {/* Animated pill */}
+      <div
+        className="absolute top-1.5 h-[calc(100%-12px)] rounded-xl bg-white shadow-lifted transition-all duration-300 ease-out-expo"
+        style={{ left: pillStyle.left, width: pillStyle.width }}
+      />
+      {tabs.map((t) => (
+        <button
+          key={t.id}
+          data-tab={t.id}
+          onClick={() => onChange(t.id)}
+          className={`relative z-10 flex-1 rounded-xl px-4 py-2.5 text-sm font-medium transition-colors duration-200 ${
+            active === t.id ? 'text-black' : 'text-gray-400 hover:text-gray-600'
+          }`}
+        >
+          {t.label}
+        </button>
+      ))}
     </div>
   )
 }
@@ -250,28 +320,13 @@ export default function NitroxCalculator() {
 
   return (
     <div className="animate-fade-in">
-      {/* ── Tabs ────────────────────────────────────────────────── */}
-      <div className="mb-6 flex gap-1 rounded-xl border border-gray-200 bg-gray-50 p-1">
-        {tabs.map((t) => (
-          <button
-            key={t.id}
-            onClick={() => setTab(t.id)}
-            className={`flex-1 rounded-lg px-4 py-2 text-sm font-medium transition-all ${
-              tab === t.id
-                ? 'bg-white text-black shadow-sm'
-                : 'text-gray-400 hover:text-gray-600'
-            }`}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
+      <TabBar tabs={tabs} active={tab} onChange={setTab} />
 
       {/* ── TAB 1 — Main calculator ────────────────────────────── */}
       {tab === 'calc' && (
         <div className="space-y-6 animate-slide-up">
           {/* Mix */}
-          <div className="rounded-xl border border-gray-200 bg-white p-5">
+          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-soft">
             <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-gray-400">
               Mélange (FO&#8322;)
             </p>
@@ -285,15 +340,15 @@ export default function NitroxCalculator() {
               unit="%"
               onChange={setFo2}
             />
-            <div className="mt-3 flex flex-wrap gap-2">
+            <div className="mt-4 flex flex-wrap gap-2">
               {[21, 28, 32, 36, 40].map((v) => (
                 <button
                   key={v}
                   onClick={() => setFo2(v)}
-                  className={`rounded-lg px-3 py-1.5 font-mono text-xs font-medium transition-all ${
+                  className={`rounded-xl px-3.5 py-2 font-mono text-xs font-medium transition-all duration-200 ease-out-expo active:scale-95 ${
                     fo2 === v
-                      ? 'bg-primary text-white'
-                      : 'border border-gray-200 bg-white text-gray-500 hover:border-primary hover:text-primary'
+                      ? 'bg-primary text-white shadow-[0_2px_8px_rgba(18,132,199,0.3)]'
+                      : 'border border-gray-200 bg-white text-gray-500 shadow-soft hover:border-gray-300 hover:shadow-lifted hover:text-gray-700'
                   }`}
                 >
                   EANx{v}
@@ -303,7 +358,7 @@ export default function NitroxCalculator() {
           </div>
 
           {/* PPO2 max */}
-          <div className="rounded-xl border border-gray-200 bg-white p-5">
+          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-soft">
             <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-gray-400">
               PPO&#8322; maximale
             </p>
@@ -312,12 +367,12 @@ export default function NitroxCalculator() {
                 <button
                   key={v}
                   onClick={() => setPpo2(v)}
-                  className={`rounded-xl border py-2.5 font-mono text-sm font-semibold transition-all ${
+                  className={`rounded-xl border py-3 font-mono text-sm font-semibold transition-all duration-200 ease-out-expo active:scale-95 ${
                     ppo2 === v
                       ? v >= 1.6
-                        ? 'border-red-300 bg-red-50 text-red-600'
-                        : 'border-primary bg-primary-50 text-primary'
-                      : 'border-gray-200 bg-white text-gray-400 hover:border-gray-300 hover:text-gray-600'
+                        ? 'border-red-300 bg-red-50 text-red-600 shadow-[0_2px_8px_rgba(239,68,68,0.15)]'
+                        : 'border-primary bg-primary-50 text-primary shadow-[0_2px_8px_rgba(18,132,199,0.15)]'
+                      : 'border-gray-200 bg-white text-gray-400 shadow-soft hover:border-gray-300 hover:text-gray-600 hover:shadow-lifted'
                   }`}
                 >
                   {v}
@@ -347,15 +402,17 @@ export default function NitroxCalculator() {
               />
             </div>
             {/* Visual bar */}
-            <div className="mt-3 rounded-xl border border-gray-200 bg-gray-50 p-3">
-              <div className="mb-1 flex justify-between text-xs text-gray-400">
+            <div className="mt-3 rounded-2xl border border-gray-200 bg-gray-50 p-4">
+              <div className="mb-2 flex justify-between text-xs text-gray-400">
                 <span>0 m</span>
-                <span>MOD : {mod.toFixed(1)} m</span>
+                <span className="font-medium text-gray-600">
+                  MOD : {mod.toFixed(1)} m
+                </span>
                 <span>60 m</span>
               </div>
-              <div className="relative h-2 w-full overflow-hidden rounded-full bg-gray-200">
+              <div className="relative h-2.5 w-full overflow-hidden rounded-full bg-gray-200">
                 <div
-                  className="h-full rounded-full bg-primary transition-all duration-300"
+                  className="h-full rounded-full bg-gradient-to-r from-primary-400 to-primary transition-all duration-500 ease-out-expo"
                   style={{ width: `${Math.min((mod / 60) * 100, 100)}%` }}
                 />
               </div>
@@ -363,7 +420,7 @@ export default function NitroxCalculator() {
           </div>
 
           {/* Depth */}
-          <div className="rounded-xl border border-gray-200 bg-white p-5">
+          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-soft">
             <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-gray-400">
               Profondeur prévue
             </p>
@@ -412,7 +469,7 @@ export default function NitroxCalculator() {
 
             {/* Status banner */}
             <div
-              className={`mt-3 rounded-xl border p-4 text-sm leading-relaxed ${alertBanner[depthAlertLevel]}`}
+              className={`mt-3 rounded-2xl border p-4 text-sm leading-relaxed transition-colors duration-300 ${alertBanner[depthAlertLevel]}`}
             >
               {depth > mod ? (
                 <span className="text-red-600">
@@ -439,7 +496,7 @@ export default function NitroxCalculator() {
       {/* ── TAB 2 — Best mix ───────────────────────────────────── */}
       {tab === 'bestmix' && (
         <div className="space-y-6 animate-slide-up">
-          <div className="rounded-xl border border-gray-200 bg-white p-5">
+          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-soft">
             <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-gray-400">
               Paramètres
             </p>
@@ -490,7 +547,7 @@ export default function NitroxCalculator() {
               />
             </div>
 
-            <div className="mt-3 rounded-xl border border-gray-200 bg-gray-50 p-4 text-sm text-gray-500">
+            <div className="mt-3 rounded-2xl border border-gray-200 bg-gray-50 p-5 text-sm text-gray-500">
               {bestFo2 >= 36
                 ? `EANx${Math.round(bestFo2)} est un mélange très enrichi. Bénéfices décompression optimaux pour ${targetDepth} m. Vérifiez la compatibilité O\u2082 de votre équipement.`
                 : bestFo2 >= 30
@@ -504,17 +561,17 @@ export default function NitroxCalculator() {
             <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-gray-400">
               Tableau de référence — MOD par mélange
             </p>
-            <div className="overflow-hidden rounded-xl border border-gray-200">
+            <div className="overflow-hidden rounded-2xl border border-gray-200 shadow-soft">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-gray-200 bg-gray-50">
-                    <th className="px-4 py-2.5 text-left text-xs font-medium text-gray-400">
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-400">
                       Mélange
                     </th>
-                    <th className="px-4 py-2.5 text-right text-xs font-medium text-gray-400">
+                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-400">
                       MOD 1.4 bar
                     </th>
-                    <th className="px-4 py-2.5 text-right text-xs font-medium text-gray-400">
+                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-400">
                       MOD 1.6 bar
                     </th>
                   </tr>
@@ -528,12 +585,12 @@ export default function NitroxCalculator() {
                     return (
                       <tr
                         key={mix}
-                        className={`border-b border-gray-100 last:border-0 transition-colors ${
+                        className={`border-b border-gray-100 last:border-0 transition-colors duration-150 ${
                           isHighlighted ? 'bg-primary-50' : 'hover:bg-gray-50'
                         }`}
                       >
                         <td
-                          className={`px-4 py-2.5 font-mono font-medium ${
+                          className={`px-4 py-3 font-mono font-medium ${
                             isHighlighted ? 'text-primary' : 'text-gray-700'
                           }`}
                         >
@@ -544,10 +601,10 @@ export default function NitroxCalculator() {
                             </span>
                           )}
                         </td>
-                        <td className="px-4 py-2.5 text-right font-mono text-gray-700">
+                        <td className="px-4 py-3 text-right font-mono text-gray-700">
                           {m14} m
                         </td>
-                        <td className="px-4 py-2.5 text-right font-mono text-gray-400">
+                        <td className="px-4 py-3 text-right font-mono text-gray-400">
                           {m16} m
                         </td>
                       </tr>
@@ -563,7 +620,7 @@ export default function NitroxCalculator() {
       {/* ── TAB 3 — CNS toxicity ───────────────────────────────── */}
       {tab === 'cns' && (
         <div className="space-y-6 animate-slide-up">
-          <div className="rounded-xl border border-gray-200 bg-white p-5">
+          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-soft">
             <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-gray-400">
               Paramètres de la plongée
             </p>
@@ -632,23 +689,24 @@ export default function NitroxCalculator() {
 
             {/* CNS bar */}
             <div
-              className={`mt-3 rounded-xl border p-4 ${alertCard[cnsAlertLevel]}`}
+              className={`mt-3 rounded-2xl border p-5 transition-colors duration-300 ${alertCard[cnsAlertLevel]}`}
             >
               <div className="mb-3 flex items-baseline justify-between">
                 <p className="text-xs font-medium text-gray-400">
                   CNS total après cette plongée
                 </p>
                 <span
-                  className={`font-mono text-2xl font-bold ${
+                  key={cnsTotal.toFixed(1)}
+                  className={`font-mono text-2xl font-bold animate-number-pop ${
                     alertText[cnsAlertLevel] || 'text-black'
                   }`}
                 >
                   {cnsPpo2 > 1.6 ? '—' : `${cnsTotal.toFixed(1)} %`}
                 </span>
               </div>
-              <div className="h-2 w-full overflow-hidden rounded-full bg-gray-200">
+              <div className="h-3 w-full overflow-hidden rounded-full bg-gray-200">
                 <div
-                  className="h-full rounded-full transition-all duration-500"
+                  className="h-full rounded-full transition-all duration-700 ease-out-expo"
                   style={{
                     width: `${Math.min(100, cnsPpo2 > 1.6 ? 100 : cnsTotal)}%`,
                     background:
@@ -660,7 +718,7 @@ export default function NitroxCalculator() {
                   }}
                 />
               </div>
-              <div className="mt-1.5 flex justify-between text-xs text-gray-400">
+              <div className="mt-2 flex justify-between text-xs text-gray-400">
                 <span>0 %</span>
                 <span>80 % recommandé / jour</span>
                 <span>100 %</span>
@@ -669,7 +727,7 @@ export default function NitroxCalculator() {
 
             {/* CNS message */}
             <div
-              className={`mt-3 rounded-xl border p-4 text-sm leading-relaxed ${alertBanner[cnsAlertLevel]}`}
+              className={`mt-3 rounded-2xl border p-4 text-sm leading-relaxed transition-colors duration-300 ${alertBanner[cnsAlertLevel]}`}
             >
               {cnsPpo2 > 1.6 ? (
                 <span className="text-red-600">
@@ -701,17 +759,17 @@ export default function NitroxCalculator() {
               <p className="mb-2 text-xs text-gray-400">
                 Table NOAA — limites d&apos;exposition
               </p>
-              <div className="overflow-hidden rounded-xl border border-gray-200">
+              <div className="overflow-hidden rounded-2xl border border-gray-200 shadow-soft">
                 <table className="w-full text-xs">
                   <thead>
                     <tr className="border-b border-gray-200 bg-gray-50">
-                      <th className="px-3 py-2 text-left font-medium text-gray-400">
+                      <th className="px-3 py-2.5 text-left font-medium text-gray-400">
                         PPO&#8322;
                       </th>
-                      <th className="px-3 py-2 text-right font-medium text-gray-400">
+                      <th className="px-3 py-2.5 text-right font-medium text-gray-400">
                         Limite unique
                       </th>
-                      <th className="px-3 py-2 text-right font-medium text-gray-400">
+                      <th className="px-3 py-2.5 text-right font-medium text-gray-400">
                         % CNS / min
                       </th>
                     </tr>
@@ -722,12 +780,12 @@ export default function NitroxCalculator() {
                       return (
                         <tr
                           key={row.ppo2}
-                          className={`border-b border-gray-100 last:border-0 ${
+                          className={`border-b border-gray-100 last:border-0 transition-colors duration-150 ${
                             isActive ? 'bg-primary-50' : ''
                           }`}
                         >
                           <td
-                            className={`px-3 py-1.5 font-mono ${
+                            className={`px-3 py-2 font-mono ${
                               isActive
                                 ? 'font-semibold text-primary'
                                 : 'text-gray-600'
@@ -735,10 +793,10 @@ export default function NitroxCalculator() {
                           >
                             {row.ppo2.toFixed(1)} bar
                           </td>
-                          <td className="px-3 py-1.5 text-right font-mono text-gray-600">
+                          <td className="px-3 py-2 text-right font-mono text-gray-600">
                             {row.time} min
                           </td>
-                          <td className="px-3 py-1.5 text-right font-mono text-gray-400">
+                          <td className="px-3 py-2 text-right font-mono text-gray-400">
                             {(100 / row.time).toFixed(2)} %
                           </td>
                         </tr>

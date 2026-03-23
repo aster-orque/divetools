@@ -1,5 +1,7 @@
 import type { Metadata } from 'next'
+import Image from 'next/image'
 import NitroxCalculator from '@/components/NitroxCalculator'
+import DisclaimerModal from '@/components/DisclaimerModal'
 
 // ── Metadata SEO ciblé ────────────────────────────────────────────────────────
 export const metadata: Metadata = {
@@ -127,6 +129,7 @@ export default function NitroxPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
+      <DisclaimerModal />
       <div className="mx-auto max-w-3xl px-4 py-10 md:px-6 md:py-14">
         {/* ── Breadcrumb + header ──────────────────────────────────── */}
         <div className="mb-10">
@@ -137,9 +140,18 @@ export default function NitroxPage() {
             <span className="text-gray-300">/</span>
             <span className="text-gray-700">Nitrox</span>
           </div>
-          <h1 className="text-3xl font-extrabold tracking-tight text-black md:text-4xl">
-            Calculateur Nitrox
-          </h1>
+          <div className="flex items-center gap-3">
+            <Image
+              src="/Nx.png"
+              alt="Nitrox"
+              width={44}
+              height={44}
+              className="rounded-xl"
+            />
+            <h1 className="text-3xl font-extrabold tracking-tight text-black md:text-4xl">
+              Calculateur Nitrox
+            </h1>
+          </div>
           <p className="mt-3 text-base leading-relaxed text-gray-500">
             MOD, EAD, meilleur mélange et toxicité O&#8322; — calculs en temps
             réel pour planifier vos plongées nitrox en toute sécurité.
@@ -214,7 +226,122 @@ export default function NitroxPage() {
             </p>
           </section>
         </div>
+
+        {/* ── Nitrox experiences on Aster ──────────────────────────── */}
+        <NitroxExperiences />
       </div>
     </>
+  )
+}
+
+// ── Experiences data ──────────────────────────────────────────────────────────
+const NITROX_EXPERIENCES = [
+  {
+    title: "Journée de plongée sur l'île de Pianosa",
+    location: 'Procchio - Marciana, Italie',
+    dives: '2 plongées',
+    price: '182 €',
+    image:
+      'https://imagedelivery.net/WaB-aX0zqDQOeXGLCHAdWg/d5b4abb6-6cf6-426e-9d66-e79fa3634300/experiencecard',
+    href: 'https://www.asterdive.com/fr/Diving%20in%20Elba%20-%20Italy/journe-de-plonge-sur-lle-de-pianosa-park-marin-national',
+  },
+  {
+    title: 'Plongées raies aigles léopard',
+    location: 'Playa del Carmen, Mexique',
+    dives: '2 plongées',
+    price: '222 €',
+    image:
+      'https://imagedelivery.net/WaB-aX0zqDQOeXGLCHAdWg/523ea3bc-7f57-46b9-1b9c-9c1410ed5b00/experiencecard',
+    href: 'https://www.asterdive.com/fr/Phocea/plonges-raies-aigles-lopard',
+  },
+  {
+    title: 'Plongée avec des requins bouledogues',
+    location: 'Quintana Roo, Mexique',
+    dives: '1 plongée',
+    price: '160 €',
+    image:
+      'https://imagedelivery.net/WaB-aX0zqDQOeXGLCHAdWg/6c61cc83-0d91-454b-246d-3d9005139600/experiencecard',
+    href: 'https://www.asterdive.com/fr/Phocea/plonge-avec-des-requins-bouledogues-',
+  },
+  {
+    title: 'PADI Wreck Diver',
+    location: 'Playa del Carmen, Mexique',
+    dives: '4 plongées',
+    price: '490 €',
+    image:
+      'https://imagedelivery.net/WaB-aX0zqDQOeXGLCHAdWg/bc51725d-0884-4282-7701-ebef469de900/experiencecard',
+    href: 'https://www.asterdive.com/fr/Phocea/padi-wreck-diver-o-laventure-rencontre-lhistoire',
+  },
+]
+
+function NitroxExperiences() {
+  return (
+    <section className="mt-16 border-t border-gray-200 pt-12">
+      <div className="mb-2 flex items-center gap-2">
+        <Image
+          src="/logo_black.png"
+          alt="Aster by Orque"
+          width={80}
+          height={32}
+        />
+      </div>
+      <h2 className="mb-2 text-lg font-semibold text-black">
+        Expériences nitrox à réserver
+      </h2>
+      <p className="mb-6 text-sm text-gray-500">
+        Plongées et formations nitrox disponibles sur Aster by Orque.
+      </p>
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        {NITROX_EXPERIENCES.map((exp) => (
+          <a
+            key={exp.href}
+            href={exp.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-soft transition-lift hover-lift hover:shadow-float"
+          >
+            {/* Image */}
+            <div className="relative h-40 overflow-hidden bg-gray-100">
+              <img
+                src={exp.image}
+                alt={exp.title}
+                className="h-full w-full object-cover transition-transform duration-500 ease-out-expo group-hover:scale-105"
+              />
+              <div className="absolute right-3 top-3 rounded-lg bg-white/90 px-2.5 py-1 text-xs font-semibold text-black backdrop-blur-sm">
+                {exp.price}
+              </div>
+            </div>
+
+            {/* Content */}
+            <div className="p-4">
+              <h3 className="text-sm font-semibold text-black transition-colors duration-200 group-hover:text-primary line-clamp-1">
+                {exp.title}
+              </h3>
+              <p className="mt-1 text-xs text-gray-400">{exp.location}</p>
+              <div className="mt-3 flex items-center justify-between">
+                <span className="rounded-lg bg-primary-50 px-2 py-0.5 text-xs font-medium text-primary">
+                  {exp.dives}
+                </span>
+                <span className="text-xs font-medium text-primary opacity-0 transition-all duration-200 ease-out-expo translate-x-1 group-hover:opacity-100 group-hover:translate-x-0">
+                  Voir sur Aster
+                </span>
+              </div>
+            </div>
+          </a>
+        ))}
+      </div>
+
+      <div className="mt-6 text-center">
+        <a
+          href="https://www.asterdive.com/fr/experiences?nitrox=true"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 shadow-soft transition-all duration-200 ease-out-expo hover:border-primary hover:text-primary hover:shadow-lifted active:scale-95"
+        >
+          Voir toutes les expériences nitrox
+        </a>
+      </div>
+    </section>
   )
 }
