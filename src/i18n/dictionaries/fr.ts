@@ -8,6 +8,26 @@ const dict = {
       ogDescription:
         'Calculateurs gratuits pour plongeurs sous-marins : Nitrox, décompression, flottabilité et plus.',
     },
+    convertisseur: {
+      title: 'Convertisseur Pression & Profondeur — Bar, PSI, Mètres, Pieds',
+      description:
+        'Convertisseur pression-profondeur gratuit pour plongeurs : bar ↔ psi, mètres ↔ pieds, pression absolue ↔ profondeur, eau douce vs eau salée. Calculs instantanés, sans inscription.',
+      keywords: [
+        'convertisseur pression plongée',
+        'bar psi conversion',
+        'profondeur pression absolue',
+        'pression eau salée plongée',
+        'convertisseur mètres pieds plongée',
+        'pression hydrostatique plongée',
+        'calculateur profondeur bar',
+        'pression relative plongée',
+        'conversion unités plongée',
+        'table pression profondeur',
+      ],
+      ogTitle: 'Convertisseur Pression & Profondeur — Plongée',
+      ogDescription:
+        'Conversions instantanées pression ↔ profondeur : bar, psi, mètres, pieds. Eau douce vs salée, pression absolue et relative.',
+    },
     nitrox: {
       title: 'Calculateur Nitrox — MOD, EAD, Meilleur Mélange et CNS',
       description:
@@ -61,6 +81,13 @@ const dict = {
         description:
           'Lestage optimal selon ta combinaison, bouteille et équipement.',
         keywords: ['lest', 'flottabilité', 'combinaison'],
+      },
+      {
+        tag: 'Pression & Profondeur',
+        title: 'Convertisseur Pression & Profondeur',
+        description:
+          'Conversions instantanées : bar ↔ psi, mètres ↔ pieds, pression absolue ↔ profondeur, eau douce vs salée.',
+        keywords: ['bar', 'psi', 'profondeur', 'pression'],
       },
       {
         tag: 'Volumes & Pression',
@@ -210,6 +237,168 @@ const dict = {
       breadcrumbHome: 'Orque Tools',
     },
   },
+  converter: {
+    breadcrumbHome: 'Outils',
+    breadcrumbCurrent: 'Convertisseur',
+    title: 'Convertisseur Pression & Profondeur',
+    subtitle:
+      'Conversions instantanées : bar ↔ psi, mètres ↔ pieds, pression absolue ↔ profondeur, eau douce vs eau salée.',
+    tabs: {
+      converter: 'Convertisseur',
+      comparison: 'Comparaison',
+      table: 'Table',
+    },
+    prefs: {
+      depth: 'Profondeur',
+      pressure: 'Pression',
+      temperature: 'Température',
+      both: 'Les deux',
+    },
+    model: {
+      label: 'Modèle de calcul',
+      theory: 'Simplifié',
+      salt: 'Eau de mer',
+      fresh: 'Eau douce',
+      theoryNote:
+        'Mode simplifié : P_atm arrondie à 1 bar et densité eau de mer simplifiée. Suffisant pour la plongée loisir (écart < 1 % à 30 m).',
+    },
+    conv: {
+      depthToPressure: 'Profondeur → Pression',
+      depthLabel: 'Profondeur',
+      pressureAbs: 'Pression absolue',
+      pressureRel: 'Pression relative',
+      formulaLabel: 'Formule appliquée',
+      formulaTheory: 'P_abs = profondeur ÷ 10 + 1',
+      formulaSalt: 'P_abs = profondeur ÷ 10 + 1,013',
+      formulaFresh: 'P_abs = profondeur ÷ 10,3 + 1,013',
+      pressureToDepth: 'Pression → Profondeur',
+      pressureLabel: 'Pression absolue',
+      depthResult: 'Profondeur équivalente',
+      quickRule: 'Règle rapide : psi ÷ 15 ≈ bar',
+      swap: '⇄',
+    },
+    comparison: {
+      sliderLabel: 'Profondeur de comparaison',
+      theoryCard: 'Simplifié',
+      saltCard: 'Eau de mer',
+      freshCard: 'Eau douce',
+      synthesis:
+        'À {depth} m, l\'écart entre le modèle simplifié et l\'eau de mer est de {deltaSalt} bar — {verdict}.',
+      negligible: 'négligeable en plongée loisir',
+      notable: 'notable pour la planification technique',
+      tableTitle: 'Comparaison par profondeur',
+      colDepth: 'Profondeur',
+      colTheory: 'Simplifié',
+      colSalt: 'Eau de mer',
+      colFresh: 'Eau douce',
+    },
+    table: {
+      title: 'Table de référence',
+      colM: 'm',
+      colFt: 'ft',
+      colTheory: 'Simplifié (bar)',
+      colSalt: 'Eau salée (bar)',
+      colFresh: 'Eau douce (bar)',
+      colPsi: 'psi',
+    },
+    glossary: {
+      title: 'Glossaire',
+      terms: [
+        {
+          term: 'Mode simplifié',
+          definition:
+            'Modèle pédagogique où la pression atmosphérique est arrondie à 1 bar et la densité de l\'eau de mer simplifiée. Écart < 1 % à 30 m par rapport au modèle réel.',
+        },
+        {
+          term: 'Pression absolue',
+          definition:
+            'Pression totale subie par le plongeur : pression atmosphérique + pression de la colonne d\'eau. C\'est la valeur utilisée dans la loi de Boyle.',
+        },
+        {
+          term: 'Pression relative',
+          definition:
+            'Pression de la seule colonne d\'eau, sans la pression atmosphérique. P_rel = P_abs − P_atm.',
+        },
+        {
+          term: 'Bar',
+          definition:
+            'Unité de pression métrique. 1 bar ≈ pression atmosphérique au niveau de la mer. 1 bar = 14,5038 psi.',
+        },
+        {
+          term: 'PSI (pound per square inch)',
+          definition:
+            'Unité de pression impériale. 1 psi = 0,0689 bar. Utilisée principalement en Amérique du Nord et sur les manomètres impériaux.',
+        },
+        {
+          term: 'Eau salée vs eau douce',
+          definition:
+            'L\'eau salée (densité ≈ 1025 kg/m³) exerce plus de pression que l\'eau douce (1000 kg/m³) à même profondeur. 10 m d\'eau salée ≈ 1,006 bar ; 10 m d\'eau douce ≈ 0,981 bar.',
+        },
+        {
+          term: 'Loi de Boyle-Mariotte',
+          definition:
+            'À température constante, le volume d\'un gaz est inversement proportionnel à sa pression : P × V = constante. Fondamentale pour comprendre les variations de volume en plongée.',
+        },
+      ],
+    },
+    faq: {
+      title: 'Questions fréquentes',
+      items: [
+        {
+          q: 'Quelle pression subit-on à 30 mètres de profondeur ?',
+          a: 'À 30 m en eau de mer, la pression absolue est d\'environ 4,013 bar (soit ≈ 58,2 psi). En mode simplifié, on obtient 4,000 bar — l\'écart est inférieur à 1 %.',
+        },
+        {
+          q: 'Pourquoi la pression diffère-t-elle entre eau douce et eau salée ?',
+          a: 'L\'eau salée a une densité d\'environ 1025 kg/m³ contre 1000 kg/m³ pour l\'eau douce. À profondeur égale, la colonne d\'eau salée est plus lourde et exerce donc plus de pression.',
+        },
+        {
+          q: 'Comment convertir des bar en psi ?',
+          a: 'Multipliez la valeur en bar par 14,5038. Exemple : 200 bar × 14,5038 = 2 900,8 psi. Règle rapide : psi ÷ 15 ≈ bar.',
+        },
+        {
+          q: 'Qu\'est-ce que la pression relative en plongée ?',
+          a: 'La pression relative (ou pression manométrique) est la pression exercée uniquement par la colonne d\'eau, sans tenir compte de la pression atmosphérique. À 10 m, elle vaut environ 1 bar.',
+        },
+        {
+          q: 'Le modèle simplifié est-il suffisant pour la plongée loisir ?',
+          a: 'Oui. L\'écart entre le modèle simplifié (P_atm = 1 bar, diviseur 10) et le modèle réel eau de mer est inférieur à 1 % jusqu\'à 40 m. Les tables de plongée utilisent généralement cette approximation.',
+        },
+        {
+          q: 'Comment estimer la température au fond ?',
+          a: 'Au-dessus de la thermocline (~15 m), la température baisse lentement (≈ 0,1 °C/m). En-dessous, la chute s\'accélère (≈ 0,3 °C/m). Le minimum physiologique est d\'environ 4 °C en profondeur.',
+        },
+      ],
+    },
+    seo: [
+      {
+        title: 'Comment calculer la pression absolue en plongée ?',
+        content:
+          'La pression absolue en plongée se calcule en ajoutant la pression atmosphérique à la pression hydrostatique. En mode simplifié : P_abs = profondeur ÷ 10 + 1 bar. En eau de mer : P_abs = profondeur ÷ 10 + 1,013 bar. En eau douce : P_abs = profondeur ÷ 10,3 + 1,013 bar. À 30 m en eau de mer, on obtient 4,013 bar soit environ 58,2 psi.',
+      },
+      {
+        title: 'Quelle est la différence entre pression absolue et pression relative ?',
+        content:
+          'La pression absolue inclut la pression atmosphérique (≈ 1,013 bar au niveau de la mer) plus la pression de la colonne d\'eau. La pression relative ne mesure que la pression exercée par l\'eau. Pour un plongeur à 20 m en eau de mer : P_abs ≈ 3,013 bar, P_rel ≈ 2,000 bar.',
+      },
+      {
+        title: 'Pourquoi la pression varie-t-elle entre eau douce et eau salée ?',
+        content:
+          'La densité de l\'eau salée (≈ 1025 kg/m³) est supérieure à celle de l\'eau douce (1000 kg/m³). Cette différence fait qu\'à même profondeur, la pression est légèrement plus élevée en mer. À 10 m : eau salée ≈ 2,019 bar, eau douce ≈ 1,984 bar.',
+      },
+      {
+        title: 'Comment convertir bar en psi et inversement ?',
+        content:
+          'La conversion exacte est 1 bar = 14,5038 psi. Pour convertir des bar en psi, multipliez par 14,5038. Pour l\'inverse, divisez par 14,5038 (ou multipliez par 0,0689476). Astuce mnémotechnique : psi ÷ 15 ≈ bar, pratique sur le bateau.',
+      },
+    ],
+    jsonLd: {
+      appName: 'Convertisseur Pression & Profondeur',
+      appDescription:
+        'Convertisseur pression-profondeur gratuit : bar ↔ psi, mètres ↔ pieds, pression absolue ↔ profondeur, eau douce vs eau salée.',
+      breadcrumbHome: 'Orque Tools',
+    },
+  },
   disclaimer: {
     title: 'Outil à usage éducatif',
     body1Bold: 'informatif et éducatif uniquement',
@@ -223,6 +412,7 @@ const dict = {
   nav: {
     links: [
       { label: 'Nitrox', live: true },
+      { label: 'Convertisseur', live: true },
       { label: 'Décompression', live: false },
       { label: 'Flottabilité', live: false },
       { label: 'Devis', live: false },

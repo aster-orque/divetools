@@ -85,6 +85,12 @@ input[type='range']::-moz-range-thumb:active {
   outline-offset: 2px;
 }
 
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: none;
+}
+
 /* ───── Number input ───── */
 input[type='number'] {
   -moz-appearance: textfield;

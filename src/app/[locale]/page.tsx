@@ -8,9 +8,9 @@ const TOOL_ICONS: Record<string, string> = {
   '/nitrox': '/Nx.png',
 }
 
-const TOOL_SLUGS = ['/nitrox', '/decompression', '/flottabilite', '/volumes', '/devis']
-const TOOL_STATUSES: ('live' | 'soon')[] = ['live', 'soon', 'soon', 'soon', 'soon']
-const TOOL_ICON_CHARS = ['N\u2082', '\u23F1', '\u2696', '\uD83E\uDEE7', '\uD83D\uDCCB']
+const TOOL_SLUGS = ['/nitrox', '/convertisseur', '/decompression', '/flottabilite', '/volumes', '/devis']
+const TOOL_STATUSES: ('live' | 'soon')[] = ['live', 'live', 'soon', 'soon', 'soon', 'soon']
+const TOOL_ICON_CHARS = ['N\u2082', '\u21c4', '\u23F1', '\u2696', '\uD83E\uDEE7', '\uD83D\uDCCB']
 
 export async function generateMetadata({
   params,
@@ -147,6 +147,7 @@ const staggerClass = [
   'animate-slide-up-1',
   'animate-slide-up-2',
   'animate-slide-up-3',
+  'animate-slide-up-4',
   'animate-slide-up-4',
   'animate-slide-up-4',
 ]

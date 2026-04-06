@@ -8,6 +8,26 @@ const dict = {
       ogDescription:
         'Free calculators for scuba divers: Nitrox, decompression, buoyancy and more.',
     },
+    convertisseur: {
+      title: 'Pressure & Depth Converter — Bar, PSI, Metres, Feet',
+      description:
+        'Free pressure-depth converter for divers: bar ↔ psi, metres ↔ feet, absolute pressure ↔ depth, fresh vs salt water. Instant calculations, no sign-up.',
+      keywords: [
+        'pressure depth converter diving',
+        'bar psi conversion',
+        'depth absolute pressure',
+        'salt water pressure diving',
+        'metres feet converter diving',
+        'hydrostatic pressure diving',
+        'depth bar calculator',
+        'gauge pressure diving',
+        'dive unit conversion',
+        'pressure depth table',
+      ],
+      ogTitle: 'Pressure & Depth Converter — Diving',
+      ogDescription:
+        'Instant pressure ↔ depth conversions: bar, psi, metres, feet. Fresh vs salt water, absolute and gauge pressure.',
+    },
     nitrox: {
       title: 'Nitrox Calculator — MOD, EAD, Best Mix & CNS',
       description:
@@ -62,6 +82,13 @@ const dict = {
         description:
           'Optimal weighting for your wetsuit, tank and gear.',
         keywords: ['weight', 'buoyancy', 'wetsuit'],
+      },
+      {
+        tag: 'Pressure & Depth',
+        title: 'Pressure & Depth Converter',
+        description:
+          'Instant conversions: bar ↔ psi, metres ↔ feet, absolute pressure ↔ depth, fresh vs salt water.',
+        keywords: ['bar', 'psi', 'depth', 'pressure'],
       },
       {
         tag: 'Volumes & Pressure',
@@ -211,6 +238,168 @@ const dict = {
       breadcrumbHome: 'Orque Tools',
     },
   },
+  converter: {
+    breadcrumbHome: 'Tools',
+    breadcrumbCurrent: 'Converter',
+    title: 'Pressure & Depth Converter',
+    subtitle:
+      'Instant conversions: bar \u2194 psi, metres \u2194 feet, absolute pressure \u2194 depth, fresh vs salt water.',
+    tabs: {
+      converter: 'Converter',
+      comparison: 'Comparison',
+      table: 'Table',
+    },
+    prefs: {
+      depth: 'Depth',
+      pressure: 'Pressure',
+      temperature: 'Temperature',
+      both: 'Both',
+    },
+    model: {
+      label: 'Calculation model',
+      theory: 'Simplified',
+      salt: 'Sea water',
+      fresh: 'Fresh water',
+      theoryNote:
+        'Simplified mode: P_atm rounded to 1 bar and simplified sea water density. Sufficient for recreational diving (error < 1% at 30 m).',
+    },
+    conv: {
+      depthToPressure: 'Depth \u2192 Pressure',
+      depthLabel: 'Depth',
+      pressureAbs: 'Absolute pressure',
+      pressureRel: 'Gauge pressure',
+      formulaLabel: 'Formula used',
+      formulaTheory: 'P_abs = depth \u00f7 10 + 1',
+      formulaSalt: 'P_abs = depth \u00f7 10 + 1.013',
+      formulaFresh: 'P_abs = depth \u00f7 10.3 + 1.013',
+      pressureToDepth: 'Pressure \u2192 Depth',
+      pressureLabel: 'Absolute pressure',
+      depthResult: 'Equivalent depth',
+      quickRule: 'Quick rule: psi \u00f7 15 \u2248 bar',
+      swap: '\u21c4',
+    },
+    comparison: {
+      sliderLabel: 'Comparison depth',
+      theoryCard: 'Simplified',
+      saltCard: 'Sea water',
+      freshCard: 'Fresh water',
+      synthesis:
+        'At {depth} m, the difference between simplified and sea water is {deltaSalt} bar \u2014 {verdict}.',
+      negligible: 'negligible for recreational diving',
+      notable: 'notable for technical dive planning',
+      tableTitle: 'Comparison by depth',
+      colDepth: 'Depth',
+      colTheory: 'Simplified',
+      colSalt: 'Sea water',
+      colFresh: 'Fresh water',
+    },
+    table: {
+      title: 'Reference table',
+      colM: 'm',
+      colFt: 'ft',
+      colTheory: 'Simplified (bar)',
+      colSalt: 'Salt water (bar)',
+      colFresh: 'Fresh water (bar)',
+      colPsi: 'psi',
+    },
+    glossary: {
+      title: 'Glossary',
+      terms: [
+        {
+          term: 'Simplified mode',
+          definition:
+            'Educational model where atmospheric pressure is rounded to 1 bar and sea water density is simplified. Error < 1% at 30 m compared to the real model.',
+        },
+        {
+          term: 'Absolute pressure',
+          definition:
+            'Total pressure experienced by the diver: atmospheric pressure + water column pressure. This is the value used in Boyle\u2019s law.',
+        },
+        {
+          term: 'Gauge pressure',
+          definition:
+            'Pressure from the water column only, excluding atmospheric pressure. P_gauge = P_abs \u2212 P_atm.',
+        },
+        {
+          term: 'Bar',
+          definition:
+            'Metric pressure unit. 1 bar \u2248 atmospheric pressure at sea level. 1 bar = 14.5038 psi.',
+        },
+        {
+          term: 'PSI (pound per square inch)',
+          definition:
+            'Imperial pressure unit. 1 psi = 0.0689 bar. Primarily used in North America and on imperial gauges.',
+        },
+        {
+          term: 'Salt water vs fresh water',
+          definition:
+            'Salt water (density \u2248 1025 kg/m\u00b3) exerts more pressure than fresh water (1000 kg/m\u00b3) at the same depth. 10 m salt water \u2248 1.006 bar; 10 m fresh water \u2248 0.981 bar.',
+        },
+        {
+          term: 'Boyle\u2019s law',
+          definition:
+            'At constant temperature, the volume of a gas is inversely proportional to its pressure: P \u00d7 V = constant. Fundamental for understanding volume changes while diving.',
+        },
+      ],
+    },
+    faq: {
+      title: 'Frequently asked questions',
+      items: [
+        {
+          q: 'What pressure do you experience at 30 metres depth?',
+          a: 'At 30 m in sea water, absolute pressure is approximately 4.013 bar (\u2248 58.2 psi). In simplified mode, you get 4.000 bar \u2014 the difference is less than 1%.',
+        },
+        {
+          q: 'Why does pressure differ between fresh and salt water?',
+          a: 'Salt water has a density of approximately 1025 kg/m\u00b3 versus 1000 kg/m\u00b3 for fresh water. At the same depth, the salt water column is heavier and therefore exerts more pressure.',
+        },
+        {
+          q: 'How do you convert bar to psi?',
+          a: 'Multiply the bar value by 14.5038. Example: 200 bar \u00d7 14.5038 = 2,900.8 psi. Quick rule: psi \u00f7 15 \u2248 bar.',
+        },
+        {
+          q: 'What is gauge pressure in diving?',
+          a: 'Gauge (or relative) pressure is the pressure exerted by the water column alone, without accounting for atmospheric pressure. At 10 m, it is approximately 1 bar.',
+        },
+        {
+          q: 'Is the simplified model accurate enough for recreational diving?',
+          a: 'Yes. The difference between the simplified model (P_atm = 1 bar, divisor 10) and the real sea water model is less than 1% down to 40 m. Most dive tables use this approximation.',
+        },
+        {
+          q: 'How can you estimate the temperature at depth?',
+          a: 'Above the thermocline (\u223c15 m), temperature drops slowly (\u2248 0.1 \u00b0C/m). Below, the drop accelerates (\u2248 0.3 \u00b0C/m). The physiological minimum is around 4 \u00b0C at depth.',
+        },
+      ],
+    },
+    seo: [
+      {
+        title: 'How to calculate absolute pressure when diving?',
+        content:
+          'Absolute pressure in diving is calculated by adding atmospheric pressure to hydrostatic pressure. Simplified: P_abs = depth \u00f7 10 + 1 bar. Sea water: P_abs = depth \u00f7 10 + 1.013 bar. Fresh water: P_abs = depth \u00f7 10.3 + 1.013 bar. At 30 m in sea water, you get 4.013 bar or approximately 58.2 psi.',
+      },
+      {
+        title: 'What is the difference between absolute and gauge pressure?',
+        content:
+          'Absolute pressure includes atmospheric pressure (\u2248 1.013 bar at sea level) plus the water column pressure. Gauge pressure only measures the pressure exerted by the water. For a diver at 20 m in sea water: P_abs \u2248 3.013 bar, P_gauge \u2248 2.000 bar.',
+      },
+      {
+        title: 'Why does pressure vary between fresh and salt water?',
+        content:
+          'Salt water density (\u2248 1025 kg/m\u00b3) is higher than fresh water (1000 kg/m\u00b3). This means that at the same depth, pressure is slightly higher in salt water. At 10 m: salt water \u2248 2.019 bar, fresh water \u2248 1.984 bar.',
+      },
+      {
+        title: 'How to convert bar to psi and back?',
+        content:
+          'The exact conversion is 1 bar = 14.5038 psi. To convert bar to psi, multiply by 14.5038. For the reverse, divide by 14.5038 (or multiply by 0.0689476). Mnemonic tip: psi \u00f7 15 \u2248 bar, handy on the boat.',
+      },
+    ],
+    jsonLd: {
+      appName: 'Pressure & Depth Converter',
+      appDescription:
+        'Free pressure-depth converter: bar \u2194 psi, metres \u2194 feet, absolute pressure \u2194 depth, fresh vs salt water.',
+      breadcrumbHome: 'Orque Tools',
+    },
+  },
   disclaimer: {
     title: 'Educational tool',
     body1Bold: 'informational and educational purposes only',
@@ -224,6 +413,7 @@ const dict = {
   nav: {
     links: [
       { label: 'Nitrox', live: true },
+      { label: 'Converter', live: true },
       { label: 'Decompression', live: false },
       { label: 'Buoyancy', live: false },
       { label: 'Quotes', live: false },
