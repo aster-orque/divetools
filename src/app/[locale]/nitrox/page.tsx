@@ -96,7 +96,7 @@ export default async function NitroxPage({
 
   const embedToken = process.env.ASTER_EMBED_TOKEN || ''
   const embedUrl = embedToken
-    ? `https://aster-app-server.fly.dev/embed/experiences?token=${embedToken}&limit=3&cols=3&nitrox=true`
+    ? `https://www.asterdive.com/api/public/embed?token=${embedToken}&limit=3&cols=3&nitrox=true`
     : ''
 
   return (
