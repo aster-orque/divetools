@@ -63,6 +63,7 @@ const dict = {
     soon: 'Coming soon',
     tools: [
       {
+        id: 'nitrox',
         tag: 'Nitrox',
         title: 'Nitrox Calculator',
         description:
@@ -70,6 +71,7 @@ const dict = {
         keywords: ['MOD', 'EAD', 'PPO\u2082', 'CNS', 'EANx'],
       },
       {
+        id: 'decompression',
         tag: 'Decompression',
         title: 'Decompression Planner',
         description:
@@ -77,6 +79,7 @@ const dict = {
         keywords: ['deco stops', 'GF', 'B\u00fchlmann'],
       },
       {
+        id: 'flottabilite',
         tag: 'Buoyancy',
         title: 'Buoyancy Calculator',
         description:
@@ -84,6 +87,7 @@ const dict = {
         keywords: ['weight', 'buoyancy', 'wetsuit'],
       },
       {
+        id: 'convertisseur',
         tag: 'Pressure & Depth',
         title: 'Pressure & Depth Converter',
         description:
@@ -91,6 +95,7 @@ const dict = {
         keywords: ['bar', 'psi', 'depth', 'pressure'],
       },
       {
+        id: 'volumes',
         tag: 'Volumes & Pressure',
         title: 'Volume & Pressure Converter',
         description:
@@ -98,6 +103,7 @@ const dict = {
         keywords: ['bar', 'psi', 'tank volume'],
       },
       {
+        id: 'devis',
         tag: 'Quotes',
         title: 'Quote Generator',
         description:

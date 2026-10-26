@@ -59,11 +59,14 @@ export default function Navbar({
             href={`/${locale}`}
             className="flex items-center gap-2.5 transition-opacity duration-200 hover:opacity-70"
           >
+            {/* L'asset est carré et très margé : on fixe la boîte et on recadre,
+                sinon le preflight Tailwind (`height: auto`) rend un 72x72. */}
             <Image
               src="/logo-orque-black.jpeg"
               alt="Orque"
               width={72}
               height={28}
+              className="h-7 w-[72px] object-cover"
             />
             <span className="text-xs font-medium text-gray-400">Tools</span>
           </Link>

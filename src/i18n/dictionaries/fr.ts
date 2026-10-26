@@ -63,6 +63,7 @@ const dict = {
     soon: 'Bientôt',
     tools: [
       {
+        id: 'nitrox',
         tag: 'Nitrox',
         title: 'Calculateur Nitrox',
         description:
@@ -70,12 +71,14 @@ const dict = {
         keywords: ['MOD', 'EAD', 'PPO\u2082', 'CNS', 'EANx'],
       },
       {
+        id: 'decompression',
         tag: 'Décompression',
         title: 'Planner de décompression',
         description: 'Paliers, temps de remontée, profil de plongée optimisé.',
         keywords: ['paliers déco', 'GF', 'Bühlmann'],
       },
       {
+        id: 'flottabilite',
         tag: 'Flottabilité',
         title: 'Calculateur de flottabilité',
         description:
@@ -83,6 +86,7 @@ const dict = {
         keywords: ['lest', 'flottabilité', 'combinaison'],
       },
       {
+        id: 'convertisseur',
         tag: 'Pression & Profondeur',
         title: 'Convertisseur Pression & Profondeur',
         description:
@@ -90,6 +94,7 @@ const dict = {
         keywords: ['bar', 'psi', 'profondeur', 'pression'],
       },
       {
+        id: 'volumes',
         tag: 'Volumes & Pression',
         title: 'Convertisseur volumes & pressions',
         description:
@@ -97,6 +102,7 @@ const dict = {
         keywords: ['bar', 'psi', 'volume bouteille'],
       },
       {
+        id: 'devis',
         tag: 'Devis',
         title: 'Générateur de devis',
         description:

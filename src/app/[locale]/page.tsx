@@ -4,13 +4,24 @@ import Image from 'next/image'
 import { getDictionary } from '@/i18n/get-dictionary'
 import { Locale, BASE_URL, getAlternates } from '@/i18n/config'
 
-const TOOL_ICONS: Record<string, string> = {
-  '/nitrox': '/Nx.png',
+/* Partie non traduisible de chaque outil, indexée par l'`id` de l'entrée
+   correspondante dans `dict.home.tools`. L'appariement se faisait avant par
+   position, et se désynchronisait dès que l'ordre du dictionnaire changeait. */
+type ToolConfig = {
+  slug: string
+  status: 'live' | 'soon'
+  icon: string
+  image?: string
 }
 
-const TOOL_SLUGS = ['/nitrox', '/convertisseur', '/decompression', '/flottabilite', '/volumes', '/devis']
-const TOOL_STATUSES: ('live' | 'soon')[] = ['live', 'live', 'soon', 'soon', 'soon', 'soon']
-const TOOL_ICON_CHARS = ['N\u2082', '\u21c4', '\u23F1', '\u2696', '\uD83E\uDEE7', '\uD83D\uDCCB']
+const TOOLS_CONFIG: Record<string, ToolConfig> = {
+  nitrox: { slug: '/nitrox', status: 'live', icon: 'N\u2082', image: '/Nx.png' },
+  decompression: { slug: '/decompression', status: 'soon', icon: '\u23F1' },
+  flottabilite: { slug: '/flottabilite', status: 'soon', icon: '\u2696' },
+  convertisseur: { slug: '/convertisseur', status: 'live', icon: '\u21c4' },
+  volumes: { slug: '/volumes', status: 'soon', icon: '\uD83E\uDEE7' },
+  devis: { slug: '/devis', status: 'soon', icon: '\uD83D\uDCCB' },
+}
 
 export async function generateMetadata({
   params,
@@ -35,15 +46,20 @@ export default async function HomePage({
   const { locale } = await params
   const dict = await getDictionary(locale as Locale)
 
-  const TOOLS = dict.home.tools.map((tool, i) => ({
-    slug: `/${locale}${TOOL_SLUGS[i]}`,
-    status: TOOL_STATUSES[i],
-    icon: TOOL_ICON_CHARS[i],
-    tag: tool.tag,
-    title: tool.title,
-    description: tool.description,
-    keywords: tool.keywords,
-  }))
+  const TOOLS = dict.home.tools.map((tool) => {
+    const config = TOOLS_CONFIG[tool.id]
+
+    return {
+      slug: `/${locale}${config.slug}`,
+      status: config.status,
+      icon: config.icon,
+      image: config.image,
+      tag: tool.tag,
+      title: tool.title,
+      description: tool.description,
+      keywords: tool.keywords,
+    }
+  })
 
   const jsonLd = [
     {
@@ -156,6 +172,7 @@ type ToolType = {
   slug: string
   status: 'live' | 'soon'
   icon: string
+  image?: string
   tag: string
   title: string
   description: string
@@ -183,9 +200,9 @@ function ToolCard({
     >
       {/* Icon + badge */}
       <div className="mb-4 flex items-start justify-between">
-        {TOOL_ICONS[tool.slug.replace(/^\/[a-z]{2}/, '')] ? (
+        {tool.image ? (
           <Image
-            src={TOOL_ICONS[tool.slug.replace(/^\/[a-z]{2}/, '')]!}
+            src={tool.image}
             alt={tool.title}
             width={44}
             height={44}
