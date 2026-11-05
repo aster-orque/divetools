@@ -12,6 +12,7 @@ const SLUGS: Record<string, string> = {
   nitrox: '/nitrox',
   convertisseur: '/convertisseur',
   consommation: '/consommation',
+  'gonflage-nitrox': '/gonflage-nitrox',
   decompression: '/decompression',
   flottabilite: '/flottabilite',
   devis: '/devis',
@@ -82,7 +83,7 @@ export default function Navbar({
           </Link>
 
           {/* Desktop nav */}
-          <div className="hidden items-center gap-6 text-sm md:flex">
+          <div className="hidden items-center gap-4 whitespace-nowrap text-sm lg:flex xl:gap-6">
             {NAV_LINKS.map((link) =>
               link.live ? (
                 <Link
@@ -105,13 +106,13 @@ export default function Navbar({
           </div>
 
           {/* Desktop: lang toggle + CTA */}
-          <div className="hidden items-center gap-3 md:flex">
+          <div className="hidden items-center gap-3 lg:flex">
             <LangToggle locale={locale} pathname={pathname} />
             <a
               href="https://www.asterdive.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 px-4 py-2 text-xs font-medium text-gray-700 shadow-soft transition-all duration-200 ease-out-expo hover:border-primary hover:text-primary hover:shadow-lifted active:scale-95"
+              className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-xl border border-gray-200 px-4 py-2 text-xs font-medium text-gray-700 shadow-soft transition-all duration-200 ease-out-expo hover:border-primary hover:text-primary hover:shadow-lifted active:scale-95"
             >
               {labels.bookDive}
             </a>
@@ -120,7 +121,7 @@ export default function Navbar({
           {/* Mobile burger */}
           <button
             onClick={() => setOpen(!open)}
-            className="relative z-[60] flex h-11 w-11 items-center justify-center rounded-xl transition-colors duration-200 hover:bg-gray-100 active:scale-95 md:hidden"
+            className="relative z-[60] flex h-11 w-11 items-center justify-center rounded-xl transition-colors duration-200 hover:bg-gray-100 active:scale-95 lg:hidden"
             aria-label={open ? 'Fermer le menu' : 'Ouvrir le menu'}
           >
             <div className="flex w-5 flex-col items-end gap-[5px]">
@@ -146,7 +147,7 @@ export default function Navbar({
 
       {/* Mobile overlay — outside header to avoid stacking issues */}
       <div
-        className={`fixed inset-0 z-[55] bg-black/20 backdrop-blur-sm transition-opacity duration-300 md:hidden ${
+        className={`fixed inset-0 z-[55] bg-black/20 backdrop-blur-sm transition-opacity duration-300 lg:hidden ${
           open ? 'opacity-100' : 'pointer-events-none opacity-0'
         }`}
         onClick={() => setOpen(false)}
@@ -154,7 +155,7 @@ export default function Navbar({
 
       {/* Mobile slide-in panel — full-screen overlay approach */}
       <div
-        className={`fixed inset-y-0 right-0 z-[60] w-full max-w-[280px] bg-white shadow-float transition-transform duration-300 ease-out-expo md:hidden ${
+        className={`fixed inset-y-0 right-0 z-[60] w-full max-w-[280px] bg-white shadow-float transition-transform duration-300 ease-out-expo lg:hidden ${
           open ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
