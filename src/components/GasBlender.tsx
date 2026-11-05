@@ -1,0 +1,1348 @@
+'use client'
+
+import { Fragment, useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
+import type { CSSProperties, KeyboardEvent, PointerEvent, ReactNode } from 'react'
+import type { getDictionary } from '@/i18n/get-dictionary'
+import {
+  EPS,
+  FIELD_SPECS,
+  MIXES,
+  STEP,
+  STORAGE_KEY,
+  TAB_IDS,
+  TAB_STORAGE_KEY,
+  TOL,
+  analyse,
+  analysisKey,
+  bumpValue,
+  computeBlend,
+  defaultState,
+  expectedAnalysisPct,
+  gasCardKind,
+  gasColor,
+  gasFieldErrors,
+  isCont,
+  mod,
+  nTanks,
+  newGas,
+  parseGasField,
+  parseStepperInput,
+  rampCount,
+  sanitizeState,
+  sanitizeTab,
+  stockState,
+} from '@/lib/gonflage-nitrox/engine'
+import type {
+  BlendGas,
+  BlendState,
+  FieldSpec,
+  GasColor,
+  GasInput,
+  GasLabel,
+  KoReason,
+  NewGasKind,
+  OkSolution,
+  PlanView,
+  StepperKey,
+  Summary,
+  TabId,
+  Tile,
+} from '@/lib/gonflage-nitrox/engine'
+
+type Dict = Awaited<ReturnType<typeof getDictionary>>
+/** Textes de l'outil : bloc `gasBlender` des dictionnaires fr/en. */
+export type GasBlenderLabels = Dict['gasBlender']
+
+// ── Constantes de présentation ─────────────────────────────────────────────────
+/** Délai avant répétition (ms) puis intervalle de répétition (ms) en appui long sur − / +. */
+const HOLD_DELAY_MS = 400
+const HOLD_INTERVAL_MS = 70
+/** Marge (px) laissée sous la navbar quand on remonte au haut de l'outil en changeant d'onglet. */
+const TOOL_SCROLL_GAP_PX = 12
+
+/** Couleurs des gaz : O2 pur vert, nitrox ambre, air bleu Orque clair (résiduel : gris hachuré). */
+const GAS_BG: Record<GasColor, string> = { o2: 'bg-green-600', nx: 'bg-amber-500', air: 'bg-primary-400' }
+const GAS_FILL: Record<GasColor, string> = { o2: 'fill-green-600', nx: 'fill-amber-500', air: 'fill-primary-400' }
+const GAS_BORDER_L: Record<GasColor, string> = { o2: 'border-l-green-600', nx: 'border-l-amber-500', air: 'border-l-primary-400' }
+
+/** Niveaux d'état (tuiles, analyse). */
+type Level = 'ok' | 'mid' | 'low' | 'off'
+const LEVEL_BORDER_L: Record<Level, string> = {
+  ok: 'border-l-green-600', mid: 'border-l-amber-500', low: 'border-l-red-600', off: 'border-l-gray-200',
+}
+const LEVEL_TEXT: Record<Level, string> = {
+  ok: 'text-green-700', mid: 'text-amber-700', low: 'text-red-700', off: 'text-gray-500',
+}
+
+const TAB_ICONS: Record<TabId, ReactNode> = {
+  melange: <><rect x="7" y="6" width="10" height="16" rx="5" /><path d="M10 6V3h4v3M7 14h10" /></>,
+  stocks: <><rect x="3" y="7" width="7" height="14" rx="3.5" /><rect x="14" y="7" width="7" height="14" rx="3.5" /><path d="M5.5 7V4h2v3M16.5 7V4h2v3M3 15h7M14 12h7" /></>,
+  plan: <><path d="M9 6h11M9 12h11M9 18h11" /><circle cx="4.5" cy="6" r="1.5" /><circle cx="4.5" cy="12" r="1.5" /><circle cx="4.5" cy="18" r="1.5" /></>,
+}
+
+/** Hiérarchie typographique (mêmes niveaux que l'outil Consommation). */
+const T = {
+  /** Titre de carte : 12 px, gras, capitales espacées, gris */
+  kicker: 'text-xs font-bold uppercase tracking-wider text-gray-500',
+  /** Titre de bloc (« Tes blocs », « Plan de gonflage ») */
+  sectionTitle: 'text-[17px] font-bold text-black',
+  /** Valeur principale d'une carte : 44 → 52 px extra-gras */
+  hero: 'tabular-nums text-[44px] font-extrabold leading-none tracking-[-0.02em] sm:text-[52px]',
+  /** Unité sous une grosse valeur */
+  heroUnit: 'text-sm font-semibold text-gray-500',
+  /** Valeur d'une petite carte de résultat */
+  statValue: 'tabular-nums text-[24px] font-extrabold leading-none tracking-[-0.01em] text-black',
+  /** Label d'une petite carte de résultat : 11 px, petites capitales */
+  statLabel: 'text-[11px] font-semibold uppercase leading-snug tracking-wide text-gray-500',
+  /** Unité d'une valeur de stat ou de champ */
+  unit: 'text-xs font-semibold text-gray-500',
+  /** Label d'un champ de saisie */
+  fieldLabel: 'text-[14px] font-semibold leading-snug text-gray-700',
+  /** Texte d'aide discret */
+  help: 'text-[13px] font-medium leading-relaxed text-gray-500',
+  small: 'text-xs font-medium text-gray-500',
+} as const
+
+const PRIMARY_SHADOW = 'shadow-[0_2px_8px_rgba(18,132,199,0.3)]'
+const FOCUS_RING = 'focus-within:border-primary focus-within:bg-white focus-within:shadow-[0_0_0_3px_rgba(18,132,199,0.1)]'
+
+// ── Formatage ──────────────────────────────────────────────────────────────────
+/** Remplace {clé} par la valeur ; les clés inconnues restent. */
+function fill(template: string, vars: Record<string, string | number>): string {
+  return template.replace(/\{(\w+)\}/g, (all, k: string) => (k in vars ? String(vars[k]) : all))
+}
+
+type Fmt = {
+  /** Entier arrondi (r0 de l'original) */
+  r0: (x: number) => string
+  /** Fraction → « 32,9 % » (pct de l'original) */
+  pct: (x: number) => string
+  /** Au dixième (fmt de l'original) */
+  f1: (x: number) => string
+  /** Valeur saisie affichée telle quelle (jusqu'à 2 décimales) */
+  raw: (x: number) => string
+}
+
+function makeFmt(locale: string): Fmt {
+  const int = new Intl.NumberFormat(locale, { maximumFractionDigits: 0 })
+  const one = new Intl.NumberFormat(locale, { maximumFractionDigits: 1 })
+  const two = new Intl.NumberFormat(locale, { maximumFractionDigits: 2 })
+  const safe = (v: number) => (Number.isFinite(v) ? v : 0)
+  return {
+    r0: (x) => int.format(Math.round(safe(x))),
+    pct: (x) => `${one.format(Math.round(safe(x) * 1000) / 10)}\u00a0%`,
+    f1: (x) => one.format(Math.round(safe(x) * 10) / 10),
+    raw: (x) => two.format(safe(x)),
+  }
+}
+
+// ── Sous-composants ────────────────────────────────────────────────────────────
+/** Rend **gras** et {slot} (nœud React) dans une chaîne de labels. */
+function Rich({ text, slots, strongClass = 'font-semibold text-black' }: { text: string; slots?: Record<string, ReactNode>; strongClass?: string }) {
+  const parts: ReactNode[] = []
+  const re = /\*\*(.+?)\*\*|\{(\w+)\}/g
+  let last = 0
+  let i = 0
+  let m: RegExpExecArray | null
+  while ((m = re.exec(text))) {
+    if (m.index > last) parts.push(text.slice(last, m.index))
+    if (m[1] !== undefined) parts.push(<strong key={i++} className={strongClass}>{m[1]}</strong>)
+    else parts.push(<Fragment key={i++}>{slots?.[m[2]] ?? m[0]}</Fragment>)
+    last = re.lastIndex
+  }
+  if (last < text.length) parts.push(text.slice(last))
+  return <>{parts}</>
+}
+
+function Card({ title, children, className = '' }: { title?: string; children: ReactNode; className?: string }) {
+  return (
+    <div className={`rounded-2xl border border-gray-200 bg-white px-4 py-4 shadow-soft sm:p-5 ${className}`}>
+      {title && <h3 className={T.kicker + ' mb-2.5'}>{title}</h3>}
+      {children}
+    </div>
+  )
+}
+
+/** Rappel discret de la loi physique qui explique la carte. `**texte**` = gras. */
+function LawNote({ title, text, className = '' }: { title: string; text: string; className?: string }) {
+  return (
+    <p className={`flex gap-2 rounded-xl bg-primary-50/60 px-3 py-2 text-[13px] font-medium leading-relaxed text-gray-600 ${className}`}>
+      <span aria-hidden="true" className="font-bold text-primary">ⓘ</span>
+      <span>
+        <span className="font-semibold text-black">{title} </span>
+        <Rich text={text} />
+      </span>
+    </p>
+  )
+}
+
+/** Note d'avertissement (.note de l'original). */
+function Note({ children, className = '' }: { children: ReactNode; className?: string }) {
+  return <p className={`rounded-xl bg-amber-50 px-3 py-2 text-[13px] font-medium leading-snug text-amber-800 ${className}`}>{children}</p>
+}
+
+/** En-tête de bloc de saisie : numéro, titre, aide (.blk-h de l'original). */
+function InputHead({ no, title, help }: { no: number; title: string; help: string }) {
+  return (
+    <div className="mb-2.5 flex items-start gap-2.5">
+      <span className="mt-px flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-bold text-white">{no}</span>
+      <div>
+        <h2 className={T.sectionTitle}>{title}</h2>
+        <p className={`mt-0.5 ${T.help}`}>{help}</p>
+      </div>
+    </div>
+  )
+}
+
+/** En-tête de bloc de résultat (.res-h de l'original). */
+function ResultHead({ title, help }: { title: string; help?: string }) {
+  return (
+    <div className="mb-2.5">
+      <h2 className={T.sectionTitle}>{title}</h2>
+      {help && <p className={`mt-0.5 ${T.help}`}>{help}</p>}
+    </div>
+  )
+}
+
+function Dot({ color, className = '' }: { color: GasColor; className?: string }) {
+  return <i aria-hidden="true" className={`inline-block h-3 w-3 shrink-0 rounded-full ${GAS_BG[color]} ${className}`} />
+}
+
+/** Petite carte de résultat : label, grosse valeur, unité dessous. */
+function Stat({ label, value, unit, className = '' }: { label: string; value: string; unit?: string; className?: string }) {
+  return (
+    <div className={`flex h-full min-w-0 flex-col items-center justify-between gap-1.5 rounded-xl bg-gray-50 px-2 py-2.5 text-center ${className}`}>
+      <p className={T.statLabel}>{label}</p>
+      <p className="flex flex-col items-center gap-0.5">
+        <span key={value} className={`${T.statValue} animate-number-pop`}>{value}</span>
+        {unit && <span className={T.unit}>{unit}</span>}
+      </p>
+    </div>
+  )
+}
+
+/** Stepper − valeur + : appui long répété, saisie libre avec virgule, validée au blur ou sur Entrée. */
+function Stepper({
+  id, label, value, spec, unit, fmt, decreaseLabel, increaseLabel, onBump, onSet, hero = false,
+}: {
+  id?: string
+  label: string
+  value: number
+  spec: FieldSpec
+  unit: string
+  fmt: Fmt
+  decreaseLabel: string
+  increaseLabel: string
+  onBump: (dir: -1 | 1) => void
+  onSet: (v: number) => void
+  /** Réglage principal d'une carte : valeur au niveau T.hero, boutons plus grands */
+  hero?: boolean
+}) {
+  const [draft, setDraft] = useState<string | null>(null)
+  const timeout = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const interval = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  const stop = useCallback(() => {
+    if (timeout.current) clearTimeout(timeout.current)
+    if (interval.current) clearInterval(interval.current)
+    timeout.current = null
+    interval.current = null
+  }, [])
+  useEffect(() => stop, [stop])
+
+  const shown = fmt.f1(value)
+  // Validation de la saisie : bornée (pas recalée sur le pas, comme l'original). Rien si le texte n'a pas changé.
+  const commit = () => {
+    if (draft !== null && draft !== shown) {
+      const v = parseStepperInput(draft, spec)
+      if (v !== null) onSet(v)
+    }
+    setDraft(null)
+  }
+  const start = (dir: -1 | 1) => (e: PointerEvent<HTMLButtonElement>) => {
+    e.preventDefault()
+    stop()
+    // Une saisie en cours est validée d'abord : le pointerdown empêche le blur qui l'aurait appliquée.
+    if (draft !== null) {
+      commit()
+      return
+    }
+    onBump(dir)
+    timeout.current = setTimeout(() => {
+      interval.current = setInterval(() => onBump(dir), HOLD_INTERVAL_MS)
+    }, HOLD_DELAY_MS)
+  }
+  const key = (dir: -1 | 1) => (e: KeyboardEvent<HTMLButtonElement>) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault()
+      onBump(dir)
+    }
+  }
+  const btn = `flex ${hero ? 'h-12 w-12 text-2xl' : 'h-11 w-11 text-xl'} shrink-0 select-none touch-manipulation items-center justify-center rounded-full border border-gray-200 bg-white font-medium leading-none text-black shadow-soft transition-all duration-200 ease-out-expo hover:border-primary hover:text-primary active:scale-95 active:border-primary active:bg-primary active:text-white`
+
+  return (
+    <div className="inline-flex shrink-0 items-center gap-0.5 sm:gap-1">
+      <button type="button" aria-label={`${decreaseLabel}, ${label}`} className={btn}
+        onPointerDown={start(-1)} onPointerUp={stop} onPointerLeave={stop} onPointerCancel={stop} onKeyDown={key(-1)}>
+        −
+      </button>
+      <div className={`flex shrink-0 flex-col items-center leading-tight ${hero ? 'w-[136px]' : 'w-[70px] min-[380px]:w-[78px]'}`}>
+        <input
+          id={id}
+          inputMode="decimal"
+          aria-label={id ? undefined : label}
+          value={draft ?? shown}
+          onFocus={(e) => {
+            setDraft(shown)
+            e.currentTarget.select()
+          }}
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') e.currentTarget.blur()
+          }}
+          onBlur={commit}
+          className={`w-full min-w-0 border-b-2 border-transparent bg-transparent p-0 text-center tabular-nums font-extrabold tracking-tight text-black outline-none transition-colors focus:border-primary ${
+            hero ? 'text-[44px] leading-none tracking-[-0.02em]' : 'text-[24px] leading-tight'
+          }`}
+        />
+        <small className={`whitespace-nowrap font-semibold leading-tight text-gray-500 ${hero ? 'mt-1 text-sm' : 'text-xs'}`}>{unit}</small>
+      </div>
+      <button type="button" aria-label={`${increaseLabel}, ${label}`} className={btn}
+        onPointerDown={start(1)} onPointerUp={stop} onPointerLeave={stop} onPointerCancel={stop} onKeyDown={key(1)}>
+        +
+      </button>
+    </div>
+  )
+}
+
+/** Case de saisie : label à gauche (lié à l'input), stepper à droite (.f de l'original). */
+function Field({ label, htmlFor, children }: { label: string; htmlFor?: string; children: ReactNode }) {
+  return (
+    <div className={`flex min-h-[72px] min-w-0 items-center justify-between gap-2 rounded-xl border border-transparent bg-gray-50 py-2 pl-3 pr-2 transition-all duration-200 ease-out-expo ${FOCUS_RING}`}>
+      <label htmlFor={htmlFor} className={`block min-w-0 ${T.fieldLabel}`}>{label}</label>
+      {children}
+    </div>
+  )
+}
+
+/** Segment à deux options (pattern ToggleGroup, cibles de 44 px). */
+function Segment<V extends string | boolean>({ options, value, onChange }: { options: { id: V; label: string }[]; value: V; onChange: (id: V) => void }) {
+  return (
+    <div className="inline-flex shrink-0 rounded-full border border-gray-200 bg-white p-0.5">
+      {options.map((opt) => (
+        <button
+          key={String(opt.id)}
+          type="button"
+          aria-pressed={value === opt.id}
+          onClick={() => onChange(opt.id)}
+          className={`min-h-10 rounded-full px-3.5 text-[13px] font-semibold transition-all duration-200 ease-out-expo ${
+            value === opt.id ? `bg-primary text-white ${PRIMARY_SHADOW}` : 'text-gray-500 hover:text-black'
+          }`}
+        >
+          {opt.label}
+        </button>
+      ))}
+    </div>
+  )
+}
+
+/** Bouton pilule (raccourcis, ajout de gaz) : 44 px de haut, texte centré sur une ou deux lignes. */
+function Pill({ onClick, children, className = '' }: { onClick: () => void; children: ReactNode; className?: string }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`flex min-h-11 items-center justify-center rounded-full border border-gray-200 bg-white px-3 py-1.5 text-center text-[13px] font-semibold leading-tight text-black shadow-soft transition-all duration-200 ease-out-expo hover:border-primary hover:text-primary active:scale-95 ${className}`}
+    >
+      {children}
+    </button>
+  )
+}
+
+/** Champ d'une carte gaz (petite carte) : label en haut, valeur centrée, unité dessous. Appliqué à chaque frappe. */
+function GasField({
+  label, unit, value, bad = false, placeholder, onValue,
+}: {
+  label: string
+  unit: string
+  value: number | ''
+  bad?: boolean
+  placeholder?: string
+  onValue: (raw: string) => void
+}) {
+  const [draft, setDraft] = useState<string | null>(null)
+  const shown = value === '' ? '' : String(value)
+  return (
+    <label
+      className={`flex min-w-0 flex-col items-center gap-0.5 rounded-xl border bg-gray-50 px-1 pb-1.5 pt-2 text-center transition-all duration-200 ease-out-expo ${
+        bad ? 'border-red-600 bg-red-50' : `border-transparent ${FOCUS_RING}`
+      }`}
+    >
+      <span className={`text-xs font-semibold leading-tight ${bad ? 'text-red-700' : 'text-gray-500'}`}>{label}</span>
+      <input
+        inputMode="decimal"
+        aria-invalid={bad || undefined}
+        placeholder={placeholder}
+        value={draft ?? shown}
+        onFocus={(e) => {
+          setDraft(shown)
+          e.currentTarget.select()
+        }}
+        onChange={(e) => {
+          setDraft(e.target.value)
+          onValue(e.target.value)
+        }}
+        onBlur={() => setDraft(null)}
+        className="w-full min-w-0 border-0 bg-transparent p-0 text-center text-[21px] font-extrabold leading-tight tabular-nums text-black outline-none placeholder:text-gray-400"
+      />
+      <span className={`text-[11px] font-semibold leading-tight ${bad ? 'text-red-700' : 'text-gray-500'}`}>{unit}</span>
+    </label>
+  )
+}
+
+/** Mini-bloc des tuiles : niveau avant (pâle) et après (plein), échelle 300 bar ; ∞ pour un compresseur. */
+function MiniTank({ color, before, after }: { color: GasColor; before: number | null; after: number | null }) {
+  const clipId = `mt-${useId().replace(/[^a-zA-Z0-9_-]/g, '')}`
+  const top = 10
+  const bot = 64
+  const H = bot - top
+  const y = (p: number) => bot - H * Math.min(p, 300) / 300
+  return (
+    <svg viewBox="0 0 30 66" aria-hidden="true" className="absolute right-3 top-3 w-[30px]">
+      <rect x="11" y="1" width="8" height="7" rx="1.5" className="fill-gray-400" />
+      <rect x="2" y={top} width="26" height={H} rx="11" className="fill-gray-100" />
+      {before === null || after === null ? (
+        <text x="15" y={top + H / 2 + 6} textAnchor="middle" fontSize="18" fontWeight="800" className={GAS_FILL[color]}>∞</text>
+      ) : (
+        <>
+          <clipPath id={clipId}><rect x="2" y={top} width="26" height={H} rx="11" /></clipPath>
+          <g clipPath={`url(#${clipId})`}>
+            <rect x="2" y={y(before)} width="26" height={bot - y(before)} fillOpacity={0.3} className={GAS_FILL[color]} />
+            <rect x="2" y={y(after)} width="26" height={bot - y(after)} className={GAS_FILL[color]} />
+          </g>
+        </>
+      )}
+      <rect x="2" y={top} width="26" height={H} rx="11" fill="none" strokeWidth="1.5" className="stroke-gray-300" />
+    </svg>
+  )
+}
+
+/** Hachures du résiduel (dessin et légende) : gris franc pour rester lisible. */
+const HATCH_STYLE: CSSProperties = { backgroundImage: 'repeating-linear-gradient(45deg, #9ca3af 0 3px, #e5e7eb 3px 6px)' } // gray-400 / gray-200
+
+/** Bloc dessiné : résiduel hachuré puis une couche numérotée par gaz ajouté, pressions à droite (tankSVG). */
+function TankSvg({ view, fmt, aria }: { view: PlanView; fmt: Fmt; aria: string }) {
+  const id = useId().replace(/[^a-zA-Z0-9_-]/g, '')
+  const { sol: s, p1, p2, bleed } = view
+  const start = bleed ?? p1
+  const max = Math.max(p2, p1, s.p)
+  const top = 36
+  const bot = 300
+  const H = bot - top
+  const x0 = 10
+  const W = 80
+  const y = (p: number) => bot - H * p / max
+  const marks = [start, ...s.steps.map((st) => st.gauge)].filter((v, i, a) => v > 0 && a.indexOf(v) === i)
+  const shownMarks: number[] = []
+  let lastY = 1e9
+  for (const m of marks.slice().reverse()) {
+    const ym = y(m)
+    if (Math.abs(ym - lastY) < 16) continue
+    lastY = ym
+    shownMarks.push(m)
+  }
+  return (
+    <svg viewBox="0 0 150 306" role="img" aria-label={aria} className="block h-auto w-full">
+      <defs>
+        <clipPath id={`${id}c`}><rect x={x0} y={top} width={W} height={H} rx="32" /></clipPath>
+        <pattern id={`${id}h`} width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+          <rect width="9" height="9" className="fill-gray-200" />
+          <rect width="4" height="9" className="fill-gray-400" />
+        </pattern>
+        <linearGradient id={`${id}g`} x1="0" x2="1">
+          <stop offset="0" stopColor="#fff" stopOpacity="0" />
+          <stop offset=".22" stopColor="#fff" stopOpacity=".3" />
+          <stop offset=".42" stopColor="#fff" stopOpacity="0" />
+          <stop offset="1" stopColor="#000" stopOpacity=".1" />
+        </linearGradient>
+      </defs>
+      {/* Robinet */}
+      <rect x="30" y="2" width="40" height="8" rx="4" className="fill-gray-500" />
+      <rect x="40" y="8" width="20" height="16" rx="3" className="fill-gray-500" />
+      <rect x="44" y="22" width="12" height="16" className="fill-gray-400" />
+      <g clipPath={`url(#${id}c)`}>
+        <rect x={x0} y={top} width={W} height={H} className="fill-gray-50" />
+        {start > 0 && <rect x={x0} y={y(start)} width={W} height={bot - y(start)} fill={`url(#${id}h)`} />}
+        {s.steps.map((st, i) => {
+          const y0 = y(st.gauge)
+          const h = y(st.gauge - st.bar) - y0
+          return (
+            <g key={i}>
+              <rect x={x0} y={y0} width={W} height={h} className={GAS_FILL[gasColor(st.gas.f)]} />
+              <line x1={x0} x2={x0 + W} y1={y0} y2={y0} stroke="#fff" strokeOpacity=".85" strokeWidth="2" />
+              {h >= 22 && (
+                <>
+                  <circle cx={x0 + W / 2} cy={y0 + h / 2} r="11" className="fill-white" />
+                  <text x={x0 + W / 2} y={y0 + h / 2 + 4.5} textAnchor="middle" fontSize="13" fontWeight="800" className="fill-black">
+                    {i + 1 + (bleed !== null ? 1 : 0)}
+                  </text>
+                </>
+              )}
+            </g>
+          )
+        })}
+        <rect x={x0} y={top} width={W} height={H} fill={`url(#${id}g)`} />
+      </g>
+      <rect x={x0} y={top} width={W} height={H} rx="32" fill="none" strokeWidth="2.5" className="stroke-gray-300" />
+      {shownMarks.map((m) => {
+        const ym = y(m)
+        const big = m === s.p
+        return (
+          <g key={m}>
+            <line x1={x0 + W + 3} x2={x0 + W + 12} y1={ym} y2={ym} strokeWidth="2" className={big ? 'stroke-black' : 'stroke-gray-400'} />
+            <text x={x0 + W + 16} y={ym + 5} fontSize={big ? 16 : 14} fontWeight={big ? 800 : 700} className={`tabular-nums ${big ? 'fill-black' : 'fill-gray-500'}`}>
+              {fmt.r0(m)}
+            </text>
+          </g>
+        )
+      })}
+    </svg>
+  )
+}
+
+// ── Composant principal ────────────────────────────────────────────────────────
+export default function GasBlender({ labels }: { labels: GasBlenderLabels }) {
+  const L = labels
+  const defaults = useMemo(() => defaultState(L.gases.defaults), [L.gases.defaults])
+  const [s, setS] = useState<BlendState>(defaults)
+  const [tab, setTab] = useState<TabId>('melange')
+  const [loaded, setLoaded] = useState(false)
+  const baseId = useId()
+  const rootRef = useRef<HTMLDivElement>(null)
+  const fmt = useMemo(() => makeFmt(L.numberLocale), [L.numberLocale])
+
+  // Hauteur de la navbar collante du site : la barre d'onglets (mobile) et la colonne de saisie (desktop) se collent dessous.
+  const [headerH, setHeaderH] = useState(0)
+  useEffect(() => {
+    const header = document.querySelector('header')
+    if (!header) return
+    const update = () => setHeaderH(header.getBoundingClientRect().height)
+    update()
+    const ro = new ResizeObserver(update)
+    ro.observe(header)
+    return () => ro.disconnect()
+  }, [])
+
+  // Lecture des saisies mémorisées (après montage, pour éviter un écart d'hydratation).
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    try {
+      const saved = sanitizeState(JSON.parse(window.localStorage.getItem(STORAGE_KEY) || 'null'), defaults)
+      if (saved) setS(saved)
+      setTab(sanitizeTab(window.localStorage.getItem(TAB_STORAGE_KEY)))
+    } catch {
+      /* stockage indisponible ou JSON invalide : valeurs par défaut */
+    }
+    setLoaded(true)
+  }, [defaults])
+
+  // Sauvegarde à chaque changement.
+  useEffect(() => {
+    if (!loaded || typeof window === 'undefined') return
+    try {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(s))
+      window.localStorage.setItem(TAB_STORAGE_KEY, tab)
+    } catch {
+      /* stockage plein ou bloqué */
+    }
+  }, [s, tab, loaded])
+
+  // ── Mises à jour de l'état ──
+  type MainKey = Exclude<StepperKey, 'ana'>
+  const bump = useCallback((k: MainKey, dir: -1 | 1) => {
+    setS((prev) => ({ ...prev, [k]: bumpValue(prev[k], dir, FIELD_SPECS[k]) }))
+  }, [])
+  const setNum = useCallback((k: MainKey, v: number) => setS((prev) => ({ ...prev, [k]: v })), [])
+  const updateGas = useCallback((i: number, patch: Partial<GasInput>) => {
+    setS((prev) => ({ ...prev, gases: prev.gases.map((g, j) => (j === i ? { ...g, ...patch } : g)) }))
+  }, [])
+  const removeGas = (i: number) => setS((prev) => ({ ...prev, gases: prev.gases.filter((_, j) => j !== i) }))
+  const addGas = (kind: NewGasKind) => setS((prev) => ({ ...prev, gases: [...prev.gases, newGas(kind, L.gases.defaults[kind])] }))
+
+  const show = useCallback((next: TabId) => {
+    setTab(next)
+    // Remonte au haut de l'outil (sous la navbar collante) seulement s'il est sorti de l'écran.
+    const root = rootRef.current
+    if (!root) return
+    const h = document.querySelector('header')?.getBoundingClientRect().height ?? 0
+    const top = root.getBoundingClientRect().top - h - TOOL_SCROLL_GAP_PX
+    if (top < 0) window.scrollBy({ top })
+  }, [])
+
+  // ── Calcul ──
+  const out = useMemo(() => computeBlend(s), [s])
+  const nb = rampCount(s.nb)
+  const ramp = nb > 1
+  const chosen = out.status === 'computed' ? out.chosen : null
+  const targetF = out.status === 'computed' ? out.f2 : 0
+
+  // Analyse : le % saisi repart du % attendu dès que le gonflage demandé change.
+  const aKey = analysisKey(s)
+  const expectedAna = chosen ? expectedAnalysisPct(chosen) : 0
+  const anaValue = s.anaKey === aKey && typeof s.ana === 'number' ? s.ana : expectedAna
+  const analysis = useMemo(
+    () => (out.status === 'computed' && out.chosen ? analyse(out.gases, out.V, out.f2, out.chosen.p, anaValue) : null),
+    [out, anaValue],
+  )
+  const bumpAna = (dir: -1 | 1) => setS((prev) => {
+    const cur = prev.anaKey === aKey && typeof prev.ana === 'number' ? prev.ana : expectedAna
+    return { ...prev, ana: bumpValue(cur, dir, FIELD_SPECS.ana), anaKey: aKey }
+  })
+  const setAna = (v: number) => setS((prev) => ({ ...prev, ana: v, anaKey: aKey }))
+
+  // ── Formatage des noms ──
+  const gasName = (l: GasLabel) => {
+    const base = (l.name || fill(L.gases.unnamed, { f: fmt.raw(l.fPct) })) + (l.times ? ` ×${l.times}` : '')
+    return l.seq ? fill(L.gases.numbered, { name: base, n: l.seq }) : base
+  }
+  const withPct = (g: BlendGas) => fill(L.gases.withPct, { name: gasName(g.label), f: fmt.raw(Math.round(g.f * 1000) / 10) })
+  const titleOf = (gases: BlendGas[]) => gases.map((g) => gasName(g.label)).join(L.plan.join)
+  const pctNum = (f: number) => fmt.f1(f * 100)
+  const again = (k: number) => {
+    const n = k >= 20 ? '20+' : k
+    if (k === 0) return ramp ? L.stocks.again0Ramp : L.stocks.again0Block
+    return ramp
+      ? fill(k > 1 ? L.stocks.againRampN : L.stocks.againRamp1, { n, nb })
+      : fill(k > 1 ? L.stocks.againBlockN : L.stocks.againBlock1, { n })
+  }
+  const koReason = (r: KoReason) => {
+    switch (r.kind) {
+      case 'alreadyAbove': return L.rejected.alreadyAbove
+      case 'notRichEnough': return L.rejected.notRichEnough
+      case 'tooRich': return fill(L.rejected.tooRich, { mix: fmt.pct(r.maxF) })
+      case 'gapTooSmall': return L.rejected.gapTooSmall
+      case 'blocked': {
+        const i = r.info
+        return i.kind === 'buffer'
+          ? fill(L.rejected.bufferShort, { name: gasName(i.name), req: fmt.r0(i.requiredBar), where: i.plural ? L.rejected.whereMany : L.rejected.whereOne, has: fmt.r0(i.hasBar) })
+          : fill(L.rejected.continuousShort, { name: gasName(i.name), max: fmt.raw(i.maxBar), need: fmt.r0(i.needBar) })
+      }
+    }
+  }
+
+  // ── Résumé pour la carte « Voir le plan » et les pastilles d'onglets ──
+  type Go = { txt: string; bad: boolean; badge: string; sub?: string }
+  let go: Go
+  if (out.status === 'error') go = { txt: L.cta.incomplete, bad: true, badge: '!' }
+  else if (out.status === 'nothing') go = { txt: L.cta.nothing, bad: false, badge: '✓' }
+  else if (!out.chosen) go = { txt: L.cta.none, bad: true, badge: '!' }
+  else {
+    const c = out.chosen
+    const steps = fill(c.steps.length > 1 ? L.cta.stepsN : L.cta.steps1, { n: c.steps.length })
+    go = {
+      txt: fill(L.cta.result, { p: fmt.r0(c.p), mix: fmt.pct(c.mix) }),
+      bad: out.mode === 'reduced',
+      badge: fmt.pct(c.mix).replace(/\s/g, ''),
+      sub: fill(out.mode === 'bleed' ? L.cta.subBleed : L.cta.sub, { steps }) + (out.mode === 'reduced' ? L.cta.reduced : ''),
+    }
+  }
+  const tiles = out.status === 'computed' ? out.tiles : []
+  const stockBadge: Level | null = tiles.some((t) => t.level === 'low') ? 'low' : tiles.some((t) => t.level === 'mid') ? 'mid' : null
+
+  // ── Onglets mobiles ──
+  const onTabKey = (e: KeyboardEvent<HTMLDivElement>) => {
+    const dir = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0
+    if (!dir) return
+    e.preventDefault()
+    const next = TAB_IDS[(TAB_IDS.indexOf(tab) + dir + TAB_IDS.length) % TAB_IDS.length]
+    show(next)
+    document.getElementById(`${baseId}-tab-${next}`)?.focus()
+  }
+  /** Section visible sur mobile seulement dans son onglet ; toujours visible en desktop. */
+  const vis = (t: TabId) => (tab === t ? 'max-lg:animate-fade-in' : 'max-lg:hidden')
+
+  const fieldId = (k: StepperKey) => `${baseId}-${k}`
+  const stepper = (k: MainKey, label: string, unit: string) => (
+    <Field label={label} htmlFor={fieldId(k)}>
+      <Stepper
+        id={fieldId(k)}
+        label={label}
+        value={s[k]}
+        spec={FIELD_SPECS[k]}
+        unit={unit}
+        fmt={fmt}
+        decreaseLabel={L.stepper.decrease}
+        increaseLabel={L.stepper.increase}
+        onBump={(dir) => bump(k, dir)}
+        onSet={(v) => setNum(k, v)}
+      />
+    </Field>
+  )
+  // Cases de saisie : 1 colonne sur mobile, 2 entre 640 et 1024 px, 1 dans la colonne desktop (400 px).
+  const fieldsGrid = 'grid grid-cols-[minmax(0,1fr)] gap-2 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)]'
+
+  // ── Rendus de résultat ──
+  const compBar = (sol: OkSolution) => {
+    const o = Math.round(sol.mix * 1000) / 10
+    return (
+      <div className="mt-4">
+        <div className="flex h-7 overflow-hidden rounded-lg text-xs font-bold">
+          <i className="flex items-center overflow-hidden whitespace-nowrap bg-green-600 px-2.5 not-italic text-white" style={{ width: `${o}%` }}>
+            {fill(L.plan.compO2, { v: fmt.f1(o) })}
+          </i>
+          <i className="flex flex-1 items-center justify-end overflow-hidden whitespace-nowrap bg-gray-200 px-2.5 not-italic text-black">
+            {fill(L.plan.compN2, { v: fmt.f1(100 - o) })}
+          </i>
+        </div>
+        <p className={`mt-1 ${T.small}`}>{ramp ? L.plan.compCaptionRamp : L.plan.compCaption}</p>
+      </div>
+    )
+  }
+
+  const legend = (view: PlanView) => {
+    const start = view.bleed ?? view.p1
+    const sw = 'inline-block h-3.5 w-3.5 shrink-0 rounded-[4px]'
+    return (
+      <div className="flex flex-col gap-1.5 text-[13px] font-semibold text-gray-600 sm:mt-3">
+        {ramp && <span className="font-bold text-black">{fill(L.plan.legendRamp, { n: nb })}</span>}
+        {start > 0 && (
+          <span className="flex items-center gap-2">
+            <i aria-hidden="true" className={sw} style={HATCH_STYLE} />
+            {L.plan.legendResidual}
+          </span>
+        )}
+        {view.sol.steps.map((st, i) => (
+          <span key={i} className="flex items-center gap-2">
+            <i aria-hidden="true" className={`${sw} ${GAS_BG[gasColor(st.gas.f)]}`} />
+            {gasName(st.gas.label)}
+          </span>
+        ))}
+      </div>
+    )
+  }
+
+  const stepsList = (view: PlanView) => {
+    let i = 0
+    const row = 'grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-3 rounded-xl bg-gray-50 px-3 py-3'
+    const num = 'flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-sm font-extrabold text-black shadow-soft'
+    const to = (small: string, value: string) => (
+      <div className="flex shrink-0 flex-col items-end text-right">
+        <small className="text-[11px] font-semibold leading-tight text-gray-500">{small}</small>
+        <b key={value} className="animate-number-pop tabular-nums text-[30px] font-extrabold leading-none tracking-[-0.02em] text-primary">{value}</b>
+        <span className={T.unit}>{L.units.bar}</span>
+      </div>
+    )
+    return (
+      <ol className="grid gap-2">
+        {view.bleed !== null && (
+          <li className={row}>
+            <span className={num}>{++i}</span>
+            <div className="min-w-0">
+              <p className="text-[15px] font-bold leading-snug text-black">{ramp ? L.plan.bleedRamp : L.plan.bleedBlock}</p>
+              <p className={`mt-0.5 ${T.small}`}>{L.plan.bleedMeta}</p>
+            </div>
+            {to(L.plan.upTo, fmt.raw(view.bleed))}
+          </li>
+        )}
+        {view.sol.steps.map((st, k) => {
+          const tight = st.rest !== null && st.rest - st.gauge < STEP
+          const members = st.gas.members
+          return (
+            <li key={k} className={row}>
+              <span className={num}>{++i}</span>
+              <div className="min-w-0">
+                <p className="flex items-center gap-1.5 text-[15px] font-bold leading-snug text-black"><Dot color={gasColor(st.gas.f)} />{withPct(st.gas)}</p>
+                <p className={`mt-0.5 tabular-nums ${T.small}`}>
+                  {fill(L.plan.stepMeta, { bar: fmt.r0(st.bar), mix: fmt.pct(st.mix) })}
+                  {st.rest !== null && fill(L.plan.stepRest, { rest: fmt.r0(st.rest) })}
+                  {st.used.length > 1 && members && (
+                    <>
+                      <br />
+                      {fill(L.plan.cascade, {
+                        list: st.used.map((u) => fill(L.plan.cascadeItem, { name: gasName(members[u].label), p: fmt.raw(members[u].pmax) })).join(L.plan.cascadeSep),
+                      })}
+                    </>
+                  )}
+                </p>
+              </div>
+              {to(L.plan.fillUpTo, fmt.r0(st.gauge))}
+              {tight && <Note className="col-span-3 mt-2">{fill(L.plan.tight, { p: fmt.r0(st.gauge) })}</Note>}
+            </li>
+          )
+        })}
+      </ol>
+    )
+  }
+
+  const notes = (sol: OkSolution) => {
+    const n: string[] = []
+    if (sol.dev > TOL) n.push(L.plan.noteDev)
+    if (sol.o2 > EPS) n.push(L.plan.noteO2)
+    if (sol.steps.length) n.push(L.plan.noteSlow)
+    return n.length ? <div className="mt-3 grid gap-1.5">{n.map((x) => <Note key={x}>{x}</Note>)}</div> : null
+  }
+
+  const planGrid = (view: PlanView) => (
+    <div className="mt-4 grid gap-3 sm:grid-cols-[136px_minmax(0,1fr)] sm:items-start sm:gap-5">
+      <div className="flex items-center justify-center gap-5 sm:block">
+        <div className="w-[136px] sm:w-full"><TankSvg view={view} fmt={fmt} aria={L.plan.tankAria} /></div>
+        {legend(view)}
+      </div>
+      <div className="min-w-0">{stepsList(view)}</div>
+    </div>
+  )
+
+  const planCard = (view: PlanView) => {
+    const sol = view.sol
+    const good = view.good
+    const title = view.bleed === null ? titleOf(sol.gases) : sol.steps.length ? fill(L.plan.titleBleed, { title: titleOf(sol.gases) }) : L.plan.titleBleedOnly
+    return (
+      <div className={`rounded-2xl border-2 bg-white px-4 py-4 shadow-soft sm:p-5 ${good ? 'border-green-600' : 'border-amber-500'}`}>
+        <div className="text-center sm:text-left">
+          <p className={`text-xs font-bold uppercase tracking-wider ${good ? 'text-green-700' : 'text-amber-700'}`}>{good ? L.plan.kickerGood : L.plan.kickerOff}</p>
+          <p className="mt-0.5 text-base font-bold text-black">{title}</p>
+        </div>
+        {/* Résultat : % obtenu en grand, puis pression, cible et profondeur max en petites cartes */}
+        <div className="mt-3 grid gap-2 sm:grid-cols-[minmax(0,0.9fr)_minmax(0,2fr)]">
+          <div className={`flex flex-col items-center justify-center rounded-xl px-3 py-3 text-center ${good ? 'bg-green-50' : 'bg-amber-50'}`}>
+            <p className={T.statLabel}>{L.plan.resultLabel}</p>
+            <p key={sol.mix} className={`${T.hero} mt-1 animate-number-pop ${good ? 'text-green-700' : 'text-amber-700'}`}>{pctNum(sol.mix)}</p>
+            <p className={`mt-1 ${T.heroUnit}`}>{L.units.pctO2}</p>
+          </div>
+          <div className="grid grid-cols-3 gap-2">
+            <Stat label={L.plan.statPressure} value={fmt.r0(sol.p)} unit={L.units.bar} />
+            <Stat label={good ? L.plan.statTargetOk : L.plan.statTarget} value={pctNum(targetF)} unit={L.units.pctO2} />
+            <Stat label={L.plan.statMod} value={String(mod(sol.mix, 1.4))} unit={L.units.m} />
+          </div>
+        </div>
+        {compBar(sol)}
+        {planGrid(view)}
+        {notes(sol)}
+        <LawNote className="mt-3" title={L.laws.daltonTitle} text={L.laws.dalton} />
+      </div>
+    )
+  }
+
+  const tileCard = (t: Tile) => {
+    const g = t.gas
+    const color = gasColor(g.f)
+    const members = g.members
+    const lines: ReactNode[] = []
+    const to = ramp ? L.stocks.toEach : L.stocks.toBlock
+    if (t.gives) {
+      lines.push(<Rich key="gives" text={t.gives.gauge === null
+        ? fill(L.stocks.givesContinuous, { bar: fmt.r0(t.gives.bar), to, max: fmt.raw(t.gives.max ?? 0) })
+        : fill(L.stocks.givesBuffer, { bar: fmt.r0(t.gives.bar), to, gauge: fmt.r0(t.gives.gauge) })} />)
+    }
+    if (t.members && members) {
+      t.members.forEach(({ member: m, after }, i) => {
+        const who = members.length > 1 ? gasName(m.label) : m.k > 1 ? fill(L.stocks.memberEnsemble, { k: m.k }) : L.stocks.memberSingle
+        lines.push(<Rich key={`m${i}`} text={fill(L.stocks.memberLine, { who, before: fmt.raw(m.pmax), after: fmt.r0(after) })} />)
+      })
+    }
+    if (t.cascade) lines.push(fill(L.stocks.cascade, { list: t.cascade.map((m) => gasName(m.label)).join(L.plan.cascadeSep) }))
+    if (t.again !== null) lines.push(again(t.again))
+    if (t.shortage) {
+      const sh = t.shortage
+      lines.push(<Rich key="short" text={sh.multi
+        ? fill(L.stocks.shortageMulti, { name: gasName(sh.who), has: fmt.r0(sh.has), req: fmt.r0(sh.req) })
+        : fill(L.stocks.shortageSingle, { has: fmt.r0(sh.has), req: fmt.r0(sh.req) })} />)
+      lines.push(fill(L.stocks.shortageLimit, { limit: fmt.r0(sh.limit), need: fmt.r0(sh.need) }))
+    }
+    if (t.status === 'unused') {
+      if (members) {
+        members.forEach((m) => lines.push(members.length > 1
+          ? fill(L.stocks.unusedMulti, { name: gasName(m.label), p: fmt.raw(m.pmax), vol: fmt.raw(m.vol) })
+          : m.k > 1
+            ? fill(L.stocks.unusedEnsemble, { k: m.k, p: fmt.raw(m.pmax), unit: fmt.raw(m.unit) })
+            : fill(L.stocks.unusedSingle, { p: fmt.raw(m.pmax), vol: fmt.raw(m.vol) })))
+      } else lines.push(fill(L.stocks.unusedComp, { p: fmt.raw(g.pmax) }))
+    }
+    const status = t.status === 'enoughFor' ? fill(L.stocks.status.enoughFor, { p: fmt.raw(out.status === 'computed' ? out.pfin : 0) }) : L.stocks.status[t.status]
+    return (
+      <div
+        key={g.id}
+        className={`relative grid min-h-[96px] content-start gap-1 rounded-2xl border border-l-[6px] border-gray-200 py-3 pl-3.5 pr-3 shadow-soft ${LEVEL_BORDER_L[t.level]} ${t.level === 'low' ? 'bg-red-50/70' : 'bg-white'}`}
+      >
+        <MiniTank color={color} before={t.icon.before} after={t.icon.after} />
+        <h3 className="flex items-center gap-1.5 pr-10 text-[15px] font-bold text-black">
+          <Dot color={color} />
+          <span className="min-w-0">{gasName(g.label)}</span>
+          <small className="whitespace-nowrap text-[13px] font-semibold text-gray-500">{fmt.raw(Math.round(g.f * 1000) / 10)} %</small>
+        </h3>
+        <p className={`pr-10 font-extrabold leading-tight ${LEVEL_TEXT[t.level]} ${t.level === 'off' ? 'text-[17px]' : 'text-[22px]'}`}>
+          {t.level === 'low' && <span aria-hidden="true">⚠ </span>}{status}
+        </p>
+        {lines.map((l, i) => (
+          <p key={i} className="text-[13px] font-medium tabular-nums leading-snug text-gray-600 [&_strong]:font-bold [&_strong]:text-black">{l}</p>
+        ))}
+        {t.missing && (
+          <p className="text-[13px] font-semibold tabular-nums text-red-700">
+            {fill(t.missing.reduced ? L.stocks.missingReduced : L.stocks.missingBleed, { p: fmt.r0(t.missing.p2), req: fmt.r0(t.missing.req) })}
+          </p>
+        )}
+      </div>
+    )
+  }
+
+  /** Stock des tampons d'une autre option (stockHTML de l'original). */
+  const altStock = (sol: OkSolution, V: number) => {
+    const tanks = sol.steps.filter((st) => st.rest !== null)
+    if (!tanks.length) return null
+    return (
+      <div className="mt-3 border-t border-gray-100 pt-3">
+        <h4 className={T.kicker + ' mb-1.5'}>{L.stocks.altTitle}</h4>
+        {tanks.map((st, i) => {
+          const st8 = stockState(st, V)
+          const before = st.gas.pmax
+          const rest = st.rest ?? 0
+          const scale = Math.max(300, before) // jauge sur 300 bar
+          const color = gasColor(st.gas.f)
+          const pill = st8.level === 'ok' ? L.stocks.pillOk : L.stocks.status[st8.level]
+          return (
+            <div key={i} className="grid grid-cols-[1fr_auto] items-center gap-x-2.5 gap-y-1 py-1.5">
+              <span className="flex items-center gap-1.5 text-sm font-semibold text-black"><Dot color={color} />{gasName(st.gas.label)}</span>
+              <span className={`whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-bold ${st8.cls === 'ok' ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700'}`}>{pill}</span>
+              <span className="col-span-2 flex h-2.5 overflow-hidden rounded-full bg-gray-100">
+                <i className={`block h-full ${GAS_BG[color]}`} style={{ width: `${rest / scale * 100}%` }} />
+                <i className={`block h-full opacity-[.35] ${GAS_BG[color]}`} style={{ width: `${(before - rest) / scale * 100}%` }} />
+              </span>
+              <span className={`col-span-2 tabular-nums ${T.small}`}>
+                {fill(L.stocks.altLine, { before: fmt.raw(before), after: fmt.r0(rest), again: again(st8.k).toLocaleLowerCase(L.numberLocale) })}
+              </span>
+            </div>
+          )
+        })}
+      </div>
+    )
+  }
+
+  const summaryChips = (sm: Summary) => {
+    const chip = (key: string, label: string, value: string, unit: string | null, sub: ReactNode, warn = false) => (
+      <div
+        key={key}
+        className={`flex flex-col items-center gap-1 rounded-2xl border bg-white px-3 py-3 text-center shadow-soft max-sm:[&:last-child:nth-child(odd)]:col-span-2 ${warn ? 'border-2 border-red-600 bg-red-50/60' : 'border-gray-200'}`}
+      >
+        <p className={`${T.statLabel} ${warn ? '!text-red-700' : ''}`}>{label}</p>
+        <p className="flex flex-col items-center">
+          <span key={value} className={`animate-number-pop tabular-nums text-[28px] font-extrabold leading-none tracking-[-0.02em] ${warn ? 'text-red-700' : 'text-black'}`}>{value}</span>
+          {unit && <span className={`mt-0.5 ${T.unit}`}>{unit}</span>}
+        </p>
+        <p className="text-xs font-medium leading-snug text-gray-500">{sub}</p>
+      </div>
+    )
+    const u = L.units
+    const items: ReactNode[] = []
+    if (sm.bleed) {
+      items.push(chip('bleed', L.summary.bleed, fmt.r0(sm.bleed.to), u.bar,
+        fill(sm.bleed.thenAdd ? L.summary.bleedThen : L.summary.bleedOnly, { d: fmt.r0(sm.bleed.drop) })))
+    }
+    if (sm.add?.kind === 'plan') {
+      items.push(chip('add', L.summary.add, `+${fmt.r0(sm.add.bar)}`, u.bar,
+        (ramp ? L.summary.addPerBlock : '') + (sm.add.o2Bar !== null ? fill(L.summary.addWithO2, { o2: fmt.r0(sm.add.o2Bar) }) : L.summary.addNoO2)))
+    } else if (sm.add?.kind === 'total') {
+      items.push(chip('add', L.summary.add, `+${fmt.r0(sm.add.bar)}`, u.bar, L.summary.addTotal))
+    }
+    if (sm.litres) {
+      items.push(chip('litres', fill(L.summary.litres, { n: nb }), `≈ ${fmt.r0(sm.litres.total)}`, u.l,
+        sm.litres.perGas.map((x) => fill(L.summary.litresItem, { name: gasName(x.gas.label), l: fmt.r0(x.litres) })).join(L.summary.sep)))
+    }
+    if (sm.drain !== null) items.push(chip('drain', L.summary.drain, fmt.r0(sm.drain), u.bar, L.summary.drainSub))
+    items.push(chip('mod', L.summary.mod, String(sm.mod.mod14), u.m,
+      fill(L.summary.modSub, { m16: sm.mod.mod16 }) + (sm.mod.expectedDiffers ? fill(L.summary.modExpected, { mix: fmt.pct(sm.mod.f) }) : '')))
+    if (sm.o2Alert) items.push(chip('alert', `⚠ ${L.summary.alert}`, L.summary.alertValue, null, L.summary.alertSub, true))
+    return <div className="grid grid-cols-2 gap-2 sm:grid-cols-[repeat(auto-fit,minmax(160px,1fr))]">{items}</div>
+  }
+
+  const summary = out.status === 'error' ? null : out.summary
+
+  /** Carte « Voir le plan » qui termine les onglets de saisie (mobile seulement). */
+  const cta = (t: TabId, order: string) => (
+    <div className={`flex items-center gap-3 rounded-2xl border-2 bg-white px-4 py-3.5 shadow-soft lg:hidden ${order} ${go.bad ? 'border-red-600' : 'border-green-600'} ${vis(t)}`}>
+      <div className="min-w-0 flex-1 text-[13px] font-medium leading-snug text-gray-500">
+        {go.sub ?? L.cta.defaultSub}
+        <b className="block tabular-nums text-[17px] font-extrabold leading-tight text-black min-[380px]:text-lg">{go.txt}</b>
+      </div>
+      <button
+        type="button"
+        onClick={() => show('plan')}
+        className={`min-h-12 whitespace-nowrap rounded-xl bg-primary px-5 py-3 text-sm font-bold text-white transition-all duration-200 ease-out-expo hover:bg-primary-600 active:scale-95 ${PRIMARY_SHADOW}`}
+      >
+        {L.cta.button}
+      </button>
+    </div>
+  )
+
+  const detailsBox = 'group rounded-2xl border border-gray-200 bg-white'
+  const summaryRow = 'flex min-h-12 cursor-pointer list-none items-center justify-between gap-2 px-4 py-2.5 marker:hidden [&::-webkit-details-marker]:hidden'
+  const chevron = <span aria-hidden className="text-gray-500 transition-transform duration-200 group-open:rotate-180">⌄</span>
+  const mixPresetMod = (m: number) => Math.floor((1.4 / (m / 100) - 1) * 10)
+
+  return (
+    <div ref={rootRef} className="flex flex-col" style={{ '--gb-header': `${headerH}px` } as CSSProperties}>
+      {/* ── Barre d'onglets mobile : en haut, collée sous la navbar ── */}
+      <div
+        style={{ top: headerH }}
+        className="sticky z-40 -mx-4 mb-4 border-b border-gray-200 bg-white/95 px-1.5 py-1.5 backdrop-blur-xl lg:hidden"
+      >
+        <div role="tablist" aria-label={L.tablistAria} onKeyDown={onTabKey} className="mx-auto flex max-w-3xl gap-1">
+          {TAB_IDS.map((id) => {
+            const active = tab === id
+            const badge = id === 'plan' ? { txt: go.badge, cls: go.bad ? 'bg-red-600' : 'bg-green-600' }
+              : id === 'stocks' && stockBadge ? { txt: '!', cls: stockBadge === 'low' ? 'bg-red-600' : 'bg-amber-500' } : null
+            return (
+              <button
+                key={id}
+                id={`${baseId}-tab-${id}`}
+                type="button"
+                role="tab"
+                aria-selected={active}
+                tabIndex={active ? 0 : -1}
+                onClick={() => show(id)}
+                className={`relative flex min-h-12 flex-1 flex-col items-center justify-center gap-0.5 rounded-xl px-0.5 py-1 text-[12.5px] font-semibold transition-all duration-200 ease-out-expo ${
+                  active ? 'bg-primary-50 text-primary-600' : 'text-gray-500 hover:text-black'
+                }`}
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="h-5 w-5">
+                  {TAB_ICONS[id]}
+                </svg>
+                {L.tabs[id]}
+                {badge && badge.txt && (
+                  <span className={`absolute left-[calc(50%+8px)] top-0.5 whitespace-nowrap rounded-full px-1.5 py-0.5 text-[11px] font-bold leading-none tabular-nums text-white ${badge.cls}`}>
+                    {badge.txt}
+                  </span>
+                )}
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[400px_minmax(0,1fr)] lg:items-start lg:gap-8">
+        {/* ── Colonne saisies (mobile : sections réparties dans les onglets) ──
+            Desktop : collée sous la navbar, avec son propre défilement si elle dépasse l'écran (comme le modèle). */}
+        <div className="contents lg:sticky lg:top-[calc(var(--gb-header)+16px)] lg:-mx-2 lg:flex lg:max-h-[calc(100vh-var(--gb-header)-32px)] lg:flex-col lg:gap-6 lg:overflow-y-auto lg:px-2 lg:pb-2 lg:[scrollbar-width:thin]">
+          {/* 1. Tes blocs */}
+          <section className={`order-1 lg:order-none ${vis('melange')}`}>
+            <InputHead no={1} title={L.tank.title} help={L.tank.help} />
+            <Card>
+              <div className={fieldsGrid}>
+                {stepper('vol', L.tank.volume, L.units.litres)}
+                {stepper('nb', L.tank.count, L.units.blocks)}
+                {stepper('p1', L.tank.pressure, L.units.bar)}
+                {stepper('f1', L.tank.o2, L.units.pctO2)}
+              </div>
+              <div className="mt-3 rounded-xl border border-gray-200 p-2.5">
+                <p className={`${T.statLabel} mb-2 text-center`}>{L.tank.quickTitle}</p>
+                <div className="grid grid-cols-3 gap-1.5">
+                  <Pill onClick={() => setS((p) => ({ ...p, p1: 0, f1: 21 }))}>{L.tank.quickEmpty}</Pill>
+                  <Pill onClick={() => setS((p) => ({ ...p, f1: 21 }))}>{L.tank.quickAir}</Pill>
+                  <Pill onClick={() => setS((p) => ({ ...p, f1: p.f2 }))}>{L.tank.quickSame}</Pill>
+                </div>
+              </div>
+            </Card>
+          </section>
+
+          {/* 2. Mélange voulu */}
+          <section className={`order-2 lg:order-none ${vis('melange')}`}>
+            <InputHead no={2} title={L.mix.title} help={L.mix.help} />
+            <Card>
+              <p className={`${T.statLabel} mb-2 text-center`}>{L.mix.presetsTitle}</p>
+              <div className="mb-3 grid grid-cols-7 gap-1">
+                {MIXES.map((m) => {
+                  const on = s.f2 === m
+                  return (
+                    <button
+                      key={m}
+                      type="button"
+                      aria-pressed={on}
+                      onClick={() => setS((p) => ({ ...p, f2: m }))}
+                      className={`flex min-h-12 flex-col items-center justify-center rounded-xl border py-1.5 text-center tabular-nums transition-all duration-200 ease-out-expo active:scale-95 ${
+                        on ? `border-primary bg-primary text-white ${PRIMARY_SHADOW}` : 'border-gray-200 bg-gray-50 text-black hover:border-primary'
+                      }`}
+                    >
+                      <span className="text-[13px] font-extrabold leading-tight min-[400px]:text-sm">{fill(L.mix.shortcut, { m })}</span>
+                      <small className={`text-[11px] font-semibold leading-tight ${on ? 'text-white/85' : 'text-gray-500'}`}>
+                        {fill(L.mix.shortcutMod, { mod: mixPresetMod(m) })}
+                      </small>
+                    </button>
+                  )
+                })}
+              </div>
+              <div className={fieldsGrid}>
+                {stepper('f2', L.mix.o2, L.units.pctO2)}
+                {stepper('p2', L.mix.pressure, L.units.bar)}
+              </div>
+              <LawNote
+                className="mt-3"
+                title={L.laws.modTitle}
+                text={fill(L.laws.mod, { m: fmt.raw(s.f2), p: fmt.raw(Math.round(140 / s.f2 * 100) / 100), mod: mod(s.f2 / 100, 1.4) })}
+              />
+            </Card>
+          </section>
+
+          {cta('melange', 'order-3')}
+
+          {/* 3. Gaz disponibles */}
+          <section className={`order-5 lg:order-none ${vis('stocks')}`}>
+            <InputHead no={3} title={L.gases.title} help={L.gases.help} />
+            <Card>
+              <div className="grid min-w-0 gap-2.5">
+                {s.gases.map((g, i) => {
+                  const color = gasColor(+g.f / 100)
+                  const cont = isCont(g)
+                  const kind = gasCardKind(g)
+                  const bad = gasFieldErrors(g)
+                  const kindTxt = kind.kind === 'continuous' ? L.gases.kindContinuous
+                    : kind.kind === 'buffer' ? L.gases.kindBuffer
+                    : fill(kind.together ? L.gases.kindTogether : L.gases.kindCascade, { n: kind.n })
+                  const nameId = `${baseId}-gas-${i}`
+                  return (
+                    <div key={i} className={`min-w-0 rounded-xl border border-l-[6px] border-gray-200 bg-white p-2.5 ${GAS_BORDER_L[color]}`}>
+                      <div className="flex items-start gap-2 pl-0.5">
+                        <Dot color={color} className="mt-2.5" />
+                        <div className="min-w-0 flex-1">
+                          <input
+                            id={nameId}
+                            value={g.name}
+                            aria-label={L.gases.nameAria}
+                            onChange={(e) => updateGas(i, { name: e.target.value })}
+                            className="w-full min-w-0 border-b-2 border-transparent bg-transparent py-0.5 text-base font-bold text-black outline-none focus:border-primary"
+                          />
+                          <span className="block text-xs font-semibold text-gray-500">{kindTxt}</span>
+                        </div>
+                        <button
+                          type="button"
+                          title={L.gases.remove}
+                          aria-label={`${L.gases.remove} ${g.name}`}
+                          onClick={() => removeGas(i)}
+                          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-2xl leading-none text-gray-400 transition-colors hover:bg-red-50 hover:text-red-700"
+                        >
+                          ×
+                        </button>
+                      </div>
+                      <div className={`mt-2 grid gap-1.5 ${cont ? 'grid-cols-3' : 'grid-cols-4'}`}>
+                        <GasField label={L.gases.o2} unit={L.units.pct} value={g.f} bad={bad.f} onValue={(raw) => updateGas(i, { f: parseGasField(raw, 'f') })} />
+                        <GasField label={cont ? L.gases.pressureMax : L.gases.pressure} unit={L.units.bar} value={g.p} bad={bad.p} onValue={(raw) => updateGas(i, { p: parseGasField(raw, 'p') })} />
+                        <GasField label={L.gases.volume} unit={L.units.l} value={g.v} placeholder="∞" onValue={(raw) => updateGas(i, { v: parseGasField(raw, 'v') })} />
+                        {!cont && (
+                          <GasField label={L.gases.count} unit={L.gases.bottles} value={g.n || 1} placeholder="1" onValue={(raw) => updateGas(i, { n: parseGasField(raw, 'n') })} />
+                        )}
+                      </div>
+                      {!cont && nTanks(g) > 1 && (
+                        <div className="mt-2 flex flex-wrap items-center justify-between gap-2 rounded-xl bg-gray-50 py-1.5 pl-3 pr-1.5">
+                          <span className="text-[13px] font-semibold text-gray-600">{L.gases.opening}</span>
+                          <Segment
+                            options={[{ id: true, label: L.gases.cascade }, { id: false, label: L.gases.together }]}
+                            value={g.c !== false}
+                            onChange={(c) => updateGas(i, { c })}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+              <div className="mt-3 rounded-xl border border-gray-200 p-2.5">
+                <p className={`${T.statLabel} mb-2 text-center`}>{L.gases.addTitle}</p>
+                <div className="grid grid-cols-2 gap-1.5">
+                  <Pill onClick={() => addGas('o2')}>{L.gases.addO2}</Pill>
+                  <Pill onClick={() => addGas('nx')}>{L.gases.addNx}</Pill>
+                  <Pill onClick={() => addGas('airb')}>{L.gases.addAir}</Pill>
+                  <Pill onClick={() => addGas('comp')}>{L.gases.addComp}</Pill>
+                </div>
+              </div>
+            </Card>
+            <p className="mt-2.5 text-center lg:text-left">
+              <button type="button" onClick={() => setS(defaults)} className="min-h-11 px-1 text-[13px] font-semibold text-gray-500 underline underline-offset-2 hover:text-black">
+                {L.gases.reset}
+              </button>
+            </p>
+          </section>
+
+          {cta('stocks', 'order-6')}
+        </div>
+
+        {/* ── Colonne résultats ── */}
+        <div className="contents lg:flex lg:flex-col lg:gap-7">
+          {/* Plan de gonflage */}
+          <section className={`order-7 lg:order-none ${vis('plan')}`} aria-live="polite">
+            <ResultHead title={L.plan.title} help={L.plan.help} />
+            {out.status === 'error' ? (
+              <Card>{out.errors.map((e) => <p key={e} role="alert" className="font-semibold text-red-700">{L.errors[e]}</p>)}</Card>
+            ) : out.status === 'nothing' ? (
+              <Card><p className="text-center text-base font-semibold text-black">✓ {L.plan.nothing}</p></Card>
+            ) : out.main.kind === 'plan' ? (
+              planCard(out.main.plan)
+            ) : (
+              <div className="grid gap-3">
+                <div className="rounded-2xl border-2 border-red-600 bg-red-50/60 px-4 py-4 sm:p-5">
+                  <p className="text-base font-bold text-red-700">⚠ {fill(L.plan.impossible, { p: fmt.r0(out.p2), mix: fmt.pct(out.f2) })}</p>
+                  <p className={`mt-1.5 ${T.help}`}>
+                    {out.main.best
+                      ? <Rich text={fill(L.plan.bestHint, { p: fmt.raw(out.main.best.pf), mix: fmt.pct(out.f2) })} />
+                      : L.plan.noneHint}
+                  </p>
+                </div>
+                {out.main.best && planCard(out.main.best.plan)}
+              </div>
+            )}
+          </section>
+
+          {/* Tes stocks */}
+          {out.status === 'computed' && (
+            <section className={`order-4 lg:order-none ${vis('stocks')}`} aria-live="polite">
+              <ResultHead title={L.stocks.title} help={L.stocks.help} />
+              {out.ignored > 0 && <Note className="mb-2">{fill(out.ignored > 1 ? L.stocks.ignoredN : L.stocks.ignored1, { n: out.ignored })}</Note>}
+              <div className="grid grid-cols-[minmax(0,1fr)] gap-2 sm:grid-cols-[repeat(auto-fit,minmax(210px,1fr))]">{out.tiles.map(tileCard)}</div>
+              <LawNote className="mt-2.5" title={L.laws.equalTitle} text={L.laws.equal} />
+            </section>
+          )}
+
+          {/* En bref */}
+          {summary && (
+            <section className={`order-8 lg:order-none ${vis('plan')}`} aria-live="polite">
+              <ResultHead title={L.summary.title} help={L.summary.help} />
+              {summaryChips(summary)}
+            </section>
+          )}
+
+          {/* Analyse finale */}
+          {chosen && analysis && (
+            <section className={`order-9 lg:order-none ${vis('plan')}`}>
+              <ResultHead title={L.analysis.title} help={L.analysis.help} />
+              <Card>
+                <label htmlFor={fieldId('ana')} className={`${T.kicker} mb-2 block text-center`}>{L.analysis.field}</label>
+                <div className="flex justify-center">
+                  <Stepper
+                    id={fieldId('ana')}
+                    label={L.analysis.field}
+                    value={anaValue}
+                    spec={FIELD_SPECS.ana}
+                    unit={L.units.pctO2}
+                    fmt={fmt}
+                    decreaseLabel={L.stepper.decrease}
+                    increaseLabel={L.stepper.increase}
+                    onBump={bumpAna}
+                    onSet={setAna}
+                    hero
+                  />
+                </div>
+                <div aria-live="polite">
+                  {!analysis.valid ? (
+                    <p role="alert" className="mt-3 rounded-xl bg-red-50 px-3 py-2 text-center font-semibold text-red-700">{L.analysis.invalid}</p>
+                  ) : (
+                    <>
+                      <div className="mt-4 grid grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)] gap-2">
+                        <div className={`flex flex-col justify-center rounded-xl border-l-[6px] bg-gray-50 px-3 py-3 ${LEVEL_BORDER_L[analysis.level]}`}>
+                          <p className={T.statLabel}>{L.analysis.verdictTitle}</p>
+                          <p className={`mt-1 text-[22px] font-extrabold leading-tight ${LEVEL_TEXT[analysis.level]}`}>
+                            {analysis.level === 'ok' ? '✓ ' : '⚠ '}
+                            {analysis.level === 'ok' ? L.analysis.status.ok
+                              : analysis.level === 'mid' ? (analysis.d > 0 ? L.analysis.status.richMid : L.analysis.status.leanMid)
+                              : (analysis.d > 0 ? L.analysis.status.richLow : L.analysis.status.leanLow)}
+                          </p>
+                          <p className={`mt-1 tabular-nums ${T.small}`}>
+                            {fill(Math.abs(analysis.d * 100) >= 2 ? L.analysis.gapN : L.analysis.gap1, {
+                              d: (analysis.d > 0.0005 ? '+' : '') + fmt.f1(analysis.d * 100),
+                              target: fmt.pct(targetF),
+                            })}
+                          </p>
+                        </div>
+                        <div className="flex flex-col items-center justify-center rounded-xl bg-gray-50 px-2 py-3 text-center">
+                          <p className={T.statLabel}>{L.analysis.labelTitle}</p>
+                          <p key={analysis.fa} className="mt-1 animate-number-pop tabular-nums text-[32px] font-extrabold leading-none tracking-[-0.02em] text-black">{pctNum(analysis.fa)}</p>
+                          <p className={`mt-0.5 ${T.unit}`}>{L.units.pctO2}</p>
+                        </div>
+                      </div>
+                      <div className="mt-2 grid grid-cols-2 gap-2">
+                        <Stat label={L.analysis.mod14} value={String(analysis.mod14)} unit={L.units.m} />
+                        <Stat label={L.analysis.mod16} value={String(analysis.mod16)} unit={L.units.m} />
+                      </div>
+                      {ramp && <Note className="mt-2.5">{L.analysis.ramp}</Note>}
+                      {analysis.fix !== undefined && (
+                        <div className="mt-3 rounded-xl border border-gray-200 px-3.5 py-3 text-[14px] font-medium text-gray-700">
+                          {analysis.fix ? (
+                            <>
+                              <p className="font-bold text-black">{fill(L.analysis.fixTitle, { target: fmt.pct(targetF) })}</p>
+                              <ol className="my-2 grid gap-1.5">
+                                {[
+                                  fill(ramp ? L.analysis.fixBleedRamp : L.analysis.fixBleedBlock, { p: fmt.raw(analysis.fix.pd) }),
+                                  ...analysis.fix.sol.steps.map((st) => fill(L.analysis.fixStep, { gas: withPct(st.gas), p: fmt.r0(st.gauge) })),
+                                ].map((txt, i) => (
+                                  <li key={i} className="flex items-center gap-2.5">
+                                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gray-100 text-xs font-extrabold text-black">{i + 1}</span>
+                                    <span><Rich text={txt} strongClass="font-extrabold text-primary" /></span>
+                                  </li>
+                                ))}
+                              </ol>
+                              <p className={T.small}>{fill(L.analysis.fixResult, { mix: fmt.pct(analysis.fix.sol.mix), label: fmt.pct(analysis.fa) })}</p>
+                            </>
+                          ) : (
+                            <p className={T.small}>{fill(L.analysis.fixNone, { label: fmt.pct(analysis.fa) })}</p>
+                          )}
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+                <LawNote className="mt-3" title={L.laws.analysisTitle} text={L.laws.analysis} />
+              </Card>
+            </section>
+          )}
+
+          {/* Autres options (repliées) */}
+          {out.status === 'computed' && out.alts.length > 0 && (
+            <section className={`order-10 lg:order-none ${vis('plan')}`}>
+              <ResultHead title={L.alts.title} help={L.alts.help} />
+              <div className="grid gap-2">
+                {out.alts.map((sol, i) => {
+                  const view: PlanView = { sol, p1: out.p1, p2: out.p2, bleed: null, good: sol.dev <= TOL }
+                  return (
+                    <details key={i} className={detailsBox}>
+                      <summary className={summaryRow}>
+                        <span className="flex min-w-0 items-center gap-2 text-[15px] font-semibold text-black">
+                          {sol.steps.map((st, k) => <Dot key={k} color={gasColor(st.gas.f)} />)}
+                          <span className="truncate">{titleOf(sol.gases)}</span>
+                        </span>
+                        <span className="ml-auto whitespace-nowrap text-[13px] font-semibold tabular-nums text-gray-500">
+                          {fmt.pct(sol.mix)}{sol.o2 > EPS ? fill(L.alts.withO2, { o2: fmt.r0(sol.o2) }) : L.alts.noO2}
+                        </span>
+                        {chevron}
+                      </summary>
+                      <div className="px-4 pb-4">
+                        {compBar(sol)}
+                        {planGrid(view)}
+                        {notes(sol)}
+                        {altStock(sol, out.V)}
+                      </div>
+                    </details>
+                  )
+                })}
+              </div>
+            </section>
+          )}
+
+          {/* Combinaisons écartées (repliées) */}
+          {out.status === 'computed' && out.rejected.length > 0 && (
+            <details className={`order-11 lg:order-none ${detailsBox} ${vis('plan')}`}>
+              <summary className={summaryRow}>
+                <span className="text-[15px] font-semibold text-black">{L.rejected.title}</span>
+                <span className="ml-auto rounded-full bg-gray-100 px-2 py-0.5 text-xs font-bold tabular-nums text-gray-600">{out.rejected.length}</span>
+                {chevron}
+              </summary>
+              <div className="px-4 pb-3">
+                {out.rejected.map((k, i) => (
+                  <div key={i} className="flex gap-2.5 border-t border-gray-100 py-2 text-[13px] first:border-t-0 max-sm:flex-col max-sm:gap-0.5">
+                    <span className="min-w-0 flex-1 font-semibold text-black">{titleOf(k.gases)}</span>
+                    <span className="flex-[1.3] font-medium text-red-700">{koReason(k.reason)}</span>
+                  </div>
+                ))}
+              </div>
+            </details>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}

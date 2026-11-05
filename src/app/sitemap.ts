@@ -53,6 +53,18 @@ export default function sitemap(): MetadataRoute.Sitemap {
       },
     },
     {
+      url: `${BASE_URL}/fr/gonflage-nitrox`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.9,
+      alternates: {
+        languages: {
+          fr: `${BASE_URL}/fr/gonflage-nitrox`,
+          en: `${BASE_URL}/en/gonflage-nitrox`,
+        },
+      },
+    },
+    {
       url: `${BASE_URL}/en`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
@@ -97,6 +109,18 @@ export default function sitemap(): MetadataRoute.Sitemap {
         languages: {
           fr: `${BASE_URL}/fr/consommation`,
           en: `${BASE_URL}/en/consommation`,
+        },
+      },
+    },
+    {
+      url: `${BASE_URL}/en/gonflage-nitrox`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.9,
+      alternates: {
+        languages: {
+          fr: `${BASE_URL}/fr/gonflage-nitrox`,
+          en: `${BASE_URL}/en/gonflage-nitrox`,
         },
       },
     },
