@@ -44,7 +44,7 @@ Un outil `<slug>` (slug en français, minuscules, tirets : `gas-blender`, `conso
 3. `src/i18n/dictionaries/fr.ts` et `en.ts` : `metadata.<clé>`, bloc `<clé>` de l'outil,
    entrée dans `home.tools` (avec `id`), entrée dans `nav.links`.
 4. `src/app/[locale]/page.tsx` : entrée dans `TOOLS_CONFIG` (même `id`).
-5. `src/components/Navbar.tsx` : slug dans `SLUGS` (attention, appariement par position avec `nav.links`).
+5. `src/components/Navbar.tsx` : entrée `id → slug` dans `SLUGS`, avec le même `id` que dans `nav.links`.
 6. `src/middleware.ts` : slug dans `KNOWN_PAGES`.
 7. `src/app/sitemap.ts` : URLs fr et en avec alternates.
 8. `public/og-<slug>.png` (1200×630).

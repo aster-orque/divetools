@@ -19,6 +19,7 @@ const TOOLS_CONFIG: Record<string, ToolConfig> = {
   decompression: { slug: '/decompression', status: 'soon', icon: '\u23F1' },
   flottabilite: { slug: '/flottabilite', status: 'soon', icon: '\u2696' },
   convertisseur: { slug: '/convertisseur', status: 'live', icon: '\u21c4' },
+  consommation: { slug: '/consommation', status: 'live', icon: '\uD83D\uDCA8' },
   volumes: { slug: '/volumes', status: 'soon', icon: '\uD83E\uDEE7' },
   devis: { slug: '/devis', status: 'soon', icon: '\uD83D\uDCCB' },
 }
@@ -163,6 +164,7 @@ const staggerClass = [
   'animate-slide-up-1',
   'animate-slide-up-2',
   'animate-slide-up-3',
+  'animate-slide-up-4',
   'animate-slide-up-4',
   'animate-slide-up-4',
   'animate-slide-up-4',

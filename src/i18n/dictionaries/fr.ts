@@ -28,6 +28,28 @@ const dict = {
       ogDescription:
         'Conversions instantanées pression ↔ profondeur : bar, psi, mètres, pieds. Eau douce vs salée, pression absolue et relative.',
     },
+    consumption: {
+      title: 'Calcul consommation air plongée : conso surface et autonomie',
+      description:
+        "Calcule ta consommation d'air en plongée (conso surface en L/min), vois pourquoi elle double dès 10 m et l'autonomie de ton bloc. Gratuit, sans inscription.",
+      keywords: [
+        'calcul consommation air plongée',
+        'calculer sa conso plongée',
+        "consommation d'air plongée",
+        'consommation surface plongée',
+        'conso surface SAC',
+        'calculateur SAC plongée',
+        'consommation litres par minute plongée',
+        'autonomie bloc plongée',
+        'calcul autonomie bouteille plongée',
+        'consommation air profondeur Mariotte',
+        'combien de temps dure une bouteille de plongée',
+        'calcul conso plongée niveau 2',
+      ],
+      ogTitle: "Calcul de consommation d'air en plongée",
+      ogDescription:
+        "Calcule ta conso surface en L/min, vois pourquoi elle double dès 10 m et combien de minutes dure ton bloc selon la profondeur. Gratuit.",
+    },
     nitrox: {
       title: 'Calculateur Nitrox — MOD, EAD, Meilleur Mélange et CNS',
       description:
@@ -92,6 +114,14 @@ const dict = {
         description:
           'Conversions instantanées : bar ↔ psi, mètres ↔ pieds, pression absolue ↔ profondeur, eau douce vs salée.',
         keywords: ['bar', 'psi', 'profondeur', 'pression'],
+      },
+      {
+        id: 'consommation',
+        tag: 'Consommation',
+        title: "Calculateur de consommation d'air",
+        description:
+          "Calcule ta conso surface (SAC), visualise l'effet de la profondeur et compare l'autonomie de ton bloc.",
+        keywords: ['SAC', 'L/min', 'autonomie', 'bloc'],
       },
       {
         id: 'volumes',
@@ -405,6 +435,143 @@ const dict = {
       breadcrumbHome: 'Orque Tools',
     },
   },
+  consumption: {
+    breadcrumbHome: 'Outils',
+    breadcrumbCurrent: 'Consommation',
+    title: "Calcul de consommation d'air",
+    subtitle:
+      "Calcule ta conso surface, vois l'effet de la profondeur et l'autonomie de ton bloc. Outil pédagogique : suis toujours ton manomètre.",
+    // Conventions : {nom} = valeur interpolée, **texte** = gras, {link} = bouton vers l'onglet Ma conso.
+    /** Locale Intl pour formater les nombres */
+    numberLocale: 'fr-FR',
+    tablistAria: "Volets de l'outil",
+    tabs: { pression: 'Pression', conso: 'Ma conso', auto: 'Autonomie', comp: 'Comparer' },
+    units: { lpm: 'L/min', l: 'L', bar: 'bar', min: 'min', m: 'm', s: 's', barPerMin: 'bar/min' },
+    /** biTotal : unité sous le volume d'un bi, {total} = volume total */
+    stepper: { decrease: 'Diminuer', increase: 'Augmenter', biTotal: 'L × 2 = {total} L' },
+    tank: { label: 'Bloc', myTank: 'Mon bloc', mono: 'Mono', bi: 'Bi', biPrefix: '2×' },
+    pressure: {
+      sacTitle: 'Ta conso en surface',
+      /** {link} = lien vers l'onglet Ma conso (texte : hintLink) */
+      hint: "Pas d'idée ? Calcule‑la dans {link}. Valeur moyenne : 15 à 20 L/min.",
+      hintLink: 'Ma conso',
+      columnAria: 'Profondeur : glisse pour descendre',
+      kicker: 'À {depth} m, chaque inspiration coûte',
+      multiplierNote: "plus d'air qu'en surface",
+      statPressure: 'Pression',
+      statConso: 'Ta conso',
+      statTank: 'Bloc 12 L · 200 bar vidé en',
+      surface: 'Surface',
+      trapTitle: 'Le piège des premiers mètres',
+      trapNote: 'De 0 à 10 m ta conso **double**. De 30 à 40 m : **+25 %** seulement. Touche une barre.',
+    },
+    conso: {
+      title: 'Ma dernière plongée',
+      startPressure: 'Pression départ',
+      endPressure: 'Pression sortie',
+      duration: 'Durée',
+      avgDepth: 'Profondeur moyenne',
+      resultKicker: 'Ta conso ramenée en surface',
+      levels: { veryCalm: 'Très zen', calm: 'Calme', average: 'Dans la moyenne', high: 'Soutenue', veryHigh: 'Élevée' },
+      statUsed: 'Gaz respiré',
+      statAvgPressure: 'Pression moy.',
+      statBottom: 'Conso au fond',
+      errorEndPressure: 'La pression de sortie doit être inférieure à la pression de départ.',
+      /** {pressure} */
+      reserveWarning: 'Sortie à {pressure} bar : réserve entamée.',
+      useButton: 'Utiliser cette conso partout →',
+    },
+    autonomy: {
+      infoTitle: 'Simulation pédagogique, pas un planificateur',
+      infoText:
+        "Le calcul vide le bloc jusqu'à **0 bar**, sans réserve, sans remontée ni palier : ce n'est pas la réalité d'une plongée. Le but est de voir comment l'autonomie évolue selon la profondeur, le bloc et ta conso.",
+      depthTitle: 'Profondeur',
+      startPressure: 'Pression départ',
+      sac: 'Ma conso surface',
+      gaugeCaption: 'min à {depth} m → 0 bar',
+      statBottom: 'Conso au fond',
+      statBar: '1 bar dure',
+      statRate: 'Le mano baisse de',
+      barsTitle: "Le même bloc à d'autres profondeurs",
+      barsNote: "Minutes jusqu'à 0 bar. Touche une barre.",
+      /** Symbole des minutes sur les barres */
+      minuteMark: '′',
+      /** Note discrète sous l'autonomie (limite du modèle gaz parfait) */
+      idealGasNote: "Air considéré comme un gaz parfait : à 200-300 bar, un bloc contient en réalité un peu moins d'air.",
+    },
+    compare: {
+      settingsTitle: 'Mes réglages',
+      sac: 'Ma conso surface',
+      startPressure: 'Pression départ',
+      abTitle: 'Deux profondeurs, même bloc',
+      depthA: 'Profondeur A',
+      depthB: 'Profondeur B',
+      sameDepth: 'Choisis deux profondeurs différentes.',
+      /** {lo} = profondeur la plus pénalisante, {hi} = l'autre, {diff} = minutes, {ratio} */
+      diff: "À {lo} m : **{diff} min** de moins qu'à {hi} m, soit **{ratio}× moins**",
+      /** {tank} {pressure} {sac} */
+      diffSub: 'avec {tank} à {pressure} bar et {sac} L/min',
+      otherTanksTitle: 'Et avec un autre bloc ?',
+      tableTitle: "Tableau minutes jusqu'à 0 bar",
+    },
+    footnote:
+      "Calculs gaz parfait : pression absolue = 1 + profondeur / 10. Conso surface = gaz respiré ÷ (durée × pression moyenne). Autonomie simulée = pression départ × volume ÷ (conso × pression), jusqu'à 0 bar, sans réserve ni remontée. Valeurs indicatives, hors effort, froid et stress.",
+    faq: {
+      title: 'Questions fréquentes',
+      items: [
+        {
+          q: "Comment calculer sa consommation d'air en plongée ?",
+          a: "Multiplie le volume du bloc par les bars consommés pour obtenir les litres respirés, puis divise par la durée et par la pression absolue moyenne (1 + profondeur moyenne ÷ 10). Exemple : bloc 12 L de 200 à 50 bar = 1 800 L, en 40 min à 15 m de moyenne (2,5 bar) : 1 800 ÷ (40 × 2,5) = 18 L/min en surface.",
+        },
+        {
+          q: "Quelle est une consommation d'air normale en plongée ?",
+          a: "La plupart des plongeurs loisir ont une conso surface de 15 à 20 L/min. Sous 12 L/min, c'est très calme ; au-delà de 25 L/min, c'est élevé, souvent à cause du froid, de l'effort, du stress ou d'un lestage mal réglé. Elle varie d'une plongée à l'autre : mesure-la sur plusieurs plongées.",
+        },
+        {
+          q: "Pourquoi consomme-t-on deux fois plus d'air à 10 m ?",
+          a: "À 10 m, la pression absolue vaut 2 bar : chaque inspiration, de même volume pour tes poumons, contient deux fois plus d'air (loi de Mariotte). Ta conso au fond est donc ta conso surface × 2. De 0 à 10 m la conso double, alors que de 30 à 40 m (4 à 5 bar) elle n'augmente que de 25 %.",
+        },
+        {
+          q: 'Combien de temps dure un bloc de 12 litres en plongée ?',
+          a: "Un bloc de 12 L à 200 bar contient environ 2 400 L d'air. Avec une conso surface de 20 L/min et en le vidant jusqu'à 0 bar : 120 min en surface, 40 min à 20 m, 24 min à 40 m. En plongée réelle, tu gardes une réserve (souvent 50 bar) et du gaz pour remonter : à 20 m, 150 bar utilisables ne font plus que 30 min.",
+        },
+        {
+          q: 'Quelle différence entre conso surface (SAC) et conso au fond ?',
+          a: "La conso surface est ramenée à 1 bar : elle te caractérise et se compare d'une plongée à l'autre. La conso au fond est ce que tu respires réellement à la profondeur, soit conso surface × pression absolue : avec 18 L/min en surface, tu respires 45 L/min à 15 m. En anglais, on parle de SAC rate ou de RMV.",
+        },
+      ],
+    },
+    /** Texte du lien vers le convertisseur, inséré à la place de {converter} dans seo */
+    seoConverterLink: 'convertisseur pression/profondeur',
+    seo: [
+      {
+        title: "Comment mesurer sa consommation d'air",
+        content:
+          "Note la pression au départ et à la sortie, la durée et la profondeur moyenne (ton ordinateur l'affiche). L'onglet Ma conso calcule le gaz respiré (volume × bars consommés) puis le divise par la durée et la pression moyenne. Choisis une plongée au profil régulier et refais la mesure sur plusieurs plongées : un manomètre se lit à quelques bars près, et la conso change avec le froid, l'effort ou le stress.",
+      },
+      {
+        title: 'Pourquoi ta conso double dès 10 m',
+        content:
+          "La pression absolue vaut 1 + profondeur ÷ 10 : 2 bar à 10 m, 3 bar à 20 m, 5 bar à 40 m. Tes poumons gardent le même volume, mais chaque inspiration contient autant de fois plus d'air qu'il y a de bars. De 0 à 10 m la conso double, de 10 à 20 m elle augmente de 50 %, de 30 à 40 m de 25 % seulement. Pour passer de la profondeur à la pression en eau douce ou salée, utilise le {converter}.",
+      },
+      {
+        title: "Lire l'autonomie et le manomètre",
+        content:
+          "L'onglet Autonomie divise l'air du bloc (volume × pression) par ta conso au fond. Exemple : bloc 12 L à 200 bar, 20 L/min en surface, à 20 m : tu respires 60 L/min, le mano baisse de 5 bar par minute, 1 bar dure 12 s et le bloc serait vide en 40 min. Ce chiffre sert à comparer profondeurs et blocs, pas à fixer la durée de ta plongée.",
+      },
+      {
+        title: "Limites : ce n'est pas un planificateur",
+        content:
+          "Le calcul vide le bloc jusqu'à 0 bar, sans réserve, sans remontée ni palier. Il traite l'air comme un gaz parfait : à haute pression, un bloc contient un peu moins d'air que volume × pression (environ 4 % de moins à 200 bar, près de 10 % à 300 bar), donc l'autonomie affichée est légèrement optimiste. Prépare tes plongées avec ton ordinateur, ta palanquée et les règles de ta formation, et suis ton manomètre.",
+      },
+    ],
+    jsonLd: {
+      appName: "Calculateur de consommation d'air",
+      appDescription:
+        "Calculateur gratuit de consommation d'air en plongée : conso surface (SAC) en L/min à partir d'une plongée, effet de la profondeur et autonomie simulée du bloc.",
+      breadcrumbHome: 'Orque Tools',
+    },
+  },
   disclaimer: {
     title: 'Outil à usage éducatif',
     body1Bold: 'informatif et éducatif uniquement',
@@ -417,11 +584,12 @@ const dict = {
   },
   nav: {
     links: [
-      { label: 'Nitrox', live: true },
-      { label: 'Convertisseur', live: true },
-      { label: 'Décompression', live: false },
-      { label: 'Flottabilité', live: false },
-      { label: 'Devis', live: false },
+      { id: 'nitrox', label: 'Nitrox', live: true },
+      { id: 'convertisseur', label: 'Convertisseur', live: true },
+      { id: 'consommation', label: 'Consommation', live: true },
+      { id: 'decompression', label: 'Décompression', live: false },
+      { id: 'flottabilite', label: 'Flottabilité', live: false },
+      { id: 'devis', label: 'Devis', live: false },
     ],
     bookDive: 'Réserver une plongée',
     soonBadge: 'Bientôt',

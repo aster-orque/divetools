@@ -5,7 +5,17 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 
-const SLUGS = ['/nitrox', '/convertisseur', '/decompression', '/flottabilite', '/devis']
+/* Slug de chaque lien, indexé par l'`id` de l'entrée correspondante dans
+   `dict.nav.links` (même principe que TOOLS_CONFIG sur l'accueil) : l'ordre
+   du dictionnaire peut changer sans désynchroniser libellés et liens. */
+const SLUGS: Record<string, string> = {
+  nitrox: '/nitrox',
+  convertisseur: '/convertisseur',
+  consommation: '/consommation',
+  decompression: '/decompression',
+  flottabilite: '/flottabilite',
+  devis: '/devis',
+}
 
 export default function Navbar({
   locale,
@@ -13,7 +23,7 @@ export default function Navbar({
 }: {
   locale: string
   labels: {
-    links: { label: string; live: boolean }[]
+    links: { id: string; label: string; live: boolean }[]
     bookDive: string
     soonBadge: string
     onAster: string
@@ -22,8 +32,8 @@ export default function Navbar({
   const [open, setOpen] = useState(false)
   const pathname = usePathname()
 
-  const NAV_LINKS = labels.links.map((link, i) => ({
-    href: `/${locale}${SLUGS[i]}`,
+  const NAV_LINKS = labels.links.map((link) => ({
+    href: `/${locale}${SLUGS[link.id]}`,
     label: link.label,
     live: link.live,
   }))
