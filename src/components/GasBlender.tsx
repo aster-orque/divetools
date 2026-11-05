@@ -60,18 +60,18 @@ const HOLD_INTERVAL_MS = 70
 /** Marge (px) laissée sous la navbar quand on remonte au haut de l'outil en changeant d'onglet. */
 const TOOL_SCROLL_GAP_PX = 12
 
-/** Couleurs des gaz : O2 pur vert, nitrox ambre, air bleu Orque clair (résiduel : gris hachuré). */
-const GAS_BG: Record<GasColor, string> = { o2: 'bg-green-600', nx: 'bg-amber-500', air: 'bg-primary-400' }
-const GAS_FILL: Record<GasColor, string> = { o2: 'fill-green-600', nx: 'fill-amber-500', air: 'fill-primary-400' }
-const GAS_BORDER_L: Record<GasColor, string> = { o2: 'border-l-green-600', nx: 'border-l-amber-500', air: 'border-l-primary-400' }
+/** Couleurs des gaz : O2 pur bleu Orque, nitrox ambre, air gris-bleu (résiduel : gris hachuré). */
+const GAS_BG: Record<GasColor, string> = { o2: 'bg-primary', nx: 'bg-amber-500', air: 'bg-slate-500' }
+const GAS_FILL: Record<GasColor, string> = { o2: 'fill-primary', nx: 'fill-amber-500', air: 'fill-slate-500' }
+const GAS_BORDER_L: Record<GasColor, string> = { o2: 'border-l-primary', nx: 'border-l-amber-500', air: 'border-l-slate-500' }
 
-/** Niveaux d'état (tuiles, analyse). */
+/** Niveaux d'état (tuiles, analyse) : OK en bleu Orque, ambre / rouge pour les alertes. */
 type Level = 'ok' | 'mid' | 'low' | 'off'
 const LEVEL_BORDER_L: Record<Level, string> = {
-  ok: 'border-l-green-600', mid: 'border-l-amber-500', low: 'border-l-red-600', off: 'border-l-gray-200',
+  ok: 'border-l-primary', mid: 'border-l-amber-500', low: 'border-l-red-600', off: 'border-l-gray-200',
 }
 const LEVEL_TEXT: Record<Level, string> = {
-  ok: 'text-green-700', mid: 'text-amber-700', low: 'text-red-700', off: 'text-gray-500',
+  ok: 'text-primary-600', mid: 'text-amber-700', low: 'text-red-700', off: 'text-gray-500',
 }
 
 const TAB_ICONS: Record<TabId, ReactNode> = {
@@ -80,22 +80,14 @@ const TAB_ICONS: Record<TabId, ReactNode> = {
   plan: <><path d="M9 6h11M9 12h11M9 18h11" /><circle cx="4.5" cy="6" r="1.5" /><circle cx="4.5" cy="12" r="1.5" /><circle cx="4.5" cy="18" r="1.5" /></>,
 }
 
-/** Hiérarchie typographique (mêmes niveaux que l'outil Consommation). */
+/** Hiérarchie typographique (reprise du modèle, en Poppins). */
 const T = {
-  /** Titre de carte : 12 px, gras, capitales espacées, gris */
+  /** Petit titre en capitales (kicker du plan, chips) */
   kicker: 'text-xs font-bold uppercase tracking-wider text-gray-500',
   /** Titre de bloc (« Tes blocs », « Plan de gonflage ») */
   sectionTitle: 'text-[17px] font-bold text-black',
-  /** Valeur principale d'une carte : 44 → 52 px extra-gras */
-  hero: 'tabular-nums text-[44px] font-extrabold leading-none tracking-[-0.02em] sm:text-[52px]',
-  /** Unité sous une grosse valeur */
-  heroUnit: 'text-sm font-semibold text-gray-500',
-  /** Valeur d'une petite carte de résultat */
-  statValue: 'tabular-nums text-[24px] font-extrabold leading-none tracking-[-0.01em] text-black',
-  /** Label d'une petite carte de résultat : 11 px, petites capitales */
-  statLabel: 'text-[11px] font-semibold uppercase leading-snug tracking-wide text-gray-500',
-  /** Unité d'une valeur de stat ou de champ */
-  unit: 'text-xs font-semibold text-gray-500',
+  /** Unité à côté d'une grosse valeur */
+  unit: 'text-[13px] font-semibold text-gray-500',
   /** Label d'un champ de saisie */
   fieldLabel: 'text-[14px] font-semibold leading-snug text-gray-700',
   /** Texte d'aide discret */
@@ -154,23 +146,18 @@ function Rich({ text, slots, strongClass = 'font-semibold text-black' }: { text:
   return <>{parts}</>
 }
 
-function Card({ title, children, className = '' }: { title?: string; children: ReactNode; className?: string }) {
-  return (
-    <div className={`rounded-2xl border border-gray-200 bg-white px-4 py-4 shadow-soft sm:p-5 ${className}`}>
-      {title && <h3 className={T.kicker + ' mb-2.5'}>{title}</h3>}
-      {children}
-    </div>
-  )
+function Card({ children, className = '' }: { children: ReactNode; className?: string }) {
+  return <div className={`rounded-2xl border border-gray-200 bg-white p-3.5 shadow-soft sm:p-4 ${className}`}>{children}</div>
 }
 
-/** Rappel discret de la loi physique qui explique la carte. `**texte**` = gras. */
+/** Rappel discret de la loi physique (petit texte gris). `**texte**` = gras. */
 function LawNote({ title, text, className = '' }: { title: string; text: string; className?: string }) {
   return (
-    <p className={`flex gap-2 rounded-xl bg-primary-50/60 px-3 py-2 text-[13px] font-medium leading-relaxed text-gray-600 ${className}`}>
+    <p className={`flex gap-1.5 text-xs font-medium leading-relaxed text-gray-500 ${className}`}>
       <span aria-hidden="true" className="font-bold text-primary">ⓘ</span>
       <span>
-        <span className="font-semibold text-black">{title} </span>
-        <Rich text={text} />
+        <span className="font-semibold text-gray-700">{title} </span>
+        <Rich text={text} strongClass="font-semibold text-gray-700" />
       </span>
     </p>
   )
@@ -178,7 +165,7 @@ function LawNote({ title, text, className = '' }: { title: string; text: string;
 
 /** Note d'avertissement (.note de l'original). */
 function Note({ children, className = '' }: { children: ReactNode; className?: string }) {
-  return <p className={`rounded-xl bg-amber-50 px-3 py-2 text-[13px] font-medium leading-snug text-amber-800 ${className}`}>{children}</p>
+  return <p className={`rounded-lg bg-amber-50 px-3 py-1.5 text-[13px] font-medium leading-snug text-amber-800 ${className}`}>{children}</p>
 }
 
 /** En-tête de bloc de saisie : numéro, titre, aide (.blk-h de l'original). */
@@ -208,22 +195,9 @@ function Dot({ color, className = '' }: { color: GasColor; className?: string })
   return <i aria-hidden="true" className={`inline-block h-3 w-3 shrink-0 rounded-full ${GAS_BG[color]} ${className}`} />
 }
 
-/** Petite carte de résultat : label, grosse valeur, unité dessous. */
-function Stat({ label, value, unit, className = '' }: { label: string; value: string; unit?: string; className?: string }) {
-  return (
-    <div className={`flex h-full min-w-0 flex-col items-center justify-between gap-1.5 rounded-xl bg-gray-50 px-2 py-2.5 text-center ${className}`}>
-      <p className={T.statLabel}>{label}</p>
-      <p className="flex flex-col items-center gap-0.5">
-        <span key={value} className={`${T.statValue} animate-number-pop`}>{value}</span>
-        {unit && <span className={T.unit}>{unit}</span>}
-      </p>
-    </div>
-  )
-}
-
 /** Stepper − valeur + : appui long répété, saisie libre avec virgule, validée au blur ou sur Entrée. */
 function Stepper({
-  id, label, value, spec, unit, fmt, decreaseLabel, increaseLabel, onBump, onSet, hero = false,
+  id, label, value, spec, unit, fmt, decreaseLabel, increaseLabel, onBump, onSet,
 }: {
   id?: string
   label: string
@@ -235,8 +209,6 @@ function Stepper({
   increaseLabel: string
   onBump: (dir: -1 | 1) => void
   onSet: (v: number) => void
-  /** Réglage principal d'une carte : valeur au niveau T.hero, boutons plus grands */
-  hero?: boolean
 }) {
   const [draft, setDraft] = useState<string | null>(null)
   const timeout = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -278,15 +250,15 @@ function Stepper({
       onBump(dir)
     }
   }
-  const btn = `flex ${hero ? 'h-12 w-12 text-2xl' : 'h-11 w-11 text-xl'} shrink-0 select-none touch-manipulation items-center justify-center rounded-full border border-gray-200 bg-white font-medium leading-none text-black shadow-soft transition-all duration-200 ease-out-expo hover:border-primary hover:text-primary active:scale-95 active:border-primary active:bg-primary active:text-white`
+  const btn = 'flex h-11 w-11 shrink-0 select-none touch-manipulation items-center justify-center rounded-full border border-gray-200 bg-white text-xl font-medium leading-none text-black shadow-soft transition-all duration-200 ease-out-expo hover:border-primary hover:text-primary active:scale-95 active:border-primary active:bg-primary active:text-white'
 
   return (
-    <div className="inline-flex shrink-0 items-center gap-0.5 sm:gap-1">
+    <div className="flex shrink-0 items-center gap-0.5 sm:gap-1 lg:w-full lg:justify-between">
       <button type="button" aria-label={`${decreaseLabel}, ${label}`} className={btn}
         onPointerDown={start(-1)} onPointerUp={stop} onPointerLeave={stop} onPointerCancel={stop} onKeyDown={key(-1)}>
         −
       </button>
-      <div className={`flex shrink-0 flex-col items-center leading-tight ${hero ? 'w-[136px]' : 'w-[70px] min-[380px]:w-[78px]'}`}>
+      <div className="flex w-[70px] min-w-0 shrink flex-col items-center leading-tight min-[380px]:w-[78px] lg:w-auto lg:flex-1">
         <input
           id={id}
           inputMode="decimal"
@@ -301,11 +273,9 @@ function Stepper({
             if (e.key === 'Enter') e.currentTarget.blur()
           }}
           onBlur={commit}
-          className={`w-full min-w-0 border-b-2 border-transparent bg-transparent p-0 text-center tabular-nums font-extrabold tracking-tight text-black outline-none transition-colors focus:border-primary ${
-            hero ? 'text-[44px] leading-none tracking-[-0.02em]' : 'text-[24px] leading-tight'
-          }`}
+          className="w-full min-w-0 max-w-[96px] border-b-2 border-transparent bg-transparent p-0 text-center text-[24px] font-extrabold leading-tight tracking-tight tabular-nums text-black outline-none transition-colors focus:border-primary"
         />
-        <small className={`whitespace-nowrap font-semibold leading-tight text-gray-500 ${hero ? 'mt-1 text-sm' : 'text-xs'}`}>{unit}</small>
+        <small className="whitespace-nowrap text-xs font-semibold leading-tight text-gray-500">{unit}</small>
       </div>
       <button type="button" aria-label={`${increaseLabel}, ${label}`} className={btn}
         onPointerDown={start(1)} onPointerUp={stop} onPointerLeave={stop} onPointerCancel={stop} onKeyDown={key(1)}>
@@ -315,56 +285,37 @@ function Stepper({
   )
 }
 
-/** Case de saisie : label à gauche (lié à l'input), stepper à droite (.f de l'original). */
+/** Case de saisie (.f de l'original) : label à gauche et stepper à droite ; en desktop, label au-dessus. */
 function Field({ label, htmlFor, children }: { label: string; htmlFor?: string; children: ReactNode }) {
   return (
-    <div className={`flex min-h-[72px] min-w-0 items-center justify-between gap-2 rounded-xl border border-transparent bg-gray-50 py-2 pl-3 pr-2 transition-all duration-200 ease-out-expo ${FOCUS_RING}`}>
-      <label htmlFor={htmlFor} className={`block min-w-0 ${T.fieldLabel}`}>{label}</label>
+    <div className={`flex min-w-0 items-center justify-between gap-2 rounded-xl border border-transparent bg-gray-50 py-1.5 pl-3 pr-1.5 transition-all duration-200 ease-out-expo lg:flex-col lg:items-stretch lg:gap-1 lg:px-2.5 lg:pb-2 lg:pt-2 ${FOCUS_RING}`}>
+      <label htmlFor={htmlFor} className={`block min-w-0 ${T.fieldLabel} lg:text-xs lg:font-semibold lg:text-gray-500`}>{label}</label>
       {children}
     </div>
   )
 }
 
-/** Segment à deux options (pattern ToggleGroup, cibles de 44 px). */
-function Segment<V extends string | boolean>({ options, value, onChange }: { options: { id: V; label: string }[]; value: V; onChange: (id: V) => void }) {
-  return (
-    <div className="inline-flex shrink-0 rounded-full border border-gray-200 bg-white p-0.5">
-      {options.map((opt) => (
-        <button
-          key={String(opt.id)}
-          type="button"
-          aria-pressed={value === opt.id}
-          onClick={() => onChange(opt.id)}
-          className={`min-h-10 rounded-full px-3.5 text-[13px] font-semibold transition-all duration-200 ease-out-expo ${
-            value === opt.id ? `bg-primary text-white ${PRIMARY_SHADOW}` : 'text-gray-500 hover:text-black'
-          }`}
-        >
-          {opt.label}
-        </button>
-      ))}
-    </div>
-  )
-}
-
-/** Bouton pilule (raccourcis, ajout de gaz) : 44 px de haut, texte centré sur une ou deux lignes. */
-function Pill({ onClick, children, className = '' }: { onClick: () => void; children: ReactNode; className?: string }) {
+/** Bouton pilule (raccourcis, ajout de gaz, ouverture) : 44 px de haut. `on` = choix actif. */
+function Pill({ onClick, children, on }: { onClick: () => void; children: ReactNode; on?: boolean }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`flex min-h-11 items-center justify-center rounded-full border border-gray-200 bg-white px-3 py-1.5 text-center text-[13px] font-semibold leading-tight text-black shadow-soft transition-all duration-200 ease-out-expo hover:border-primary hover:text-primary active:scale-95 ${className}`}
+      aria-pressed={on}
+      className={`min-h-11 rounded-full border px-3 py-1.5 text-[13px] font-semibold leading-tight transition-all duration-200 ease-out-expo active:scale-95 ${
+        on ? 'border-primary bg-primary text-white' : 'border-gray-200 bg-white text-black hover:border-primary hover:text-primary'
+      }`}
     >
       {children}
     </button>
   )
 }
 
-/** Champ d'une carte gaz (petite carte) : label en haut, valeur centrée, unité dessous. Appliqué à chaque frappe. */
+/** Champ d'une carte gaz (.gf3 label de l'original) : petit label (unité comprise), valeur dessous. Appliqué à chaque frappe. */
 function GasField({
-  label, unit, value, bad = false, placeholder, onValue,
+  label, value, bad = false, placeholder, onValue,
 }: {
   label: string
-  unit: string
   value: number | ''
   bad?: boolean
   placeholder?: string
@@ -374,11 +325,11 @@ function GasField({
   const shown = value === '' ? '' : String(value)
   return (
     <label
-      className={`flex min-w-0 flex-col items-center gap-0.5 rounded-xl border bg-gray-50 px-1 pb-1.5 pt-2 text-center transition-all duration-200 ease-out-expo ${
+      className={`flex min-w-0 flex-col justify-between gap-0.5 rounded-lg border bg-gray-50 px-2 pb-1.5 pt-1.5 transition-all duration-200 ease-out-expo ${
         bad ? 'border-red-600 bg-red-50' : `border-transparent ${FOCUS_RING}`
       }`}
     >
-      <span className={`text-xs font-semibold leading-tight ${bad ? 'text-red-700' : 'text-gray-500'}`}>{label}</span>
+      <span className={`text-[11px] font-semibold leading-tight ${bad ? 'text-red-700' : 'text-gray-500'}`}>{label}</span>
       <input
         inputMode="decimal"
         aria-invalid={bad || undefined}
@@ -393,9 +344,8 @@ function GasField({
           onValue(e.target.value)
         }}
         onBlur={() => setDraft(null)}
-        className="w-full min-w-0 border-0 bg-transparent p-0 text-center text-[21px] font-extrabold leading-tight tabular-nums text-black outline-none placeholder:text-gray-400"
+        className="w-full min-w-0 border-0 bg-transparent p-0 text-[19px] font-extrabold leading-tight tabular-nums text-black outline-none placeholder:text-gray-400"
       />
-      <span className={`text-[11px] font-semibold leading-tight ${bad ? 'text-red-700' : 'text-gray-500'}`}>{unit}</span>
     </label>
   )
 }
@@ -607,7 +557,6 @@ export default function GasBlender({ labels }: { labels: GasBlenderLabels }) {
   }
   const withPct = (g: BlendGas) => fill(L.gases.withPct, { name: gasName(g.label), f: fmt.raw(Math.round(g.f * 1000) / 10) })
   const titleOf = (gases: BlendGas[]) => gases.map((g) => gasName(g.label)).join(L.plan.join)
-  const pctNum = (f: number) => fmt.f1(f * 100)
   const again = (k: number) => {
     const n = k >= 20 ? '20+' : k
     if (k === 0) return ramp ? L.stocks.again0Ramp : L.stocks.again0Block
@@ -678,19 +627,19 @@ export default function GasBlender({ labels }: { labels: GasBlenderLabels }) {
       />
     </Field>
   )
-  // Cases de saisie : 1 colonne sur mobile, 2 entre 640 et 1024 px, 1 dans la colonne desktop (400 px).
-  const fieldsGrid = 'grid grid-cols-[minmax(0,1fr)] gap-2 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)]'
+  // Cases de saisie (comme le modèle) : lignes sur mobile/tablette, 2 colonnes label au-dessus en desktop.
+  const fieldsGrid = 'grid grid-cols-[minmax(0,1fr)] gap-1.5 lg:grid-cols-2 lg:gap-2'
 
   // ── Rendus de résultat ──
   const compBar = (sol: OkSolution) => {
     const o = Math.round(sol.mix * 1000) / 10
     return (
-      <div className="mt-4">
-        <div className="flex h-7 overflow-hidden rounded-lg text-xs font-bold">
-          <i className="flex items-center overflow-hidden whitespace-nowrap bg-green-600 px-2.5 not-italic text-white" style={{ width: `${o}%` }}>
+      <div className="mt-3">
+        <div className="flex h-6 overflow-hidden rounded-md text-xs font-bold">
+          <i className="flex items-center overflow-hidden whitespace-nowrap bg-primary px-2 not-italic text-white" style={{ width: `${o}%` }}>
             {fill(L.plan.compO2, { v: fmt.f1(o) })}
           </i>
-          <i className="flex flex-1 items-center justify-end overflow-hidden whitespace-nowrap bg-gray-200 px-2.5 not-italic text-black">
+          <i className="flex flex-1 items-center justify-end overflow-hidden whitespace-nowrap bg-gray-200 px-2 not-italic text-black">
             {fill(L.plan.compN2, { v: fmt.f1(100 - o) })}
           </i>
         </div>
@@ -701,18 +650,18 @@ export default function GasBlender({ labels }: { labels: GasBlenderLabels }) {
 
   const legend = (view: PlanView) => {
     const start = view.bleed ?? view.p1
-    const sw = 'inline-block h-3.5 w-3.5 shrink-0 rounded-[4px]'
+    const sw = 'inline-block h-3 w-3 shrink-0 rounded-[3px]'
     return (
-      <div className="flex flex-col gap-1.5 text-[13px] font-semibold text-gray-600 sm:mt-3">
+      <div className="flex flex-col gap-1 text-xs font-semibold text-gray-600 sm:mt-2">
         {ramp && <span className="font-bold text-black">{fill(L.plan.legendRamp, { n: nb })}</span>}
         {start > 0 && (
-          <span className="flex items-center gap-2">
+          <span className="flex items-center gap-1.5">
             <i aria-hidden="true" className={sw} style={HATCH_STYLE} />
             {L.plan.legendResidual}
           </span>
         )}
         {view.sol.steps.map((st, i) => (
-          <span key={i} className="flex items-center gap-2">
+          <span key={i} className="flex items-center gap-1.5">
             <i aria-hidden="true" className={`${sw} ${GAS_BG[gasColor(st.gas.f)]}`} />
             {gasName(st.gas.label)}
           </span>
@@ -721,23 +670,25 @@ export default function GasBlender({ labels }: { labels: GasBlenderLabels }) {
     )
   }
 
+  /** Étapes : lignes séparées par un filet (.step de l'original). */
   const stepsList = (view: PlanView) => {
     let i = 0
-    const row = 'grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-3 rounded-xl bg-gray-50 px-3 py-3'
-    const num = 'flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-sm font-extrabold text-black shadow-soft'
+    const row = 'flex items-center gap-3 border-t border-gray-200 py-3'
+    const num = 'flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gray-100 text-[13px] font-bold text-black'
     const to = (small: string, value: string) => (
-      <div className="flex shrink-0 flex-col items-end text-right">
-        <small className="text-[11px] font-semibold leading-tight text-gray-500">{small}</small>
-        <b key={value} className="animate-number-pop tabular-nums text-[30px] font-extrabold leading-none tracking-[-0.02em] text-primary">{value}</b>
-        <span className={T.unit}>{L.units.bar}</span>
+      <div className="shrink-0 text-right">
+        <small className="block text-[11px] font-semibold leading-tight text-gray-500">{small}</small>
+        <b key={value} className="inline-block animate-number-pop whitespace-nowrap tabular-nums text-[28px] font-extrabold leading-tight tracking-[-0.02em] text-primary">
+          {value} <span className="text-[13px] font-semibold tracking-normal text-gray-500">{L.units.bar}</span>
+        </b>
       </div>
     )
     return (
-      <ol className="grid gap-2">
+      <ol>
         {view.bleed !== null && (
           <li className={row}>
             <span className={num}>{++i}</span>
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1">
               <p className="text-[15px] font-bold leading-snug text-black">{ramp ? L.plan.bleedRamp : L.plan.bleedBlock}</p>
               <p className={`mt-0.5 ${T.small}`}>{L.plan.bleedMeta}</p>
             </div>
@@ -750,7 +701,7 @@ export default function GasBlender({ labels }: { labels: GasBlenderLabels }) {
           return (
             <li key={k} className={row}>
               <span className={num}>{++i}</span>
-              <div className="min-w-0">
+              <div className="min-w-0 flex-1">
                 <p className="flex items-center gap-1.5 text-[15px] font-bold leading-snug text-black"><Dot color={gasColor(st.gas.f)} />{withPct(st.gas)}</p>
                 <p className={`mt-0.5 tabular-nums ${T.small}`}>
                   {fill(L.plan.stepMeta, { bar: fmt.r0(st.bar), mix: fmt.pct(st.mix) })}
@@ -764,9 +715,9 @@ export default function GasBlender({ labels }: { labels: GasBlenderLabels }) {
                     </>
                   )}
                 </p>
+                {tight && <Note className="mt-1.5">{fill(L.plan.tight, { p: fmt.r0(st.gauge) })}</Note>}
               </div>
               {to(L.plan.fillUpTo, fmt.r0(st.gauge))}
-              {tight && <Note className="col-span-3 mt-2">{fill(L.plan.tight, { p: fmt.r0(st.gauge) })}</Note>}
             </li>
           )
         })}
@@ -779,13 +730,14 @@ export default function GasBlender({ labels }: { labels: GasBlenderLabels }) {
     if (sol.dev > TOL) n.push(L.plan.noteDev)
     if (sol.o2 > EPS) n.push(L.plan.noteO2)
     if (sol.steps.length) n.push(L.plan.noteSlow)
-    return n.length ? <div className="mt-3 grid gap-1.5">{n.map((x) => <Note key={x}>{x}</Note>)}</div> : null
+    return n.length ? <div className="mt-2.5 grid gap-1.5">{n.map((x) => <Note key={x}>{x}</Note>)}</div> : null
   }
 
+  /** Bloc dessiné + légende à gauche (côte à côte sur mobile), étapes à droite (.plangrid de l'original). */
   const planGrid = (view: PlanView) => (
-    <div className="mt-4 grid gap-3 sm:grid-cols-[136px_minmax(0,1fr)] sm:items-start sm:gap-5">
-      <div className="flex items-center justify-center gap-5 sm:block">
-        <div className="w-[136px] sm:w-full"><TankSvg view={view} fmt={fmt} aria={L.plan.tankAria} /></div>
+    <div className="mt-3 grid gap-1.5 sm:grid-cols-[124px_minmax(0,1fr)] sm:items-start sm:gap-4">
+      <div className="flex items-center justify-center gap-4 sm:block">
+        <div className="w-[118px] sm:w-full"><TankSvg view={view} fmt={fmt} aria={L.plan.tankAria} /></div>
         {legend(view)}
       </div>
       <div className="min-w-0">{stepsList(view)}</div>
@@ -797,32 +749,30 @@ export default function GasBlender({ labels }: { labels: GasBlenderLabels }) {
     const good = view.good
     const title = view.bleed === null ? titleOf(sol.gases) : sol.steps.length ? fill(L.plan.titleBleed, { title: titleOf(sol.gases) }) : L.plan.titleBleedOnly
     return (
-      <div className={`rounded-2xl border-2 bg-white px-4 py-4 shadow-soft sm:p-5 ${good ? 'border-green-600' : 'border-amber-500'}`}>
-        <div className="text-center sm:text-left">
-          <p className={`text-xs font-bold uppercase tracking-wider ${good ? 'text-green-700' : 'text-amber-700'}`}>{good ? L.plan.kickerGood : L.plan.kickerOff}</p>
-          <p className="mt-0.5 text-base font-bold text-black">{title}</p>
-        </div>
-        {/* Résultat : % obtenu en grand, puis pression, cible et profondeur max en petites cartes */}
-        <div className="mt-3 grid gap-2 sm:grid-cols-[minmax(0,0.9fr)_minmax(0,2fr)]">
-          <div className={`flex flex-col items-center justify-center rounded-xl px-3 py-3 text-center ${good ? 'bg-green-50' : 'bg-amber-50'}`}>
-            <p className={T.statLabel}>{L.plan.resultLabel}</p>
-            <p key={sol.mix} className={`${T.hero} mt-1 animate-number-pop ${good ? 'text-green-700' : 'text-amber-700'}`}>{pctNum(sol.mix)}</p>
-            <p className={`mt-1 ${T.heroUnit}`}>{L.units.pctO2}</p>
+      <Card className={good ? '!border-primary' : '!border-2 !border-amber-500'}>
+        {/* En-tête : kicker + titre à gauche, % obtenu à droite (.planhead / .result de l'original) */}
+        <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-1">
+          <div className="min-w-0">
+            <p className={`text-xs font-bold uppercase tracking-wider ${good ? 'text-primary' : 'text-amber-700'}`}>{good ? L.plan.kickerGood : L.plan.kickerOff}</p>
+            <p className="mt-0.5 text-base font-bold text-black">{title}</p>
           </div>
-          <div className="grid grid-cols-3 gap-2">
-            <Stat label={L.plan.statPressure} value={fmt.r0(sol.p)} unit={L.units.bar} />
-            <Stat label={good ? L.plan.statTargetOk : L.plan.statTarget} value={pctNum(targetF)} unit={L.units.pctO2} />
-            <Stat label={L.plan.statMod} value={String(mod(sol.mix, 1.4))} unit={L.units.m} />
+          <div className="ml-auto text-right">
+            <p key={sol.mix} className={`animate-number-pop tabular-nums text-[36px] font-extrabold leading-none tracking-[-0.02em] ${good ? 'text-black' : 'text-amber-700'}`}>
+              {fmt.pct(sol.mix)}
+            </p>
+            <p className={`mt-1 tabular-nums ${T.small}`}>
+              {fill(L.plan.target, { p: fmt.r0(sol.p), target: fmt.pct(targetF) })}{good ? ' ✓' : ''}
+            </p>
+            <p className={`tabular-nums ${T.small}`}><Rich text={fill(L.plan.modLine, { mod: mod(sol.mix, 1.4) })} /></p>
           </div>
         </div>
         {compBar(sol)}
         {planGrid(view)}
         {notes(sol)}
         <LawNote className="mt-3" title={L.laws.daltonTitle} text={L.laws.dalton} />
-      </div>
+      </Card>
     )
   }
-
   const tileCard = (t: Tile) => {
     const g = t.gas
     const color = gasColor(g.f)
@@ -862,7 +812,7 @@ export default function GasBlender({ labels }: { labels: GasBlenderLabels }) {
     return (
       <div
         key={g.id}
-        className={`relative grid min-h-[96px] content-start gap-1 rounded-2xl border border-l-[6px] border-gray-200 py-3 pl-3.5 pr-3 shadow-soft ${LEVEL_BORDER_L[t.level]} ${t.level === 'low' ? 'bg-red-50/70' : 'bg-white'}`}
+        className={`relative grid min-h-[88px] content-start gap-1 rounded-xl border border-l-[5px] border-gray-200 py-2.5 pl-3 pr-3 ${LEVEL_BORDER_L[t.level]} ${t.level === 'low' ? 'bg-red-50/70' : 'bg-white'}`}
       >
         <MiniTank color={color} before={t.icon.before} after={t.icon.after} />
         <h3 className="flex items-center gap-1.5 pr-10 text-[15px] font-bold text-black">
@@ -870,11 +820,11 @@ export default function GasBlender({ labels }: { labels: GasBlenderLabels }) {
           <span className="min-w-0">{gasName(g.label)}</span>
           <small className="whitespace-nowrap text-[13px] font-semibold text-gray-500">{fmt.raw(Math.round(g.f * 1000) / 10)} %</small>
         </h3>
-        <p className={`pr-10 font-extrabold leading-tight ${LEVEL_TEXT[t.level]} ${t.level === 'off' ? 'text-[17px]' : 'text-[22px]'}`}>
+        <p className={`pr-10 font-extrabold leading-tight ${LEVEL_TEXT[t.level]} ${t.level === 'off' ? 'text-base' : 'text-[21px]'}`}>
           {t.level === 'low' && <span aria-hidden="true">⚠ </span>}{status}
         </p>
         {lines.map((l, i) => (
-          <p key={i} className="text-[13px] font-medium tabular-nums leading-snug text-gray-600 [&_strong]:font-bold [&_strong]:text-black">{l}</p>
+          <p key={i} className="pr-8 text-[13px] font-medium tabular-nums leading-snug text-gray-500 [&_strong]:font-bold [&_strong]:text-black">{l}</p>
         ))}
         {t.missing && (
           <p className="text-[13px] font-semibold tabular-nums text-red-700">
@@ -890,7 +840,7 @@ export default function GasBlender({ labels }: { labels: GasBlenderLabels }) {
     const tanks = sol.steps.filter((st) => st.rest !== null)
     if (!tanks.length) return null
     return (
-      <div className="mt-3 border-t border-gray-100 pt-3">
+      <div className="mt-3 border-t border-gray-200 pt-3">
         <h4 className={T.kicker + ' mb-1.5'}>{L.stocks.altTitle}</h4>
         {tanks.map((st, i) => {
           const st8 = stockState(st, V)
@@ -902,7 +852,7 @@ export default function GasBlender({ labels }: { labels: GasBlenderLabels }) {
           return (
             <div key={i} className="grid grid-cols-[1fr_auto] items-center gap-x-2.5 gap-y-1 py-1.5">
               <span className="flex items-center gap-1.5 text-sm font-semibold text-black"><Dot color={color} />{gasName(st.gas.label)}</span>
-              <span className={`whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-bold ${st8.cls === 'ok' ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700'}`}>{pill}</span>
+              <span className={`whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-bold ${st8.cls === 'ok' ? 'bg-primary-50 text-primary-600' : 'bg-amber-50 text-amber-700'}`}>{pill}</span>
               <span className="col-span-2 flex h-2.5 overflow-hidden rounded-full bg-gray-100">
                 <i className={`block h-full ${GAS_BG[color]}`} style={{ width: `${rest / scale * 100}%` }} />
                 <i className={`block h-full opacity-[.35] ${GAS_BG[color]}`} style={{ width: `${(before - rest) / scale * 100}%` }} />
@@ -919,16 +869,14 @@ export default function GasBlender({ labels }: { labels: GasBlenderLabels }) {
 
   const summaryChips = (sm: Summary) => {
     const chip = (key: string, label: string, value: string, unit: string | null, sub: ReactNode, warn = false) => (
-      <div
-        key={key}
-        className={`flex flex-col items-center gap-1 rounded-2xl border bg-white px-3 py-3 text-center shadow-soft max-sm:[&:last-child:nth-child(odd)]:col-span-2 ${warn ? 'border-2 border-red-600 bg-red-50/60' : 'border-gray-200'}`}
-      >
-        <p className={`${T.statLabel} ${warn ? '!text-red-700' : ''}`}>{label}</p>
-        <p className="flex flex-col items-center">
-          <span key={value} className={`animate-number-pop tabular-nums text-[28px] font-extrabold leading-none tracking-[-0.02em] ${warn ? 'text-red-700' : 'text-black'}`}>{value}</span>
-          {unit && <span className={`mt-0.5 ${T.unit}`}>{unit}</span>}
+      <div key={key} className={`rounded-xl border bg-white px-3 py-2 ${warn ? 'border-red-600 bg-red-50/60' : 'border-gray-200'}`}>
+        <p className={`text-[11px] font-semibold uppercase tracking-wide ${warn ? 'text-red-700' : 'text-gray-500'}`}>{label}</p>
+        <p className="text-xs font-medium leading-snug text-gray-500">
+          <b key={value} className={`inline-block animate-number-pop whitespace-nowrap tabular-nums text-[22px] font-extrabold leading-tight tracking-[-0.01em] ${warn ? 'text-red-700' : 'text-black'}`}>
+            {value}{unit && <span className={`ml-1 ${T.unit} tracking-normal`}>{unit}</span>}
+          </b>{' '}
+          {sub}
         </p>
-        <p className="text-xs font-medium leading-snug text-gray-500">{sub}</p>
       </div>
     )
     const u = L.units
@@ -951,14 +899,14 @@ export default function GasBlender({ labels }: { labels: GasBlenderLabels }) {
     items.push(chip('mod', L.summary.mod, String(sm.mod.mod14), u.m,
       fill(L.summary.modSub, { m16: sm.mod.mod16 }) + (sm.mod.expectedDiffers ? fill(L.summary.modExpected, { mix: fmt.pct(sm.mod.f) }) : '')))
     if (sm.o2Alert) items.push(chip('alert', `⚠ ${L.summary.alert}`, L.summary.alertValue, null, L.summary.alertSub, true))
-    return <div className="grid grid-cols-2 gap-2 sm:grid-cols-[repeat(auto-fit,minmax(160px,1fr))]">{items}</div>
+    return <div className="grid grid-cols-[repeat(auto-fit,minmax(150px,1fr))] gap-2">{items}</div>
   }
 
   const summary = out.status === 'error' ? null : out.summary
 
   /** Carte « Voir le plan » qui termine les onglets de saisie (mobile seulement). */
   const cta = (t: TabId, order: string) => (
-    <div className={`flex items-center gap-3 rounded-2xl border-2 bg-white px-4 py-3.5 shadow-soft lg:hidden ${order} ${go.bad ? 'border-red-600' : 'border-green-600'} ${vis(t)}`}>
+    <div className={`flex items-center gap-3 rounded-2xl bg-white px-4 py-3 shadow-soft lg:hidden ${order} ${go.bad ? 'border-2 border-red-600' : 'border border-gray-200'} ${vis(t)}`}>
       <div className="min-w-0 flex-1 text-[13px] font-medium leading-snug text-gray-500">
         {go.sub ?? L.cta.defaultSub}
         <b className="block tabular-nums text-[17px] font-extrabold leading-tight text-black min-[380px]:text-lg">{go.txt}</b>
@@ -973,7 +921,9 @@ export default function GasBlender({ labels }: { labels: GasBlenderLabels }) {
     </div>
   )
 
-  const detailsBox = 'group rounded-2xl border border-gray-200 bg-white'
+  const detailsBox = 'group rounded-xl border border-gray-200 bg-white'
+  /** Desktop : filet + air au-dessus de chaque bloc de résultats, pour bien séparer les sections. */
+  const resSep = 'lg:border-t lg:border-gray-200 lg:pt-8'
   const summaryRow = 'flex min-h-12 cursor-pointer list-none items-center justify-between gap-2 px-4 py-2.5 marker:hidden [&::-webkit-details-marker]:hidden'
   const chevron = <span aria-hidden className="text-gray-500 transition-transform duration-200 group-open:rotate-180">⌄</span>
   const mixPresetMod = (m: number) => Math.floor((1.4 / (m / 100) - 1) * 10)
@@ -988,7 +938,7 @@ export default function GasBlender({ labels }: { labels: GasBlenderLabels }) {
         <div role="tablist" aria-label={L.tablistAria} onKeyDown={onTabKey} className="mx-auto flex max-w-3xl gap-1">
           {TAB_IDS.map((id) => {
             const active = tab === id
-            const badge = id === 'plan' ? { txt: go.badge, cls: go.bad ? 'bg-red-600' : 'bg-green-600' }
+            const badge = id === 'plan' ? { txt: go.badge, cls: go.bad ? 'bg-red-600' : 'bg-primary' }
               : id === 'stocks' && stockBadge ? { txt: '!', cls: stockBadge === 'low' ? 'bg-red-600' : 'bg-amber-500' } : null
             return (
               <button
@@ -1018,7 +968,7 @@ export default function GasBlender({ labels }: { labels: GasBlenderLabels }) {
         </div>
       </div>
 
-      <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[400px_minmax(0,1fr)] lg:items-start lg:gap-8">
+      <div className="flex flex-col gap-5 lg:grid lg:grid-cols-[400px_minmax(0,1fr)] lg:items-start lg:gap-8">
         {/* ── Colonne saisies (mobile : sections réparties dans les onglets) ──
             Desktop : collée sous la navbar, avec son propre défilement si elle dépasse l'écran (comme le modèle). */}
         <div className="contents lg:sticky lg:top-[calc(var(--gb-header)+16px)] lg:-mx-2 lg:flex lg:max-h-[calc(100vh-var(--gb-header)-32px)] lg:flex-col lg:gap-6 lg:overflow-y-auto lg:px-2 lg:pb-2 lg:[scrollbar-width:thin]">
@@ -1032,13 +982,10 @@ export default function GasBlender({ labels }: { labels: GasBlenderLabels }) {
                 {stepper('p1', L.tank.pressure, L.units.bar)}
                 {stepper('f1', L.tank.o2, L.units.pctO2)}
               </div>
-              <div className="mt-3 rounded-xl border border-gray-200 p-2.5">
-                <p className={`${T.statLabel} mb-2 text-center`}>{L.tank.quickTitle}</p>
-                <div className="grid grid-cols-3 gap-1.5">
-                  <Pill onClick={() => setS((p) => ({ ...p, p1: 0, f1: 21 }))}>{L.tank.quickEmpty}</Pill>
-                  <Pill onClick={() => setS((p) => ({ ...p, f1: 21 }))}>{L.tank.quickAir}</Pill>
-                  <Pill onClick={() => setS((p) => ({ ...p, f1: p.f2 }))}>{L.tank.quickSame}</Pill>
-                </div>
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                <Pill onClick={() => setS((p) => ({ ...p, p1: 0, f1: 21 }))}>{L.tank.quickEmpty}</Pill>
+                <Pill onClick={() => setS((p) => ({ ...p, f1: 21 }))}>{L.tank.quickAir}</Pill>
+                <Pill onClick={() => setS((p) => ({ ...p, f1: p.f2 }))}>{L.tank.quickSame}</Pill>
               </div>
             </Card>
           </section>
@@ -1047,8 +994,7 @@ export default function GasBlender({ labels }: { labels: GasBlenderLabels }) {
           <section className={`order-2 lg:order-none ${vis('melange')}`}>
             <InputHead no={2} title={L.mix.title} help={L.mix.help} />
             <Card>
-              <p className={`${T.statLabel} mb-2 text-center`}>{L.mix.presetsTitle}</p>
-              <div className="mb-3 grid grid-cols-7 gap-1">
+              <div className="mb-2 grid grid-cols-7 gap-1">
                 {MIXES.map((m) => {
                   const on = s.f2 === m
                   return (
@@ -1058,7 +1004,7 @@ export default function GasBlender({ labels }: { labels: GasBlenderLabels }) {
                       aria-pressed={on}
                       onClick={() => setS((p) => ({ ...p, f2: m }))}
                       className={`flex min-h-12 flex-col items-center justify-center rounded-xl border py-1.5 text-center tabular-nums transition-all duration-200 ease-out-expo active:scale-95 ${
-                        on ? `border-primary bg-primary text-white ${PRIMARY_SHADOW}` : 'border-gray-200 bg-gray-50 text-black hover:border-primary'
+                        on ? 'border-primary bg-primary text-white' : 'border-gray-200 bg-gray-50 text-black hover:border-primary'
                       }`}
                     >
                       <span className="text-[13px] font-extrabold leading-tight min-[400px]:text-sm">{fill(L.mix.shortcut, { m })}</span>
@@ -1074,7 +1020,7 @@ export default function GasBlender({ labels }: { labels: GasBlenderLabels }) {
                 {stepper('p2', L.mix.pressure, L.units.bar)}
               </div>
               <LawNote
-                className="mt-3"
+                className="mt-2.5"
                 title={L.laws.modTitle}
                 text={fill(L.laws.mod, { m: fmt.raw(s.f2), p: fmt.raw(Math.round(140 / s.f2 * 100) / 100), mod: mod(s.f2 / 100, 1.4) })}
               />
@@ -1098,18 +1044,19 @@ export default function GasBlender({ labels }: { labels: GasBlenderLabels }) {
                     : fill(kind.together ? L.gases.kindTogether : L.gases.kindCascade, { n: kind.n })
                   const nameId = `${baseId}-gas-${i}`
                   return (
-                    <div key={i} className={`min-w-0 rounded-xl border border-l-[6px] border-gray-200 bg-white p-2.5 ${GAS_BORDER_L[color]}`}>
-                      <div className="flex items-start gap-2 pl-0.5">
-                        <Dot color={color} className="mt-2.5" />
-                        <div className="min-w-0 flex-1">
+                    <div key={i} className={`min-w-0 rounded-xl border border-l-[5px] border-gray-200 bg-white py-1 pl-2.5 pr-1 pb-2.5 ${GAS_BORDER_L[color]}`}>
+                      <div className="flex items-center gap-2">
+                        <Dot color={color} />
+                        {/* Nom et type sur une ligne ; le type passe dessous s'il manque de place */}
+                        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-2">
                           <input
                             id={nameId}
                             value={g.name}
                             aria-label={L.gases.nameAria}
                             onChange={(e) => updateGas(i, { name: e.target.value })}
-                            className="w-full min-w-0 border-b-2 border-transparent bg-transparent py-0.5 text-base font-bold text-black outline-none focus:border-primary"
+                            className="min-w-[7.5rem] flex-1 border-b-2 border-transparent bg-transparent py-1 text-[15px] font-bold text-black outline-none focus:border-primary"
                           />
-                          <span className="block text-xs font-semibold text-gray-500">{kindTxt}</span>
+                          <span className="ml-auto whitespace-nowrap text-[11px] font-semibold text-gray-500">{kindTxt}</span>
                         </div>
                         <button
                           type="button"
@@ -1121,39 +1068,34 @@ export default function GasBlender({ labels }: { labels: GasBlenderLabels }) {
                           ×
                         </button>
                       </div>
-                      <div className={`mt-2 grid gap-1.5 ${cont ? 'grid-cols-3' : 'grid-cols-4'}`}>
-                        <GasField label={L.gases.o2} unit={L.units.pct} value={g.f} bad={bad.f} onValue={(raw) => updateGas(i, { f: parseGasField(raw, 'f') })} />
-                        <GasField label={cont ? L.gases.pressureMax : L.gases.pressure} unit={L.units.bar} value={g.p} bad={bad.p} onValue={(raw) => updateGas(i, { p: parseGasField(raw, 'p') })} />
-                        <GasField label={L.gases.volume} unit={L.units.l} value={g.v} placeholder="∞" onValue={(raw) => updateGas(i, { v: parseGasField(raw, 'v') })} />
+                      <div className={`mt-1 grid gap-1.5 pr-1.5 ${cont ? 'grid-cols-3' : 'grid-cols-4'}`}>
+                        <GasField label={L.gases.o2} value={g.f} bad={bad.f} onValue={(raw) => updateGas(i, { f: parseGasField(raw, 'f') })} />
+                        <GasField label={cont ? L.gases.pressureMax : L.gases.pressure} value={g.p} bad={bad.p} onValue={(raw) => updateGas(i, { p: parseGasField(raw, 'p') })} />
+                        <GasField label={L.gases.volume} value={g.v} placeholder="∞" onValue={(raw) => updateGas(i, { v: parseGasField(raw, 'v') })} />
                         {!cont && (
-                          <GasField label={L.gases.count} unit={L.gases.bottles} value={g.n || 1} placeholder="1" onValue={(raw) => updateGas(i, { n: parseGasField(raw, 'n') })} />
+                          <GasField label={L.gases.count} value={g.n || 1} placeholder="1" onValue={(raw) => updateGas(i, { n: parseGasField(raw, 'n') })} />
                         )}
                       </div>
                       {!cont && nTanks(g) > 1 && (
-                        <div className="mt-2 flex flex-wrap items-center justify-between gap-2 rounded-xl bg-gray-50 py-1.5 pl-3 pr-1.5">
-                          <span className="text-[13px] font-semibold text-gray-600">{L.gases.opening}</span>
-                          <Segment
-                            options={[{ id: true, label: L.gases.cascade }, { id: false, label: L.gases.together }]}
-                            value={g.c !== false}
-                            onChange={(c) => updateGas(i, { c })}
-                          />
+                        <div className="mt-1.5 flex flex-wrap items-center gap-1.5 pr-1.5">
+                          <span className="text-xs font-semibold text-gray-500">{L.gases.opening}</span>
+                          <Pill on={g.c !== false} onClick={() => updateGas(i, { c: true })}>{L.gases.cascade}</Pill>
+                          <Pill on={g.c === false} onClick={() => updateGas(i, { c: false })}>{L.gases.together}</Pill>
                         </div>
                       )}
                     </div>
                   )
                 })}
               </div>
-              <div className="mt-3 rounded-xl border border-gray-200 p-2.5">
-                <p className={`${T.statLabel} mb-2 text-center`}>{L.gases.addTitle}</p>
-                <div className="grid grid-cols-2 gap-1.5">
-                  <Pill onClick={() => addGas('o2')}>{L.gases.addO2}</Pill>
-                  <Pill onClick={() => addGas('nx')}>{L.gases.addNx}</Pill>
-                  <Pill onClick={() => addGas('airb')}>{L.gases.addAir}</Pill>
-                  <Pill onClick={() => addGas('comp')}>{L.gases.addComp}</Pill>
-                </div>
+              <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
+                <span className="text-xs font-semibold text-gray-500">{L.gases.add}</span>
+                <Pill onClick={() => addGas('o2')}>{L.gases.addO2}</Pill>
+                <Pill onClick={() => addGas('nx')}>{L.gases.addNx}</Pill>
+                <Pill onClick={() => addGas('airb')}>{L.gases.addAir}</Pill>
+                <Pill onClick={() => addGas('comp')}>{L.gases.addComp}</Pill>
               </div>
             </Card>
-            <p className="mt-2.5 text-center lg:text-left">
+            <p className="mt-1.5">
               <button type="button" onClick={() => setS(defaults)} className="min-h-11 px-1 text-[13px] font-semibold text-gray-500 underline underline-offset-2 hover:text-black">
                 {L.gases.reset}
               </button>
@@ -1164,7 +1106,7 @@ export default function GasBlender({ labels }: { labels: GasBlenderLabels }) {
         </div>
 
         {/* ── Colonne résultats ── */}
-        <div className="contents lg:flex lg:flex-col lg:gap-7">
+        <div className="contents lg:flex lg:flex-col lg:gap-8">
           {/* Plan de gonflage */}
           <section className={`order-7 lg:order-none ${vis('plan')}`} aria-live="polite">
             <ResultHead title={L.plan.title} help={L.plan.help} />
@@ -1191,17 +1133,16 @@ export default function GasBlender({ labels }: { labels: GasBlenderLabels }) {
 
           {/* Tes stocks */}
           {out.status === 'computed' && (
-            <section className={`order-4 lg:order-none ${vis('stocks')}`} aria-live="polite">
+            <section className={`order-4 lg:order-none ${resSep} ${vis('stocks')}`} aria-live="polite">
               <ResultHead title={L.stocks.title} help={L.stocks.help} />
               {out.ignored > 0 && <Note className="mb-2">{fill(out.ignored > 1 ? L.stocks.ignoredN : L.stocks.ignored1, { n: out.ignored })}</Note>}
               <div className="grid grid-cols-[minmax(0,1fr)] gap-2 sm:grid-cols-[repeat(auto-fit,minmax(210px,1fr))]">{out.tiles.map(tileCard)}</div>
-              <LawNote className="mt-2.5" title={L.laws.equalTitle} text={L.laws.equal} />
             </section>
           )}
 
           {/* En bref */}
           {summary && (
-            <section className={`order-8 lg:order-none ${vis('plan')}`} aria-live="polite">
+            <section className={`order-8 lg:order-none ${resSep} ${vis('plan')}`} aria-live="polite">
               <ResultHead title={L.summary.title} help={L.summary.help} />
               {summaryChips(summary)}
             </section>
@@ -1209,11 +1150,10 @@ export default function GasBlender({ labels }: { labels: GasBlenderLabels }) {
 
           {/* Analyse finale */}
           {chosen && analysis && (
-            <section className={`order-9 lg:order-none ${vis('plan')}`}>
+            <section className={`order-9 lg:order-none ${resSep} ${vis('plan')}`}>
               <ResultHead title={L.analysis.title} help={L.analysis.help} />
               <Card>
-                <label htmlFor={fieldId('ana')} className={`${T.kicker} mb-2 block text-center`}>{L.analysis.field}</label>
-                <div className="flex justify-center">
+                <Field label={L.analysis.field} htmlFor={fieldId('ana')}>
                   <Stepper
                     id={fieldId('ana')}
                     label={L.analysis.field}
@@ -1225,53 +1165,48 @@ export default function GasBlender({ labels }: { labels: GasBlenderLabels }) {
                     increaseLabel={L.stepper.increase}
                     onBump={bumpAna}
                     onSet={setAna}
-                    hero
                   />
-                </div>
+                </Field>
                 <div aria-live="polite">
                   {!analysis.valid ? (
-                    <p role="alert" className="mt-3 rounded-xl bg-red-50 px-3 py-2 text-center font-semibold text-red-700">{L.analysis.invalid}</p>
+                    <p role="alert" className="mt-2.5 font-semibold text-red-700">{L.analysis.invalid}</p>
                   ) : (
                     <>
-                      <div className="mt-4 grid grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)] gap-2">
-                        <div className={`flex flex-col justify-center rounded-xl border-l-[6px] bg-gray-50 px-3 py-3 ${LEVEL_BORDER_L[analysis.level]}`}>
-                          <p className={T.statLabel}>{L.analysis.verdictTitle}</p>
-                          <p className={`mt-1 text-[22px] font-extrabold leading-tight ${LEVEL_TEXT[analysis.level]}`}>
+                      {ramp && <p className={`mt-2.5 ${T.small}`}>{L.analysis.ramp}</p>}
+                      {/* Verdict + étiquette (.anabox de l'original) */}
+                      <div className={`mt-2.5 flex flex-wrap items-center justify-between gap-x-3 gap-y-2 rounded-xl border-l-[5px] bg-gray-50 px-3 py-2.5 ${LEVEL_BORDER_L[analysis.level]}`}>
+                        <div className="min-w-0">
+                          <p className={`text-[20px] font-extrabold leading-tight ${LEVEL_TEXT[analysis.level]}`}>
                             {analysis.level === 'ok' ? '✓ ' : '⚠ '}
                             {analysis.level === 'ok' ? L.analysis.status.ok
                               : analysis.level === 'mid' ? (analysis.d > 0 ? L.analysis.status.richMid : L.analysis.status.leanMid)
                               : (analysis.d > 0 ? L.analysis.status.richLow : L.analysis.status.leanLow)}
                           </p>
-                          <p className={`mt-1 tabular-nums ${T.small}`}>
+                          <p className={`tabular-nums ${T.small}`}>
                             {fill(Math.abs(analysis.d * 100) >= 2 ? L.analysis.gapN : L.analysis.gap1, {
                               d: (analysis.d > 0.0005 ? '+' : '') + fmt.f1(analysis.d * 100),
                               target: fmt.pct(targetF),
                             })}
                           </p>
                         </div>
-                        <div className="flex flex-col items-center justify-center rounded-xl bg-gray-50 px-2 py-3 text-center">
-                          <p className={T.statLabel}>{L.analysis.labelTitle}</p>
-                          <p key={analysis.fa} className="mt-1 animate-number-pop tabular-nums text-[32px] font-extrabold leading-none tracking-[-0.02em] text-black">{pctNum(analysis.fa)}</p>
-                          <p className={`mt-0.5 ${T.unit}`}>{L.units.pctO2}</p>
+                        <div className="ml-auto text-right">
+                          <p className={T.small}>{L.analysis.labelTitle}</p>
+                          <p key={analysis.fa} className="animate-number-pop tabular-nums text-[30px] font-extrabold leading-none tracking-[-0.02em] text-black">{fmt.pct(analysis.fa)}</p>
+                          <p className={`mt-1 tabular-nums ${T.small}`}>{fill(L.analysis.labelMod, { m14: analysis.mod14, m16: analysis.mod16 })}</p>
                         </div>
                       </div>
-                      <div className="mt-2 grid grid-cols-2 gap-2">
-                        <Stat label={L.analysis.mod14} value={String(analysis.mod14)} unit={L.units.m} />
-                        <Stat label={L.analysis.mod16} value={String(analysis.mod16)} unit={L.units.m} />
-                      </div>
-                      {ramp && <Note className="mt-2.5">{L.analysis.ramp}</Note>}
                       {analysis.fix !== undefined && (
-                        <div className="mt-3 rounded-xl border border-gray-200 px-3.5 py-3 text-[14px] font-medium text-gray-700">
+                        <div className="mt-2.5 text-[14px] font-medium text-gray-700">
                           {analysis.fix ? (
                             <>
                               <p className="font-bold text-black">{fill(L.analysis.fixTitle, { target: fmt.pct(targetF) })}</p>
-                              <ol className="my-2 grid gap-1.5">
+                              <ol className="my-1.5 grid gap-1">
                                 {[
                                   fill(ramp ? L.analysis.fixBleedRamp : L.analysis.fixBleedBlock, { p: fmt.raw(analysis.fix.pd) }),
                                   ...analysis.fix.sol.steps.map((st) => fill(L.analysis.fixStep, { gas: withPct(st.gas), p: fmt.r0(st.gauge) })),
                                 ].map((txt, i) => (
                                   <li key={i} className="flex items-center gap-2.5">
-                                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gray-100 text-xs font-extrabold text-black">{i + 1}</span>
+                                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gray-100 text-xs font-bold text-black">{i + 1}</span>
                                     <span><Rich text={txt} strongClass="font-extrabold text-primary" /></span>
                                   </li>
                                 ))}
@@ -1286,14 +1221,13 @@ export default function GasBlender({ labels }: { labels: GasBlenderLabels }) {
                     </>
                   )}
                 </div>
-                <LawNote className="mt-3" title={L.laws.analysisTitle} text={L.laws.analysis} />
               </Card>
             </section>
           )}
 
           {/* Autres options (repliées) */}
           {out.status === 'computed' && out.alts.length > 0 && (
-            <section className={`order-10 lg:order-none ${vis('plan')}`}>
+            <section className={`order-10 lg:order-none ${resSep} ${vis('plan')}`}>
               <ResultHead title={L.alts.title} help={L.alts.help} />
               <div className="grid gap-2">
                 {out.alts.map((sol, i) => {
@@ -1310,7 +1244,7 @@ export default function GasBlender({ labels }: { labels: GasBlenderLabels }) {
                         </span>
                         {chevron}
                       </summary>
-                      <div className="px-4 pb-4">
+                      <div className="px-4 pb-3">
                         {compBar(sol)}
                         {planGrid(view)}
                         {notes(sol)}

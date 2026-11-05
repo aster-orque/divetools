@@ -551,6 +551,20 @@ export function solutions(gases: BlendGas[], V: number, f1: number, p1: number, 
     const o2 = r.steps.filter((s) => s.gas.f > 0.999).reduce((x, s) => x + s.bar, 0)
     res.push({ ok: true, gases: r.steps.map((s) => s.gas), steps: r.steps, p: r.p, mix: r.mix, o2, dev: Math.abs(r.mix - f2) })
   }
+  // Chaque gaz seul (ajout validé par Maxime, absent de l'original) : avec 2 gaz ou plus, un gaz seul
+  // n'apparaissait que s'il tombait pile sur la cible. On le propose aussi s'il arrive dans la
+  // tolérance (TOL) : ex. compléter à l'air ou avec un tampon Nx32 sans manipuler d'O2 pur.
+  if (gases.length > 1 && p2 > p1 + EPS) {
+    for (const g of gases) {
+      const key = g.key + g.f
+      if (seen.has(key)) continue
+      const r = run(f1, p1, V, [[g, p2]])
+      if (!r.ok || !r.steps.length || Math.abs(r.mix - f2) > TOL + 1e-9) continue
+      seen.add(key)
+      const o2 = g.f > 0.999 ? r.steps[0].bar : 0
+      res.push({ ok: true, gases: [g], steps: r.steps, p: r.p, mix: r.mix, o2, dev: Math.abs(r.mix - f2) })
+    }
+  }
   // Classement : possibles d'abord, dans la tolérance, sans O2 pur, moins d'O2 pur, plus proche de la cible
   const n = (b: boolean) => (b ? 1 : 0)
   res.sort((s, t) => (n(t.ok) - n(s.ok)) || (s.ok && t.ok

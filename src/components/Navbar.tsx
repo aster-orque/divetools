@@ -64,11 +64,11 @@ export default function Navbar({
       <header className={`sticky top-0 z-50 border-b backdrop-blur-xl transition-colors duration-200 ${
         open ? 'border-transparent bg-white' : 'border-gray-100 bg-white/80'
       }`}>
-        <nav className="mx-auto flex max-w-5xl items-center justify-between px-4 py-4 sm:px-6">
+        <nav className="mx-auto flex max-w-6xl items-center justify-between gap-6 px-4 py-4 sm:px-6">
           {/* Logo */}
           <Link
             href={`/${locale}`}
-            className="flex items-center gap-2.5 transition-opacity duration-200 hover:opacity-70"
+            className="flex shrink-0 items-center gap-2.5 transition-opacity duration-200 hover:opacity-70"
           >
             {/* L'asset est carré et très margé : on fixe la boîte et on recadre,
                 sinon le preflight Tailwind (`height: auto`) rend un 72x72. */}
@@ -83,7 +83,7 @@ export default function Navbar({
           </Link>
 
           {/* Desktop nav */}
-          <div className="hidden items-center gap-4 whitespace-nowrap text-sm lg:flex xl:gap-6">
+          <div className="hidden min-w-0 items-center gap-4 whitespace-nowrap text-sm min-[1100px]:flex xl:gap-6">
             {NAV_LINKS.map((link) =>
               link.live ? (
                 <Link
@@ -106,7 +106,7 @@ export default function Navbar({
           </div>
 
           {/* Desktop: lang toggle + CTA */}
-          <div className="hidden items-center gap-3 lg:flex">
+          <div className="hidden shrink-0 items-center gap-3 min-[1100px]:flex">
             <LangToggle locale={locale} pathname={pathname} />
             <a
               href="https://www.asterdive.com"
@@ -121,7 +121,7 @@ export default function Navbar({
           {/* Mobile burger */}
           <button
             onClick={() => setOpen(!open)}
-            className="relative z-[60] flex h-11 w-11 items-center justify-center rounded-xl transition-colors duration-200 hover:bg-gray-100 active:scale-95 lg:hidden"
+            className="relative z-[60] flex h-11 w-11 items-center justify-center rounded-xl transition-colors duration-200 hover:bg-gray-100 active:scale-95 min-[1100px]:hidden"
             aria-label={open ? 'Fermer le menu' : 'Ouvrir le menu'}
           >
             <div className="flex w-5 flex-col items-end gap-[5px]">
@@ -147,7 +147,7 @@ export default function Navbar({
 
       {/* Mobile overlay — outside header to avoid stacking issues */}
       <div
-        className={`fixed inset-0 z-[55] bg-black/20 backdrop-blur-sm transition-opacity duration-300 lg:hidden ${
+        className={`fixed inset-0 z-[55] bg-black/20 backdrop-blur-sm transition-opacity duration-300 min-[1100px]:hidden ${
           open ? 'opacity-100' : 'pointer-events-none opacity-0'
         }`}
         onClick={() => setOpen(false)}
@@ -155,7 +155,7 @@ export default function Navbar({
 
       {/* Mobile slide-in panel — full-screen overlay approach */}
       <div
-        className={`fixed inset-y-0 right-0 z-[60] w-full max-w-[280px] bg-white shadow-float transition-transform duration-300 ease-out-expo lg:hidden ${
+        className={`fixed inset-y-0 right-0 z-[60] w-full max-w-[280px] bg-white shadow-float transition-transform duration-300 ease-out-expo min-[1100px]:hidden ${
           open ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
