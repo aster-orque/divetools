@@ -28,6 +28,28 @@ const dict = {
       ogDescription:
         'Instant pressure ↔ depth conversions: bar, psi, metres, feet. Fresh vs salt water, absolute and gauge pressure.',
     },
+    consumption: {
+      title: 'SAC Rate Calculator — Scuba Air Consumption & Gas Time',
+      description:
+        'Work out your scuba SAC rate in L/min from your last dive, see why it doubles at 10 m and how long your cylinder lasts at depth. Free, no sign-up.',
+      keywords: [
+        'SAC rate calculator',
+        'air consumption calculator scuba',
+        'surface air consumption calculator',
+        'how to calculate SAC rate',
+        'RMV calculator diving',
+        'scuba gas consumption litres per minute',
+        'how long does a scuba tank last',
+        'scuba tank air time calculator',
+        'air consumption at depth',
+        "Boyle's law air consumption diving",
+        'cylinder gas time calculator',
+        'SAC rate for beginner divers',
+      ],
+      ogTitle: 'SAC Rate Calculator — Scuba Air Consumption',
+      ogDescription:
+        'Work out your SAC rate in L/min, see why it doubles at 10 m and how many minutes your cylinder lasts at each depth. Free.',
+    },
     nitrox: {
       title: 'Nitrox Calculator — MOD, EAD, Best Mix & CNS',
       description:
@@ -63,6 +85,7 @@ const dict = {
     soon: 'Coming soon',
     tools: [
       {
+        id: 'nitrox',
         tag: 'Nitrox',
         title: 'Nitrox Calculator',
         description:
@@ -70,6 +93,7 @@ const dict = {
         keywords: ['MOD', 'EAD', 'PPO\u2082', 'CNS', 'EANx'],
       },
       {
+        id: 'decompression',
         tag: 'Decompression',
         title: 'Decompression Planner',
         description:
@@ -77,6 +101,7 @@ const dict = {
         keywords: ['deco stops', 'GF', 'B\u00fchlmann'],
       },
       {
+        id: 'flottabilite',
         tag: 'Buoyancy',
         title: 'Buoyancy Calculator',
         description:
@@ -84,6 +109,7 @@ const dict = {
         keywords: ['weight', 'buoyancy', 'wetsuit'],
       },
       {
+        id: 'convertisseur',
         tag: 'Pressure & Depth',
         title: 'Pressure & Depth Converter',
         description:
@@ -91,6 +117,15 @@ const dict = {
         keywords: ['bar', 'psi', 'depth', 'pressure'],
       },
       {
+        id: 'consommation',
+        tag: 'Air consumption',
+        title: 'Air Consumption Calculator',
+        description:
+          'Work out your SAC rate, see how depth affects your air consumption and compare how long your cylinder lasts.',
+        keywords: ['SAC', 'L/min', 'gas time', 'cylinder'],
+      },
+      {
+        id: 'volumes',
         tag: 'Volumes & Pressure',
         title: 'Volume & Pressure Converter',
         description:
@@ -98,6 +133,7 @@ const dict = {
         keywords: ['bar', 'psi', 'tank volume'],
       },
       {
+        id: 'devis',
         tag: 'Quotes',
         title: 'Quote Generator',
         description:
@@ -400,6 +436,151 @@ const dict = {
       breadcrumbHome: 'Orque Tools',
     },
   },
+  consumption: {
+    breadcrumbHome: 'Tools',
+    breadcrumbCurrent: 'Air consumption',
+    title: 'Air Consumption Calculator',
+    subtitle:
+      'Work out your SAC rate, see how depth affects it and how long your cylinder lasts. Teaching tool: always keep an eye on your pressure gauge.',
+    // Conventions: {name} = interpolated value, **text** = bold, {link} = button to the My SAC tab.
+    /** Intl locale used to format numbers */
+    numberLocale: 'en-US',
+    tablistAria: 'Tool panels',
+    tabs: { pression: 'Pressure', conso: 'My SAC', auto: 'Gas time', comp: 'Compare' },
+    units: { lpm: 'L/min', l: 'L', bar: 'bar', min: 'min', m: 'm', s: 's', barPerMin: 'bar/min' },
+    /** biTotal: unit shown under a twinset volume, {total} = total volume */
+    stepper: { decrease: 'Decrease', increase: 'Increase', biTotal: 'L × 2 = {total} L' },
+    tank: { label: 'Cylinder', myTank: 'My cylinder', mono: 'Single', bi: 'Twinset', biPrefix: '2×', type: 'Type', volume: 'Volume', presets: 'Common sizes' },
+    pressure: {
+      sacTitle: 'Your surface air consumption',
+      /** {link} = link to the My SAC tab (text: hintLink) */
+      hint: 'No idea? Work it out in {link}. Typical SAC rate: 15 to 20 L/min.',
+      hintLink: 'My SAC',
+      columnAria: 'Depth: drag to descend',
+      kicker: 'At {depth} m, every breath costs',
+      multiplierNote: 'more air than at the surface',
+      statPressure: 'Pressure',
+      statConso: 'Your consumption',
+      statTank: '12 L · 200 bar cylinder emptied in',
+      surface: 'Surface',
+      trapTitle: 'The shallow-water trap',
+      trapNote: 'From 0 to 10 m, pressure goes from 1 to 2 bar: your consumption **doubles**. From 30 to 40 m, it goes from 4 to 5 bar: only **+25%**. Tap a bar.',
+      pressureRule: '**1 bar** at the surface (the weight of the air), then **+1 bar every 10 m** of water. At 10 m: 2 bar, at 20 m: 3 bar, at 40 m: 5 bar.',
+      law: 'pressure × volume = constant. At {depth} m you are at **{p} bar**: the air is {p} times more compressed, so each breath (same lung volume) holds **{p} times more air** than at the surface.',
+    },
+    conso: {
+      title: 'My last dive',
+      startPressure: 'Start pressure',
+      endPressure: 'End pressure',
+      duration: 'Duration',
+      avgDepth: 'Average depth',
+      resultKicker: 'Your surface air consumption (SAC rate)',
+      levels: { veryCalm: 'Very relaxed', calm: 'Calm', average: 'Average', high: 'Above average', veryHigh: 'High' },
+      statUsed: 'Gas used',
+      statAvgPressure: 'Avg. pressure',
+      statBottom: 'Bottom consumption',
+      errorEndPressure: 'End pressure must be lower than start pressure.',
+      /** {pressure} */
+      reserveWarning: 'Surfaced with {pressure} bar: you dipped into your reserve.',
+      useButton: 'Use this SAC rate everywhere →',
+      law: 'at depth, each breath holds more air, so your cylinder empties faster. To compare dives, consumption is brought back to the surface: **SAC rate = bottom consumption ÷ pressure**.',
+    },
+    autonomy: {
+      infoTitle: 'Teaching simulation, not a dive planner',
+      infoText:
+        'The calculation empties the cylinder down to **0 bar**, with no reserve, no ascent and no stops: that is not what a real dive looks like. The goal is to see how gas time changes with depth, cylinder and your SAC rate.',
+      depthTitle: 'Depth',
+      startPressure: 'Start pressure',
+      sac: 'My SAC rate',
+      gaugeTitle: 'Your gas time at {depth} m',
+      gaugeCaption: 'down to 0 bar',
+      law: 'at {depth} m (**{p} bar**), you breathe {p} times more air than at the surface, so your cylinder lasts **{p} times less**.',
+      statBottom: 'Bottom consumption',
+      statBar: '1 bar lasts',
+      statRate: 'Gauge drops by',
+      barsTitle: 'The same cylinder at other depths',
+      barsNote: 'Minutes to 0 bar. Tap a bar.',
+      /** Minute symbol on the bars */
+      minuteMark: '′',
+      /** Discreet note under gas time (ideal-gas model limit) */
+      idealGasNote: 'As taught in dive training, air is treated as an ideal gas: in reality, a cylinder at 200–300 bar holds slightly less air.',
+    },
+    compare: {
+      settingsTitle: 'My settings',
+      sac: 'My SAC rate',
+      startPressure: 'Start pressure',
+      abTitle: 'Two depths, same cylinder',
+      depthA: 'Depth A',
+      depthB: 'Depth B',
+      sameDepth: 'Pick two different depths.',
+      /** {lo} = depth with less gas time, {hi} = the other one, {diff} = minutes, {ratio} */
+      diff: "At {lo} m: **{diff} min** less than at {hi} m, that's **{ratio}× less**",
+      /** {tank} {pressure} {sac} */
+      diffSub: 'with {tank} at {pressure} bar and {sac} L/min',
+      otherTanksTitle: 'What about another cylinder?',
+      tableTitle: 'Minutes to 0 bar table',
+      law: 'gas time is divided by the pressure. At 10 m (2 bar) your cylinder lasts **half as long** as at the surface; at 30 m (4 bar), **a quarter as long**.',
+    },
+    footnote:
+      'These are the rules taught in dive training. Pressure: 1 bar at the surface, +1 bar every 10 m. Boyle\'s law: pressure × volume = constant, so your bottom consumption = SAC rate × pressure. Air in the cylinder = volume × pressure (12 L at 200 bar = 2,400 L). Simulated gas time = cylinder air ÷ bottom consumption, down to 0 bar, with no reserve or ascent. Indicative values: cold, exertion and stress increase consumption.',
+    faq: {
+      title: 'Frequently asked questions',
+      items: [
+        {
+          q: 'How do you calculate your SAC rate in scuba diving?',
+          a: 'Multiply the cylinder volume by the bar used to get the litres breathed, then divide by the dive time and by the average absolute pressure (1 + average depth ÷ 10). Example: a 12 L cylinder from 200 to 50 bar = 1,800 L, over 40 min at an average of 15 m (2.5 bar): 1,800 ÷ (40 × 2.5) = 18 L/min at the surface.',
+        },
+        {
+          q: 'What is a normal air consumption rate for divers?',
+          a: 'Most recreational divers have a SAC rate of 15 to 20 L/min. Below 12 L/min is very relaxed; above 25 L/min is high, often because of cold, exertion, stress or poor weighting. It varies from dive to dive, so measure it over several dives.',
+        },
+        {
+          q: 'Why do you use twice as much air at 10 m?',
+          a: 'At 10 m the absolute pressure is 2 bar: each breath fills your lungs with the same volume, but that volume holds twice as much air (Boyle’s law). Your consumption at depth is your SAC rate × 2. From 0 to 10 m it doubles, while from 30 to 40 m (4 to 5 bar) it only goes up by 25%.',
+        },
+        {
+          q: 'How long does a 12 litre scuba tank last?',
+          a: 'A 12 L cylinder at 200 bar holds about 2,400 L of air. With a SAC rate of 20 L/min and breathing it down to 0 bar: 120 min at the surface, 40 min at 20 m, 24 min at 40 m. On a real dive you keep a reserve (often 50 bar) and gas for the ascent: at 20 m, 150 usable bar only gives you 30 min.',
+        },
+        {
+          q: 'What is the difference between SAC rate and RMV?',
+          a: 'Both describe how much you breathe. In this tool, the SAC rate is your consumption in litres per minute converted to 1 bar, so it can be compared between dives; some divers call this RMV and keep “SAC” for bar or psi per minute. Your consumption at depth is SAC × absolute pressure: 18 L/min at the surface means 45 L/min at 15 m.',
+        },
+      ],
+    },
+    /** Link text for the converter, replacing {converter} in seo */
+    law: { title: "Boyle's law:", pressureTitle: 'Pressure underwater:' },
+    learnMore: 'Understand your air consumption',
+    seoConverterLink: 'pressure & depth converter',
+    seo: [
+      {
+        title: 'How to measure your air consumption',
+        content:
+          'Note your start and end pressure, the dive time and the average depth (your dive computer shows it). The My SAC tab works out the gas breathed (volume × bar used), then divides it by the dive time and the average pressure. Pick a dive with a steady profile and repeat over several dives: a pressure gauge is only accurate to a few bar, and your consumption changes with cold, exertion and stress.',
+      },
+      {
+        title: 'Why your consumption doubles by 10 m',
+        content:
+          'At the surface you already carry 1 bar: the weight of the air. Underwater, every 10 m adds 1 bar: 2 bar at 10 m, 3 bar at 20 m, 5 bar at 40 m. This is Boyle\'s law: pressure × volume = constant. When pressure doubles, air is twice as compressed. Your lungs keep the same volume, so each breath fills them with twice as much air. From 0 to 10 m pressure goes from 1 to 2 bar and your consumption doubles; from 30 to 40 m it goes from 4 to 5 bar and consumption rises by only 25%. To convert between depth and pressure in fresh or salt water, use the {converter}.',
+      },
+      {
+        title: 'Reading gas time and your gauge',
+        content:
+          'A cylinder holds its volume multiplied by its pressure: a 12 L filled to 200 bar contains 2,400 L of free air. At 20 m (3 bar) you breathe 3 times more than at the surface: with a 20 L/min SAC rate, you use 60 L/min. The cylinder would last 2,400 ÷ 60 = 40 min down to 0 bar. On your gauge, that is 5 bar per minute, or 1 bar every 12 seconds. Use this figure to compare depths and cylinders, not to set your dive time.',
+      },
+      {
+        title: 'Limits: this is not a dive planner',
+        content:
+          'The calculation breathes the cylinder down to 0 bar, with no reserve, no ascent and no stops. It treats air as an ideal gas: at high pressure, a cylinder holds slightly less air than volume × pressure (about 4% less at 200 bar, nearly 10% at 300 bar), so the gas time shown is slightly optimistic. Plan your dives with your dive computer, your buddy and the rules of your training agency, and keep an eye on your gauge.',
+      },
+    ],
+    jsonLd: {
+      appName: 'Air Consumption Calculator',
+      appDescription:
+        'Free scuba air consumption calculator: SAC rate in L/min from a logged dive, effect of depth and simulated cylinder gas time.',
+      breadcrumbHome: 'Orque Tools',
+    },
+  },
   disclaimer: {
     title: 'Educational tool',
     body1Bold: 'informational and educational purposes only',
@@ -412,11 +593,12 @@ const dict = {
   },
   nav: {
     links: [
-      { label: 'Nitrox', live: true },
-      { label: 'Converter', live: true },
-      { label: 'Decompression', live: false },
-      { label: 'Buoyancy', live: false },
-      { label: 'Quotes', live: false },
+      { id: 'nitrox', label: 'Nitrox', live: true },
+      { id: 'convertisseur', label: 'Converter', live: true },
+      { id: 'consommation', label: 'Air consumption', live: true },
+      { id: 'decompression', label: 'Decompression', live: false },
+      { id: 'flottabilite', label: 'Buoyancy', live: false },
+      { id: 'devis', label: 'Quotes', live: false },
     ],
     bookDive: 'Book a dive',
     soonBadge: 'Coming soon',

@@ -77,6 +77,7 @@ export default function Footer({
                 alt="Orque"
                 width={64}
                 height={24}
+                className="h-6 w-16 object-cover"
               />
               <span className="text-xs font-medium text-gray-400">Tools</span>
             </div>
