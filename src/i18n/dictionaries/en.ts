@@ -450,7 +450,7 @@ const dict = {
     units: { lpm: 'L/min', l: 'L', bar: 'bar', min: 'min', m: 'm', s: 's', barPerMin: 'bar/min' },
     /** biTotal: unit shown under a twinset volume, {total} = total volume */
     stepper: { decrease: 'Decrease', increase: 'Increase', biTotal: 'L × 2 = {total} L' },
-    tank: { label: 'Cylinder', myTank: 'My cylinder', mono: 'Single', bi: 'Twinset', biPrefix: '2×' },
+    tank: { label: 'Cylinder', myTank: 'My cylinder', mono: 'Single', bi: 'Twinset', biPrefix: '2×', type: 'Type', volume: 'Volume', presets: 'Common sizes' },
     pressure: {
       sacTitle: 'Your surface air consumption',
       /** {link} = link to the My SAC tab (text: hintLink) */
@@ -464,7 +464,9 @@ const dict = {
       statTank: '12 L · 200 bar cylinder emptied in',
       surface: 'Surface',
       trapTitle: 'The shallow-water trap',
-      trapNote: 'From 0 to 10 m your consumption **doubles**. From 30 to 40 m: only **+25%**. Tap a bar.',
+      trapNote: 'From 0 to 10 m, pressure goes from 1 to 2 bar: your consumption **doubles**. From 30 to 40 m, it goes from 4 to 5 bar: only **+25%**. Tap a bar.',
+      pressureRule: '**1 bar** at the surface (the weight of the air), then **+1 bar every 10 m** of water. At 10 m: 2 bar, at 20 m: 3 bar, at 40 m: 5 bar.',
+      law: 'pressure × volume = constant. At {depth} m you are at **{p} bar**: the air is {p} times more compressed, so each breath (same lung volume) holds **{p} times more air** than at the surface.',
     },
     conso: {
       title: 'My last dive',
@@ -481,6 +483,7 @@ const dict = {
       /** {pressure} */
       reserveWarning: 'Surfaced with {pressure} bar: you dipped into your reserve.',
       useButton: 'Use this SAC rate everywhere →',
+      law: 'at depth, each breath holds more air, so your cylinder empties faster. To compare dives, consumption is brought back to the surface: **SAC rate = bottom consumption ÷ pressure**.',
     },
     autonomy: {
       infoTitle: 'Teaching simulation, not a dive planner',
@@ -489,7 +492,9 @@ const dict = {
       depthTitle: 'Depth',
       startPressure: 'Start pressure',
       sac: 'My SAC rate',
-      gaugeCaption: 'min at {depth} m → 0 bar',
+      gaugeTitle: 'Your gas time at {depth} m',
+      gaugeCaption: 'down to 0 bar',
+      law: 'at {depth} m (**{p} bar**), you breathe {p} times more air than at the surface, so your cylinder lasts **{p} times less**.',
       statBottom: 'Bottom consumption',
       statBar: '1 bar lasts',
       statRate: 'Gauge drops by',
@@ -498,7 +503,7 @@ const dict = {
       /** Minute symbol on the bars */
       minuteMark: '′',
       /** Discreet note under gas time (ideal-gas model limit) */
-      idealGasNote: 'Air is treated as an ideal gas: at 200–300 bar, a cylinder actually holds slightly less air.',
+      idealGasNote: 'As taught in dive training, air is treated as an ideal gas: in reality, a cylinder at 200–300 bar holds slightly less air.',
     },
     compare: {
       settingsTitle: 'My settings',
@@ -514,9 +519,10 @@ const dict = {
       diffSub: 'with {tank} at {pressure} bar and {sac} L/min',
       otherTanksTitle: 'What about another cylinder?',
       tableTitle: 'Minutes to 0 bar table',
+      law: 'gas time is divided by the pressure. At 10 m (2 bar) your cylinder lasts **half as long** as at the surface; at 30 m (4 bar), **a quarter as long**.',
     },
     footnote:
-      'Ideal-gas calculations: absolute pressure = 1 + depth / 10. SAC rate = gas breathed ÷ (duration × average pressure). Simulated gas time = start pressure × volume ÷ (SAC rate × pressure), down to 0 bar, with no reserve or ascent. Indicative values, not accounting for exertion, cold or stress.',
+      'These are the rules taught in dive training. Pressure: 1 bar at the surface, +1 bar every 10 m. Boyle\'s law: pressure × volume = constant, so your bottom consumption = SAC rate × pressure. Air in the cylinder = volume × pressure (12 L at 200 bar = 2,400 L). Simulated gas time = cylinder air ÷ bottom consumption, down to 0 bar, with no reserve or ascent. Indicative values: cold, exertion and stress increase consumption.',
     faq: {
       title: 'Frequently asked questions',
       items: [
@@ -543,6 +549,7 @@ const dict = {
       ],
     },
     /** Link text for the converter, replacing {converter} in seo */
+    law: { title: "Boyle's law:", pressureTitle: 'Pressure underwater:' },
     learnMore: 'Understand your air consumption',
     seoConverterLink: 'pressure & depth converter',
     seo: [
@@ -554,12 +561,12 @@ const dict = {
       {
         title: 'Why your consumption doubles by 10 m',
         content:
-          'Absolute pressure is 1 + depth ÷ 10: 2 bar at 10 m, 3 bar at 20 m, 5 bar at 40 m. Your lungs keep the same volume, but each breath holds as many times more air as there are bar. From 0 to 10 m your consumption doubles, from 10 to 20 m it rises by 50%, and from 30 to 40 m by only 25%. To convert between depth and pressure in fresh or salt water, use the {converter}.',
+          'At the surface you already carry 1 bar: the weight of the air. Underwater, every 10 m adds 1 bar: 2 bar at 10 m, 3 bar at 20 m, 5 bar at 40 m. This is Boyle\'s law: pressure × volume = constant. When pressure doubles, air is twice as compressed. Your lungs keep the same volume, so each breath fills them with twice as much air. From 0 to 10 m pressure goes from 1 to 2 bar and your consumption doubles; from 30 to 40 m it goes from 4 to 5 bar and consumption rises by only 25%. To convert between depth and pressure in fresh or salt water, use the {converter}.',
       },
       {
         title: 'Reading gas time and your gauge',
         content:
-          'The Gas time tab divides the air in the cylinder (volume × pressure) by your consumption at depth. Example: a 12 L cylinder at 200 bar, 20 L/min at the surface, at 20 m: you breathe 60 L/min, the gauge drops 5 bar per minute, 1 bar lasts 12 s and the cylinder would be empty in 40 min. Use this figure to compare depths and cylinders, not to set your dive time.',
+          'A cylinder holds its volume multiplied by its pressure: a 12 L filled to 200 bar contains 2,400 L of free air. At 20 m (3 bar) you breathe 3 times more than at the surface: with a 20 L/min SAC rate, you use 60 L/min. The cylinder would last 2,400 ÷ 60 = 40 min down to 0 bar. On your gauge, that is 5 bar per minute, or 1 bar every 12 seconds. Use this figure to compare depths and cylinders, not to set your dive time.',
       },
       {
         title: 'Limits: this is not a dive planner',

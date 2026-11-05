@@ -185,6 +185,19 @@ function Card({ title, children, className = '' }: { title?: string; children: R
   )
 }
 
+/** Rappel discret de la loi physique qui explique la carte (ex. Boyle-Mariotte). `**texte**` = gras. */
+function LawNote({ title, text, className = '' }: { title: string; text: string; className?: string }) {
+  return (
+    <p className={`flex gap-2 rounded-xl bg-primary-50/60 px-3 py-2 text-[13px] font-medium leading-relaxed text-gray-600 ${className}`}>
+      <span aria-hidden="true" className="font-bold text-primary">ⓘ</span>
+      <span>
+        <span className="font-semibold text-black">{title} </span>
+        <Rich text={text} />
+      </span>
+    </p>
+  )
+}
+
 /** Petite carte de résultat (pattern StatCard de PressureConverter, en version compacte dans une carte). */
 function Stat({ label, value, unit, compact = false }: { label: string; value: string; unit: string; /** Rangée de 3 : unité sous la valeur sur mobile */ compact?: boolean }) {
   return (
@@ -433,16 +446,22 @@ function TankPicker({
   onSet: (v: number) => void
 }) {
   const presets = bi ? BI_VOLUMES_L : MONO_VOLUMES_L
+  // Chaque info du bloc dans sa propre petite carte : type (Mono/Bi), volume, volumes courants.
+  // Mobile : type + volume côte à côte, volumes courants dessous ; ≥ 640 px : les trois sur une ligne.
+  const sub = 'flex flex-col gap-2 rounded-xl border border-gray-200 bg-white p-2.5'
+  const subLabel = 'text-[11px] font-semibold uppercase tracking-wide text-gray-500'
   return (
-    // Mobile : ligne 1 = segment à gauche + stepper à droite ; ligne 2 = presets à largeurs égales.
-    // ≥ 640 px : tout sur une ligne, presets au milieu, stepper calé à droite comme ceux des autres cases.
-    <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-2.5 sm:grid sm:grid-cols-[auto_1fr_auto] sm:gap-x-4">
-      <Segment
-        options={[{ id: false, label: labels.tank.mono }, { id: true, label: labels.tank.bi }]}
-        value={bi}
-        onChange={onMode}
-      />
-      <div className="ml-auto sm:col-start-3 sm:row-start-1 sm:ml-0 sm:justify-self-end">
+    <div className="grid grid-cols-[auto_1fr] gap-2 sm:grid-cols-[auto_auto_1fr]">
+      <div className={sub}>
+        <span className={subLabel}>{labels.tank.type}</span>
+        <Segment
+          options={[{ id: false, label: labels.tank.mono }, { id: true, label: labels.tank.bi }]}
+          value={bi}
+          onChange={onMode}
+        />
+      </div>
+      <div className={`${sub} items-center`}>
+        <span className={`${subLabel} self-start`}>{labels.tank.volume}</span>
         <Stepper
           label={labels.tank.label}
           value={unitL}
@@ -455,16 +474,15 @@ function TankPicker({
           onSet={onSet}
         />
       </div>
-      <div
-        className={`grid w-full gap-1.5 sm:w-auto sm:col-start-2 sm:row-start-1 sm:max-w-[360px] ${
-          presets.length === 3 ? 'grid-cols-3' : 'grid-cols-4'
-        }`}
-      >
-        {presets.map((v) => (
-          <Pill key={v} pressed={unitL === v} onClick={() => onSet(v)}>
-            {bi ? labels.tank.biPrefix : ''}{v} {labels.units.l}
-          </Pill>
-        ))}
+      <div className={`${sub} col-span-2 sm:col-span-1`}>
+        <span className={subLabel}>{labels.tank.presets}</span>
+        <div className={`grid gap-1.5 ${presets.length === 3 ? 'grid-cols-3' : 'grid-cols-4'}`}>
+          {presets.map((v) => (
+            <Pill key={v} pressed={unitL === v} onClick={() => onSet(v)}>
+              {bi ? labels.tank.biPrefix : ''}{v} {labels.units.l}
+            </Pill>
+          ))}
+        </div>
       </div>
     </div>
   )
@@ -548,7 +566,7 @@ function WaterColumn({
 }
 
 /** Manomètre : arc 270°, aiguille sur la pression de départ, minutes au centre. */
-function PressureGauge({ startBar, minutes, caption, fmt }: { startBar: number; minutes: number; caption: string; fmt: Fmt }) {
+function PressureGauge({ startBar, minutes, unit, caption, fmt }: { startBar: number; minutes: number; unit: string; caption: string; fmt: Fmt }) {
   const max = gaugeMaxBar(startBar)
   const ticks: number[] = []
   for (let v = 0; v <= max; v += GAUGE.tickStepBar) ticks.push(v)
@@ -571,10 +589,12 @@ function PressureGauge({ startBar, minutes, caption, fmt }: { startBar: number; 
       })}
       <line x1={GAUGE.cx} y1={GAUGE.cy} x2={nx} y2={ny} className="stroke-black" strokeWidth="3" strokeLinecap="round" />
       <circle cx={GAUGE.cx} cy={GAUGE.cy} r="5" className="fill-black" />
-      <text x="100" y="142" textAnchor="middle" fontSize="34" fontWeight="700" className="fill-black tabular-nums">
+      {/* Valeur, unité juste dessous (même style que les autres unités), puis la légende */}
+      <text x="100" y="140" textAnchor="middle" fontSize="36" fontWeight="800" className="fill-black tabular-nums">
         {fmt.n(shownMinutes(minutes))}
       </text>
-      <text x="100" y="176" textAnchor="middle" fontSize="10.5" className="fill-gray-500">{caption}</text>
+      <text x="100" y="158" textAnchor="middle" fontSize="14" fontWeight="600" className="fill-gray-500">{unit}</text>
+      <text x="100" y="178" textAnchor="middle" fontSize="11" fontWeight="500" className="fill-gray-500">{caption}</text>
     </svg>
   )
 }
@@ -805,8 +825,10 @@ export default function AirConsumption({ labels }: { labels: AirConsumptionLabel
             <WaterColumn depthM={s.d} ariaLabel={labels.pressure.columnAria} unitM={u.m} fmt={fmt} onDepth={(d) => setNum('d', d)} />
             <div aria-live="polite" className="min-w-0">
               <p className={`${KICKER} text-balance`}>{fill(labels.pressure.kicker, { depth: s.d })}</p>
-              <p key={p} className="mt-1 tabular-nums text-[56px] font-extrabold leading-none tracking-[-0.03em] text-primary animate-number-pop sm:text-[72px]">×{fmt.trim(p)}</p>
-              <p className={`mt-1 ${T.help}`}>{labels.pressure.multiplierNote}</p>
+              <p className="mt-1.5 flex flex-wrap items-baseline gap-x-2">
+                <span key={p} className="tabular-nums text-[40px] font-extrabold leading-none tracking-[-0.03em] text-primary animate-number-pop sm:text-[48px]">×{fmt.trim(p)}</span>
+                <span className="text-[15px] font-semibold text-gray-600">{labels.pressure.multiplierNote}</span>
+              </p>
               <div className="mt-3 grid gap-2 sm:grid-cols-3">
                 <Stat label={labels.pressure.statPressure} value={fmt.n(p, 1)} unit={u.bar} />
                 <Stat label={labels.pressure.statConso} value={fmt.n(s.sac * p)} unit={u.lpm} />
@@ -828,6 +850,7 @@ export default function AirConsumption({ labels }: { labels: AirConsumptionLabel
               </div>
             </div>
           </div>
+          <LawNote className="mt-4" title={labels.law.title} text={fill(labels.pressure.law, { depth: s.d, p: fmt.trim(p) })} />
         </Card>
 
         <Card title={labels.pressure.trapTitle}>
@@ -842,6 +865,7 @@ export default function AirConsumption({ labels }: { labels: AirConsumptionLabel
             }))}
           />
           <p className={`mt-3 ${T.help}`}><Rich text={labels.pressure.trapNote} /></p>
+          <LawNote className="mt-3" title={labels.law.pressureTitle} text={labels.pressure.pressureRule} />
         </Card>
       </section>
 
@@ -923,17 +947,21 @@ export default function AirConsumption({ labels }: { labels: AirConsumptionLabel
             </p>
           ) : null}
 
-          <button
-            type="button"
-            disabled={!conso.valid}
-            onClick={() => {
-              setNum('sac', roundSacForShare(conso.sacLpm))
-              show('auto')
-            }}
-            className="mt-3.5 w-full rounded-xl bg-primary px-6 py-3.5 text-sm font-semibold text-white shadow-[0_2px_8px_rgba(18,132,199,0.3)] transition-all duration-200 ease-out-expo hover:bg-primary-600 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 disabled:active:scale-100 sm:w-auto"
-          >
-            {labels.conso.useButton}
-          </button>
+          <LawNote className="mt-4" title={labels.law.title} text={labels.conso.law} />
+
+          <div className="mt-7 flex justify-center">
+            <button
+              type="button"
+              disabled={!conso.valid}
+              onClick={() => {
+                setNum('sac', roundSacForShare(conso.sacLpm))
+                show('auto')
+              }}
+              className="rounded-xl bg-primary px-8 py-3.5 text-sm font-semibold text-white shadow-[0_2px_8px_rgba(18,132,199,0.3)] transition-all duration-200 ease-out-expo hover:bg-primary-600 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 disabled:active:scale-100"
+            >
+              {labels.conso.useButton}
+            </button>
+          </div>
         </Card>
       </section>
 
@@ -975,15 +1003,16 @@ export default function AirConsumption({ labels }: { labels: AirConsumptionLabel
           </div>
         </Card>
 
-        <Card>
+        <Card title={fill(labels.autonomy.gaugeTitle, { depth: s.d })}>
           <div aria-live="polite" className="grid items-center gap-4 sm:grid-cols-[220px_1fr] sm:gap-5">
-            <PressureGauge startBar={s.P0} minutes={autoMin} caption={fill(labels.autonomy.gaugeCaption, { depth: s.d })} fmt={fmt} />
+            <PressureGauge startBar={s.P0} minutes={autoMin} unit={u.min} caption={labels.autonomy.gaugeCaption} fmt={fmt} />
             <div className={statsGrid}>
               <Stat label={labels.autonomy.statBottom} value={fmt.n(bottomLpm)} unit={u.lpm} compact />
               <Stat label={labels.autonomy.statBar} value={fmt.n(secondsPerBar(V, bottomLpm))} unit={u.s} compact />
               <Stat label={labels.autonomy.statRate} value={fmt.n(gaugeDropBarPerMin(V, bottomLpm), 1)} unit={u.barPerMin} compact />
             </div>
           </div>
+          <LawNote className="mt-4" title={labels.law.title} text={fill(labels.autonomy.law, { depth: s.d, p: fmt.trim(pressureAbsBar(s.d)) })} />
         </Card>
 
         <Card title={labels.autonomy.barsTitle}>
@@ -1060,6 +1089,7 @@ export default function AirConsumption({ labels }: { labels: AirConsumptionLabel
               </>
             )}
           </div>
+          <LawNote className="mt-4" title={labels.law.title} text={labels.compare.law} />
         </Card>
 
         <Card title={labels.compare.otherTanksTitle}>
