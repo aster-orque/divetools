@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { LOCALES, DEFAULT_LOCALE, isValidLocale } from './i18n/config'
+import { DEFAULT_LOCALE, isValidLocale } from './i18n/config'
 
 const KNOWN_PAGES = ['nitrox', 'convertisseur', 'decompression', 'flottabilite', 'volumes', 'devis']
 

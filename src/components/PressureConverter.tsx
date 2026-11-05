@@ -416,20 +416,6 @@ export default function PressureConverter({ labels }: { labels: ConverterLabels 
   ]
 
   // Format helpers based on prefs
-  const fmtDepth = (m: number) => {
-    const ft = (m * M_TO_FT).toFixed(1)
-    if (prefDepth === 'ft') return `${ft} ft`
-    if (prefDepth === 'both') return `${m.toFixed(1)} m / ${ft} ft`
-    return `${m.toFixed(1)} m`
-  }
-
-  const fmtPressure = (bar: number) => {
-    const psi = (bar * BAR_TO_PSI).toFixed(1)
-    if (prefPressure === 'psi') return `${psi} psi`
-    if (prefPressure === 'both') return `${bar.toFixed(3)} bar / ${psi} psi`
-    return `${bar.toFixed(3)} bar`
-  }
-
   const fmtTemp = (c: number) => {
     if (prefTemp === 'f') return `${cToF(c).toFixed(1)} °F`
     return `${c.toFixed(1)} °C`
