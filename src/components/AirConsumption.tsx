@@ -403,7 +403,7 @@ function DepthBars({
   big?: boolean
 }) {
   return (
-    <div className="mt-1.5 grid h-[120px] grid-cols-7 items-end gap-1">
+    <div className="mt-1.5 grid h-[132px] grid-cols-7 items-end gap-1.5 sm:h-[150px] sm:gap-3">
       {items.map((it) => (
         <button
           key={it.depth}
@@ -414,7 +414,7 @@ function DepthBars({
         >
           <b className={`mb-1 tabular-nums font-bold leading-none text-black ${big ? 'text-sm' : 'text-[13px]'}`}>{it.value}</b>
           <i
-            className={`block w-full max-w-[42px] rounded-b-sm rounded-t-md transition-all duration-300 ease-out-expo ${
+            className={`block w-full rounded-b-sm rounded-t-md transition-all duration-300 ease-out-expo ${
               it.on ? 'bg-primary' : 'bg-gray-200 group-hover:bg-primary-200'
             }`}
             style={{ height: `${it.heightPct}%` }}
@@ -605,6 +605,17 @@ export default function AirConsumption({ labels }: { labels: AirConsumptionLabel
   const [loaded, setLoaded] = useState(false)
   const baseId = useId()
   const rootRef = useRef<HTMLDivElement>(null)
+  // Hauteur de la navbar collante du site : la barre d'onglets se colle juste en dessous.
+  const [headerH, setHeaderH] = useState(0)
+  useEffect(() => {
+    const header = document.querySelector('header')
+    if (!header) return
+    const update = () => setHeaderH(header.getBoundingClientRect().height)
+    update()
+    const ro = new ResizeObserver(update)
+    ro.observe(header)
+    return () => ro.disconnect()
+  }, [])
   const fmt = useMemo(() => makeFmt(labels.numberLocale), [labels.numberLocale])
 
   // Lecture des réglages mémorisés (après montage, pour éviter un écart d'hydratation).
@@ -750,11 +761,12 @@ export default function AirConsumption({ labels }: { labels: AirConsumptionLabel
   const statsGrid = 'grid grid-cols-3 items-stretch gap-1.5 min-[380px]:gap-2'
 
   return (
-    // Colonne flex : sur mobile, la barre d'onglets passe en dernier (order-last) et colle au bas de
-    // l'écran (sticky) tant que l'outil est visible, puis s'arrête à la fin de l'outil sans couvrir le footer.
     <div ref={rootRef} className="flex flex-col">
-      {/* ── Barre d'onglets : en bas sur mobile, en haut à partir de 760 px ── */}
-      <div className="sticky bottom-0 z-40 order-last -mx-4 mt-4 border-t border-gray-200 bg-white/95 px-1.5 pb-[calc(6px+env(safe-area-inset-bottom))] pt-1.5 backdrop-blur-xl min-[760px]:static min-[760px]:order-first min-[760px]:mx-0 min-[760px]:mb-6 min-[760px]:mt-0 min-[760px]:border-0 min-[760px]:bg-transparent min-[760px]:p-0 min-[760px]:backdrop-blur-none">
+      {/* ── Barre d'onglets : en haut, collée sous la navbar pendant le défilement de l'outil ── */}
+      <div
+        style={{ top: headerH }}
+        className="sticky z-40 -mx-4 mb-3 border-b border-gray-200 bg-white/95 px-1.5 py-1.5 backdrop-blur-xl min-[760px]:mx-0 min-[760px]:mb-5 min-[760px]:border-0 min-[760px]:bg-white/80 min-[760px]:px-0 min-[760px]:py-2"
+      >
         <div
           role="tablist"
           aria-label={labels.tablistAria}
@@ -773,13 +785,13 @@ export default function AirConsumption({ labels }: { labels: AirConsumptionLabel
                 aria-controls={`${baseId}-panel-${id}`}
                 tabIndex={active ? 0 : -1}
                 onClick={() => show(id)}
-                className={`flex min-h-11 flex-1 flex-col items-center justify-center gap-0.5 rounded-xl px-0.5 py-1.5 text-[11.5px] font-semibold transition-all duration-200 ease-out-expo min-[760px]:flex-row min-[760px]:gap-2 min-[760px]:py-2.5 min-[760px]:text-sm ${
+                className={`flex min-h-11 flex-1 flex-col items-center justify-center gap-0.5 rounded-xl px-0.5 py-1 text-[12px] font-semibold transition-all duration-200 ease-out-expo min-[760px]:flex-row min-[760px]:gap-2 min-[760px]:py-2.5 min-[760px]:text-sm ${
                   active
                     ? 'bg-primary-50 text-primary-600'
                     : 'text-gray-500 hover:text-black'
                 }`}
               >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" aria-hidden="true" className="h-6 w-6 min-[760px]:h-5 min-[760px]:w-5">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" aria-hidden="true" className="h-5 w-5">
                   {TAB_ICONS[id]}
                 </svg>
                 {tabLabel[id]}
@@ -792,7 +804,7 @@ export default function AirConsumption({ labels }: { labels: AirConsumptionLabel
       {/* ── 1. PRESSION ── */}
       <section {...panelProps('pression')}>
         <Card title={labels.pressure.sacTitle}>
-          <div className="grid items-center gap-x-6 gap-y-3 sm:grid-cols-[auto_1fr]">
+          <div className="flex flex-col items-center gap-3 text-center">
             <Stepper
               label={labels.pressure.sacTitle}
               value={s.sac}
@@ -805,7 +817,7 @@ export default function AirConsumption({ labels }: { labels: AirConsumptionLabel
               onSet={(v) => setNum('sac', v)}
               hero
             />
-            <p className={T.help}>
+            <p className={`max-w-lg text-balance ${T.help}`}>
               <Rich
                 text={labels.pressure.hint}
                 slots={{
@@ -820,33 +832,37 @@ export default function AirConsumption({ labels }: { labels: AirConsumptionLabel
           </div>
         </Card>
 
-        <Card>
-          <div className="grid grid-cols-[104px_1fr] items-start gap-3 min-[380px]:grid-cols-[112px_1fr] sm:grid-cols-[150px_1fr] sm:gap-5">
+        <Card title={fill(labels.pressure.kicker, { depth: s.d })}>
+          {/* Colonne d'eau à gauche ; à droite, multiplicateur, comparaison surface/fond et stats,
+              réparties sur toute la hauteur de la colonne pour éviter les vides. */}
+          <div className="grid grid-cols-[108px_1fr] gap-3 min-[380px]:grid-cols-[120px_1fr] sm:grid-cols-[112px_1fr] sm:gap-8">
             <WaterColumn depthM={s.d} ariaLabel={labels.pressure.columnAria} unitM={u.m} fmt={fmt} onDepth={(d) => setNum('d', d)} />
-            <div aria-live="polite" className="min-w-0">
-              <p className={`${KICKER} text-balance`}>{fill(labels.pressure.kicker, { depth: s.d })}</p>
-              <p className="mt-1.5 flex flex-wrap items-baseline gap-x-2">
+            <div aria-live="polite" className="flex min-w-0 flex-col justify-between gap-4 sm:justify-center sm:gap-6">
+              <p className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
                 <span key={p} className="tabular-nums text-[40px] font-extrabold leading-none tracking-[-0.03em] text-primary animate-number-pop sm:text-[48px]">×{fmt.trim(p)}</span>
                 <span className="text-[15px] font-semibold text-gray-600">{labels.pressure.multiplierNote}</span>
               </p>
-              <div className="mt-3 grid gap-2 sm:grid-cols-3">
+              {/* Surface vs fond : même échelle (×7 = 60 m), barres pleine largeur */}
+              <div className="space-y-2">
+                {lungs.map(([lbl, x]) => (
+                  <div key={lbl} className="grid grid-cols-[52px_1fr] items-center gap-x-2.5 sm:grid-cols-[64px_1fr_auto]">
+                    <span className={T.statLabel}>{lbl}</span>
+                    <span className="order-3 col-span-2 h-2.5 overflow-hidden rounded-full bg-gray-100 sm:order-none sm:col-span-1">
+                      <span
+                        className={`block h-full rounded-full transition-[width] duration-300 ease-out-expo ${x === 1 ? 'bg-primary-200' : 'bg-primary'}`}
+                        style={{ width: `${(x / pressureAbsBar(MAX_DEPTH_M)) * 100}%` }}
+                      />
+                    </span>
+                    <span className="justify-self-end whitespace-nowrap tabular-nums text-[15px] font-bold text-black">
+                      {fmt.n(s.sac * x)}<span className={T.unit}> {u.lpm}</span>
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <div className="grid gap-2 sm:grid-cols-3">
                 <Stat label={labels.pressure.statPressure} value={fmt.n(p, 1)} unit={u.bar} />
                 <Stat label={labels.pressure.statConso} value={fmt.n(s.sac * p)} unit={u.lpm} />
                 <Stat label={labels.pressure.statTank} value={fmt.n(shownMinutes(pressureTankMin))} unit={u.min} />
-              </div>
-              <div className="mt-4 grid max-w-[260px] grid-cols-2 items-end gap-2">
-                {lungs.map(([lbl, x]) => (
-                  <div key={lbl} className="text-center">
-                    <i
-                      className="mx-auto mb-1.5 block w-9 rounded-t-md bg-primary"
-                      style={{ height: `${70 / Math.max(1, p) * x}px`, opacity: x === 1 ? 0.35 : 0.9 }}
-                    />
-                    <p className={T.statLabel}>{lbl}</p>
-                    <p className="mt-0.5 whitespace-nowrap tabular-nums text-[15px] font-bold leading-tight text-black">
-                      {fmt.n(s.sac * x)}<span className={T.unit}> {u.lpm}</span>
-                    </p>
-                  </div>
-                ))}
               </div>
             </div>
           </div>
