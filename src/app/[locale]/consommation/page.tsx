@@ -149,39 +149,52 @@ export default async function ConsommationPage({
         {/* ── Outil ──────────────────────────────────────────────── */}
         <AirConsumption labels={dict.consumption} />
 
-        {/* ── SEO content ─────────────────────────────────────────── */}
-        <div className="mt-16 space-y-10 border-t border-gray-200 pt-12">
-          {dict.consumption.seo.map((section) => (
-            <section key={section.title}>
-              <h2 className="mb-3 text-lg font-semibold text-black">
-                {section.title}
-              </h2>
-              <p className="text-sm leading-relaxed text-gray-500">
-                {withConverterLink(section.content, locale, dict.consumption.seoConverterLink)}
-              </p>
-            </section>
-          ))}
+        {/* ── Partie pédagogique, repliée derrière un bouton ───────────
+            Le contenu reste dans le HTML (indexé, et visible pour la FAQPage) mais n'alourdit pas la page. */}
+        <details className="group mt-12 border-t border-gray-200 pt-8">
+          <summary className="mx-auto flex w-fit cursor-pointer list-none items-center gap-2 rounded-xl border border-gray-200 bg-white px-5 py-3 text-sm font-semibold text-black shadow-soft transition-all duration-200 ease-out-expo marker:hidden hover:border-primary hover:text-primary [&::-webkit-details-marker]:hidden">
+            {dict.consumption.learnMore}
+            <span aria-hidden className="transition-transform duration-200 group-open:rotate-180">⌄</span>
+          </summary>
 
-          {/* FAQ visible : même contenu que le JSON-LD FAQPage */}
-          <section>
-            <h2 className="mb-4 text-lg font-semibold text-black">
-              {dict.consumption.faq.title}
-            </h2>
-            <div className="space-y-2">
-              {dict.consumption.faq.items.map((item) => (
-                <details
-                  key={item.q}
-                  className="group rounded-xl border border-gray-200 bg-white px-4 py-3"
-                >
-                  <summary className="cursor-pointer list-none text-sm font-medium text-black marker:hidden">
-                    {item.q}
-                  </summary>
-                  <p className="mt-2 text-sm leading-relaxed text-gray-500">{item.a}</p>
-                </details>
-              ))}
-            </div>
-          </section>
-        </div>
+          <div className="mt-10 space-y-10 animate-fade-in">
+            {/* Note de calcul de l'outil (formules, limites) */}
+            <p className="rounded-xl bg-gray-50 px-4 py-3 text-xs font-medium leading-relaxed text-gray-600">
+              {dict.consumption.footnote}
+            </p>
+
+            {dict.consumption.seo.map((section) => (
+              <section key={section.title}>
+                <h2 className="mb-3 text-lg font-semibold text-black">
+                  {section.title}
+                </h2>
+                <p className="text-sm font-medium leading-relaxed text-gray-600">
+                  {withConverterLink(section.content, locale, dict.consumption.seoConverterLink)}
+                </p>
+              </section>
+            ))}
+
+            {/* FAQ : même contenu que le JSON-LD FAQPage */}
+            <section>
+              <h2 className="mb-4 text-lg font-semibold text-black">
+                {dict.consumption.faq.title}
+              </h2>
+              <div className="space-y-2">
+                {dict.consumption.faq.items.map((item) => (
+                  <details
+                    key={item.q}
+                    className="rounded-xl border border-gray-200 bg-white px-4 py-3"
+                  >
+                    <summary className="cursor-pointer list-none text-sm font-semibold text-black marker:hidden [&::-webkit-details-marker]:hidden">
+                      {item.q}
+                    </summary>
+                    <p className="mt-2 text-sm font-medium leading-relaxed text-gray-600">{item.a}</p>
+                  </details>
+                ))}
+              </div>
+            </section>
+          </div>
+        </details>
       </div>
     </>
   )

@@ -166,8 +166,8 @@ function Stat({ label, value, unit }: { label: string; value: string; unit: stri
     <div className="rounded-xl bg-gray-50 px-3.5 py-3">
       <p className="mb-1 text-xs font-medium text-gray-400">{label}</p>
       <p className="flex items-baseline gap-1">
-        <span key={value} className="font-mono text-xl font-bold leading-none text-black animate-number-pop">{value}</span>
-        <span className="text-xs text-gray-400">{unit}</span>
+        <span key={value} className="tabular-nums text-xl font-bold leading-none text-black animate-number-pop">{value}</span>
+        <span className="text-xs font-medium text-gray-400">{unit}</span>
       </p>
     </div>
   )
@@ -251,7 +251,7 @@ function Stepper({
     'flex h-11 w-11 shrink-0 select-none touch-manipulation items-center justify-center rounded-xl border border-gray-200 bg-white text-xl leading-none text-gray-500 shadow-soft transition-all duration-200 ease-out-expo hover:border-primary hover:text-primary active:scale-95 active:border-primary active:bg-primary active:text-white'
 
   return (
-    <div className="flex items-center gap-1.5">
+    <div className="flex min-w-0 items-center gap-1">
       <button type="button" aria-label={`${decreaseLabel}, ${label}`} className={btn}
         onPointerDown={start(-1)} onPointerUp={stop} onPointerLeave={stop} onPointerCancel={stop} onKeyDown={key(-1)}>
         −
@@ -271,9 +271,9 @@ function Stepper({
             if (e.key === 'Enter') e.currentTarget.blur()
           }}
           onBlur={commit}
-          className="w-full max-w-[96px] border-b-2 border-transparent bg-transparent text-center font-mono text-xl font-bold text-black outline-none transition-colors focus:border-primary"
+          className="w-full min-w-0 max-w-[96px] border-b-2 border-transparent bg-transparent px-0 text-center tabular-nums text-lg font-bold tracking-tight text-black outline-none transition-colors focus:border-primary"
         />
-        <small className="text-xs text-gray-400">{unit}</small>
+        <small className="text-xs font-medium text-gray-400">{unit}</small>
       </div>
       <button type="button" aria-label={`${increaseLabel}, ${label}`} className={btn}
         onPointerDown={start(1)} onPointerUp={stop} onPointerLeave={stop} onPointerCancel={stop} onKeyDown={key(1)}>
@@ -331,7 +331,7 @@ function Pill({ pressed, onClick, children }: { pressed: boolean; onClick: () =>
       type="button"
       aria-pressed={pressed}
       onClick={onClick}
-      className={`min-h-11 rounded-xl border px-3.5 font-mono text-sm font-semibold transition-all duration-200 ease-out-expo active:scale-95 ${
+      className={`min-h-11 rounded-xl border px-3.5 tabular-nums text-sm font-semibold transition-all duration-200 ease-out-expo active:scale-95 ${
         pressed
           ? 'border-primary bg-primary-50 text-primary-600 shadow-[0_2px_8px_rgba(18,132,199,0.15)]'
           : 'border-gray-200 bg-white text-gray-600 shadow-soft hover:border-gray-300 hover:text-black'
@@ -362,7 +362,7 @@ function DepthBars({
           onClick={() => onPick(it.depth)}
           className="group flex h-full flex-col items-center justify-end rounded-lg"
         >
-          <b className={`mb-0.5 font-mono text-xs ${it.on ? 'text-black' : 'text-gray-500'}`}>{it.value}</b>
+          <b className={`mb-0.5 tabular-nums text-xs font-medium ${it.on ? 'text-black' : 'text-gray-500'}`}>{it.value}</b>
           <i
             className={`block w-full max-w-[42px] rounded-b-sm rounded-t-md transition-all duration-300 ease-out-expo ${
               it.on ? 'bg-primary' : 'bg-gray-200 group-hover:bg-primary-200'
@@ -532,7 +532,7 @@ function PressureGauge({ startBar, minutes, caption, fmt }: { startBar: number; 
       })}
       <line x1={GAUGE.cx} y1={GAUGE.cy} x2={nx} y2={ny} className="stroke-black" strokeWidth="3" strokeLinecap="round" />
       <circle cx={GAUGE.cx} cy={GAUGE.cy} r="5" className="fill-black" />
-      <text x="100" y="142" textAnchor="middle" fontSize="34" fontWeight="700" className="fill-black font-mono">
+      <text x="100" y="142" textAnchor="middle" fontSize="34" fontWeight="700" className="fill-black tabular-nums">
         {fmt.n(shownMinutes(minutes))}
       </text>
       <text x="100" y="176" textAnchor="middle" fontSize="10.5" className="fill-gray-500">{caption}</text>
@@ -741,7 +741,7 @@ export default function AirConsumption({ labels }: { labels: AirConsumptionLabel
             onBump={(dir) => bump('sac', dir)}
             onSet={(v) => setNum('sac', v)}
           />
-          <p className="mt-2 text-xs text-gray-500">
+          <p className="mt-2 text-xs font-medium text-gray-500">
             <Rich
               text={labels.pressure.hint}
               slots={{
@@ -760,8 +760,8 @@ export default function AirConsumption({ labels }: { labels: AirConsumptionLabel
             <WaterColumn depthM={s.d} ariaLabel={labels.pressure.columnAria} unitM={u.m} fmt={fmt} onDepth={(d) => setNum('d', d)} />
             <div aria-live="polite">
               <p className="text-xs font-semibold uppercase tracking-widest text-gray-400">{fill(labels.pressure.kicker, { depth: s.d })}</p>
-              <p key={p} className="font-mono text-[52px] font-bold leading-none tracking-tight text-primary animate-number-pop sm:text-[64px]">×{fmt.trim(p)}</p>
-              <p className="mt-1 text-sm text-gray-500">{labels.pressure.multiplierNote}</p>
+              <p key={p} className="tabular-nums text-[52px] font-bold leading-none tracking-tight text-primary animate-number-pop sm:text-[64px]">×{fmt.trim(p)}</p>
+              <p className="mt-1 text-sm font-medium text-gray-500">{labels.pressure.multiplierNote}</p>
               <div className="mt-3 grid grid-cols-[repeat(auto-fit,minmax(120px,1fr))] gap-2">
                 <Stat label={labels.pressure.statPressure} value={fmt.n(p, 1)} unit={u.bar} />
                 <Stat label={labels.pressure.statConso} value={fmt.n(s.sac * p)} unit={u.lpm} />
@@ -769,14 +769,14 @@ export default function AirConsumption({ labels }: { labels: AirConsumptionLabel
               </div>
               <div className="mt-3 flex items-end gap-2.5">
                 {lungs.map(([lbl, x]) => (
-                  <div key={lbl} className="flex-1 text-center text-[11px] text-gray-500">
+                  <div key={lbl} className="flex-1 text-center text-[11px] font-medium text-gray-500">
                     <i
                       className="mx-auto mb-1 block w-8 rounded-t bg-primary"
                       style={{ height: `${70 / Math.max(1, p) * x}px`, opacity: x === 1 ? 0.35 : 0.9 }}
                     />
                     {lbl}
                     <br />
-                    <b className="font-mono text-black">{fmt.n(s.sac * x)} {u.l}</b>/{u.min}
+                    <b className="tabular-nums text-black">{fmt.n(s.sac * x)} {u.l}</b>/{u.min}
                   </div>
                 ))}
               </div>
@@ -795,7 +795,7 @@ export default function AirConsumption({ labels }: { labels: AirConsumptionLabel
               on: m <= s.d,
             }))}
           />
-          <p className="mt-2.5 text-xs text-gray-500"><Rich text={labels.pressure.trapNote} /></p>
+          <p className="mt-2.5 text-xs font-medium text-gray-500"><Rich text={labels.pressure.trapNote} /></p>
         </Card>
       </section>
 
@@ -816,7 +816,7 @@ export default function AirConsumption({ labels }: { labels: AirConsumptionLabel
             <div>
               <p className="text-xs font-semibold uppercase tracking-widest text-gray-400">{labels.conso.resultKicker}</p>
               <p className="flex items-baseline gap-1.5">
-                <span key={conso.sacLpm} className="font-mono text-[40px] font-bold leading-none tracking-tight text-black animate-number-pop sm:text-[46px]">
+                <span key={conso.sacLpm} className="tabular-nums text-[40px] font-bold leading-none tracking-tight text-black animate-number-pop sm:text-[46px]">
                   {conso.valid ? fmt.n(conso.sacLpm, 1) : '–'}
                 </span>
                 <span className="text-base text-gray-400">{u.lpm}</span>
@@ -844,14 +844,14 @@ export default function AirConsumption({ labels }: { labels: AirConsumptionLabel
               style={{ left: `${pct(conso.valid ? conso.sacLpm : 0)}%` }}
             >
               {conso.valid && (
-                <span className="absolute bottom-[34px] left-1/2 -translate-x-1/2 whitespace-nowrap font-mono text-xs font-bold text-black">
+                <span className="absolute bottom-[34px] left-1/2 -translate-x-1/2 whitespace-nowrap tabular-nums text-xs font-bold text-black">
                   {fmt.n(conso.sacLpm, 1)}
                 </span>
               )}
             </div>
           </div>
           {/* Graduations aux seuils du badge (12, 16, 20, 25 L/min) */}
-          <div aria-hidden="true" className="relative h-4 font-mono text-[11px] text-gray-500">
+          <div aria-hidden="true" className="relative h-4 tabular-nums text-[11px] font-medium text-gray-500">
             {scaleTicks.map((v, i) => (
               <span
                 key={v}
@@ -893,7 +893,7 @@ export default function AirConsumption({ labels }: { labels: AirConsumptionLabel
 
       {/* ── 3. AUTONOMIE ── */}
       <section {...panelProps('auto')}>
-        <div className="flex gap-3 rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm">
+        <div className="flex gap-3 rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm font-medium">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" aria-hidden="true" className="mt-px h-[22px] w-[22px] shrink-0 text-primary">
             <circle cx="12" cy="12" r="10" />
             <path d="M12 11v6M12 7.5v.5" />
@@ -901,7 +901,7 @@ export default function AirConsumption({ labels }: { labels: AirConsumptionLabel
           <div>
             <p className="mb-0.5 font-semibold text-black">{labels.autonomy.infoTitle}</p>
             <p className="text-gray-500"><Rich text={labels.autonomy.infoText} /></p>
-            <p className="mt-1.5 text-xs text-gray-500">{labels.autonomy.idealGasNote}</p>
+            <p className="mt-1.5 text-xs font-medium text-gray-500">{labels.autonomy.idealGasNote}</p>
           </div>
         </div>
 
@@ -918,7 +918,7 @@ export default function AirConsumption({ labels }: { labels: AirConsumptionLabel
               className="flex-1"
               style={{ background: rangeFill(s.d, MAX_DEPTH_M, SIDE_HEX.A) }}
             />
-            <p className="min-w-[78px] text-right font-mono text-2xl font-bold text-black">
+            <p className="min-w-[78px] text-right tabular-nums text-2xl font-bold text-black">
               {s.d}<span className="font-sans text-sm font-normal text-gray-400"> {u.m}</span>
             </p>
           </div>
@@ -951,7 +951,7 @@ export default function AirConsumption({ labels }: { labels: AirConsumptionLabel
               on: m === s.d,
             }))}
           />
-          <p className="mt-2 text-xs text-gray-500">{labels.autonomy.barsNote}</p>
+          <p className="mt-2 text-xs font-medium text-gray-500">{labels.autonomy.barsNote}</p>
         </Card>
       </section>
 
@@ -972,8 +972,8 @@ export default function AirConsumption({ labels }: { labels: AirConsumptionLabel
               { tag: 'B', key: 'kb', depth: s.kb, min: cmp.bMin, aria: labels.compare.depthB },
             ] as const).map((side) => (
               <div key={side.tag} className="rounded-2xl bg-gray-50 p-3 text-center">
-                <p className="flex justify-center text-sm"><SideTag side={side.tag} /></p>
-                <p className="font-mono text-3xl font-bold leading-tight text-black">
+                <p className="flex justify-center text-sm font-medium"><SideTag side={side.tag} /></p>
+                <p className="tabular-nums text-3xl font-bold leading-tight text-black">
                   {side.depth}<span className="font-sans text-base font-normal text-gray-400"> {u.m}</span>
                 </p>
                 <input
@@ -993,7 +993,7 @@ export default function AirConsumption({ labels }: { labels: AirConsumptionLabel
                     style={{ height: `${side.min / abMax * 100}%` }}
                   />
                 </div>
-                <p className="font-mono text-[34px] font-bold leading-none text-black" aria-live="polite">
+                <p className="tabular-nums text-[34px] font-bold leading-none text-black" aria-live="polite">
                   <span key={side.min} className="inline-block animate-number-pop">{fmt.n(shownMinutes(side.min))}</span>
                   <span className="font-sans text-sm font-normal text-gray-400"> {u.min}</span>
                 </p>
@@ -1007,7 +1007,7 @@ export default function AirConsumption({ labels }: { labels: AirConsumptionLabel
               <>
                 <Rich text={fill(labels.compare.diff, { lo: cmp.loDepthM, hi: cmp.hiDepthM, diff: fmt.n(cmp.diffMin), ratio: fmt.trim(cmp.ratio) })} />
                 <br />
-                <span className="text-xs text-gray-500">
+                <span className="text-xs font-medium text-gray-500">
                   {fill(labels.compare.diffSub, { tank: tankName(myTank), pressure: s.P0, sac: fmt.n(s.sac, 1) })}
                 </span>
               </>
@@ -1016,16 +1016,16 @@ export default function AirConsumption({ labels }: { labels: AirConsumptionLabel
         </Card>
 
         <Card title={labels.compare.otherTanksTitle}>
-          <div className="mb-2 flex flex-wrap gap-3 text-xs text-gray-500">
+          <div className="mb-2 flex flex-wrap gap-3 text-xs font-medium text-gray-500">
             <span><SideTag side="A" /> · {s.ka} {u.m}</span>
             <span><SideTag side="B" /> · {s.kb} {u.m}</span>
           </div>
           {tankRows.map((r) => (
             <div
               key={`${r.t.unitL}-${r.t.bi}`}
-              className={`-mx-2 grid grid-cols-[64px_1fr] items-center gap-2 rounded-lg px-2 py-1 text-sm ${r.me ? 'bg-primary-50' : ''}`}
+              className={`-mx-2 grid grid-cols-[64px_1fr] items-center gap-2 rounded-lg px-2 py-1 text-sm font-medium ${r.me ? 'bg-primary-50' : ''}`}
             >
-              <span className={`font-mono font-bold ${r.me ? 'text-primary-600' : 'text-gray-700'}`}>
+              <span className={`tabular-nums font-bold ${r.me ? 'text-primary-600' : 'text-gray-700'}`}>
                 {tankName(r.t)}
                 {r.me && <span className="sr-only"> ({labels.tank.myTank})</span>}
               </span>
@@ -1038,7 +1038,7 @@ export default function AirConsumption({ labels }: { labels: AirConsumptionLabel
                     <span className="h-3 flex-1 overflow-hidden rounded bg-gray-100">
                       <i className={`block h-full rounded transition-[width] duration-300 ease-out-expo ${SIDE_BG[side]}`} style={{ width: `${val / barsMax * 100}%` }} />
                     </span>
-                    <b className="w-14 text-right font-mono text-[13px] text-black">{fmt.n(shownMinutes(val))} {u.min}</b>
+                    <b className="w-14 text-right tabular-nums text-[13px] font-medium text-black">{fmt.n(shownMinutes(val))} {u.min}</b>
                   </div>
                   )
                 })}
@@ -1050,7 +1050,7 @@ export default function AirConsumption({ labels }: { labels: AirConsumptionLabel
         <Card title={labels.compare.tableTitle}>
           {/* Défilement horizontal si besoin, colonne des profondeurs collante à gauche */}
           <div className="overflow-x-auto">
-            <table className="w-full border-separate border-spacing-[3px] font-mono">
+            <table className="w-full border-separate border-spacing-[3px] tabular-nums">
               <thead>
                 <tr>
                   <th className="sticky left-0 z-10 bg-white" />
@@ -1067,7 +1067,7 @@ export default function AirConsumption({ labels }: { labels: AirConsumptionLabel
                   return (
                     <tr key={d}>
                       <th scope="row" className={`sticky left-0 z-10 whitespace-nowrap bg-white py-0.5 pl-0 pr-1 text-left font-sans text-[11px] font-semibold sm:text-xs ${tag ? 'text-black' : 'text-gray-500'}`}>
-                        {tag && <SideTag side={tag} className="mr-1 text-[11px]" />}
+                        {tag && <SideTag side={tag} className="mr-1 text-[11px] font-medium" />}
                         {d} {u.m}
                       </th>
                       {TANK_PRESETS.map((t, ci) => {
@@ -1096,7 +1096,6 @@ export default function AirConsumption({ labels }: { labels: AirConsumptionLabel
         </Card>
       </section>
 
-      <p className="mt-4 text-xs leading-relaxed text-gray-400">{labels.footnote}</p>
     </div>
   )
 }

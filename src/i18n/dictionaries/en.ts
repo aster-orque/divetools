@@ -543,6 +543,7 @@ const dict = {
       ],
     },
     /** Link text for the converter, replacing {converter} in seo */
+    learnMore: 'Understand your air consumption',
     seoConverterLink: 'pressure & depth converter',
     seo: [
       {

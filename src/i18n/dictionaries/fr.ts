@@ -542,6 +542,7 @@ const dict = {
       ],
     },
     /** Texte du lien vers le convertisseur, inséré à la place de {converter} dans seo */
+    learnMore: 'Comprendre ma consommation',
     seoConverterLink: 'convertisseur pression/profondeur',
     seo: [
       {
