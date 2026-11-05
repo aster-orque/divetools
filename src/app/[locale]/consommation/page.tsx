@@ -123,10 +123,10 @@ export default async function ConsommationPage({
       />
 
       <DisclaimerModal labels={dict.disclaimer} />
-      <div className="mx-auto max-w-3xl px-4 py-10 md:px-6 md:py-14">
+      <div className="mx-auto max-w-3xl px-4 py-6 md:px-6 md:py-14">
         {/* ── Breadcrumb + header ──────────────────────────────────── */}
-        <div className="mb-10">
-          <div className="mb-3 flex items-center gap-2 text-sm text-gray-400">
+        <div className="mb-5 md:mb-10">
+          <div className="mb-2 flex items-center gap-2 text-sm text-gray-400 md:mb-3">
             <a href={`/${locale}`} className="transition-colors hover:text-primary">
               {dict.consumption.breadcrumbHome}
             </a>
@@ -134,14 +134,14 @@ export default async function ConsommationPage({
             <span className="text-gray-700">{dict.consumption.breadcrumbCurrent}</span>
           </div>
           <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary-50 font-mono text-base font-semibold text-primary">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary-50 text-base font-semibold text-primary md:h-11 md:w-11">
               💨
             </div>
-            <h1 className="text-3xl font-extrabold tracking-tight text-black md:text-4xl">
+            <h1 className="text-2xl font-extrabold tracking-tight text-black md:text-4xl">
               {dict.consumption.title}
             </h1>
           </div>
-          <p className="mt-3 text-base leading-relaxed text-gray-500">
+          <p className="mt-2 text-sm font-medium leading-relaxed text-gray-500 md:mt-3 md:text-base">
             {dict.consumption.subtitle}
           </p>
         </div>

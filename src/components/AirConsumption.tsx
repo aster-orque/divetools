@@ -99,6 +99,9 @@ const TAB_ICONS: Record<TabId, ReactNode> = {
   comp: <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" />,
 }
 
+/** Petites capitales espacées du modèle (.kicker / .card h2) : 12 px, gras, gris secondaire. */
+const KICKER = 'text-xs font-bold uppercase tracking-wider text-gray-500'
+
 // ── Formatage ──────────────────────────────────────────────────────────────────
 type Fmt = {
   /** Nombre à `digits` décimales fixes (non fini → 0), comme fmt() de l'original */
@@ -132,7 +135,7 @@ function fill(template: string, vars: Record<string, string | number>): string {
 
 // ── Sous-composants ────────────────────────────────────────────────────────────
 /** Rend **gras** et {slot} (nœud React) dans une chaîne de labels. */
-function Rich({ text, slots }: { text: string; slots?: Record<string, ReactNode> }) {
+function Rich({ text, slots, strongClass = 'font-semibold text-black' }: { text: string; slots?: Record<string, ReactNode>; strongClass?: string }) {
   const parts: ReactNode[] = []
   const re = /\*\*(.+?)\*\*|\{(\w+)\}/g
   let last = 0
@@ -141,7 +144,7 @@ function Rich({ text, slots }: { text: string; slots?: Record<string, ReactNode>
   while ((m = re.exec(text))) {
     if (m.index > last) parts.push(text.slice(last, m.index))
     if (m[1] !== undefined) {
-      parts.push(<strong key={i++} className="font-semibold text-black">{m[1]}</strong>)
+      parts.push(<strong key={i++} className={strongClass}>{m[1]}</strong>)
     } else {
       parts.push(<Fragment key={i++}>{slots?.[m[2]] ?? m[0]}</Fragment>)
     }
@@ -153,8 +156,8 @@ function Rich({ text, slots }: { text: string; slots?: Record<string, ReactNode>
 
 function Card({ title, children, className = '' }: { title?: string; children: ReactNode; className?: string }) {
   return (
-    <div className={`rounded-2xl border border-gray-200 bg-white p-5 shadow-soft ${className}`}>
-      {title && <h2 className="mb-3 text-xs font-semibold uppercase tracking-widest text-gray-400">{title}</h2>}
+    <div className={`rounded-2xl border border-gray-200 bg-white px-4 py-4 shadow-soft sm:p-5 ${className}`}>
+      {title && <h2 className={KICKER + ' mb-2.5'}>{title}</h2>}
       {children}
     </div>
   )
@@ -163,11 +166,11 @@ function Card({ title, children, className = '' }: { title?: string; children: R
 /** Petite carte de résultat (pattern StatCard de PressureConverter, en version compacte dans une carte). */
 function Stat({ label, value, unit }: { label: string; value: string; unit: string }) {
   return (
-    <div className="rounded-xl bg-gray-50 px-3.5 py-3">
-      <p className="mb-1 text-xs font-medium text-gray-400">{label}</p>
+    <div className="rounded-xl bg-gray-50 px-3 py-2.5">
+      <p className="mb-1 text-[11px] font-semibold uppercase leading-snug tracking-wide text-gray-500">{label}</p>
       <p className="flex items-baseline gap-1">
         <span key={value} className="tabular-nums text-xl font-bold leading-none text-black animate-number-pop">{value}</span>
-        <span className="text-xs font-medium text-gray-400">{unit}</span>
+        <span className="text-xs font-semibold text-gray-500">{unit}</span>
       </p>
     </div>
   )
@@ -248,7 +251,7 @@ function Stepper({
     setDraft(null)
   }
   const btn =
-    'flex h-11 w-11 shrink-0 select-none touch-manipulation items-center justify-center rounded-xl border border-gray-200 bg-white text-xl leading-none text-gray-500 shadow-soft transition-all duration-200 ease-out-expo hover:border-primary hover:text-primary active:scale-95 active:border-primary active:bg-primary active:text-white'
+    'flex h-10 w-10 shrink-0 select-none touch-manipulation items-center justify-center rounded-full border border-gray-200 bg-white text-xl font-medium leading-none text-black shadow-soft transition-all duration-200 ease-out-expo hover:border-primary hover:text-primary active:scale-95 active:border-primary active:bg-primary active:text-white'
 
   return (
     <div className="flex min-w-0 items-center gap-1">
@@ -271,9 +274,9 @@ function Stepper({
             if (e.key === 'Enter') e.currentTarget.blur()
           }}
           onBlur={commit}
-          className="w-full min-w-0 max-w-[96px] border-b-2 border-transparent bg-transparent px-0 text-center tabular-nums text-lg font-bold tracking-tight text-black outline-none transition-colors focus:border-primary"
+          className="w-full min-w-0 max-w-[96px] border-b-2 border-transparent bg-transparent p-0 text-center tabular-nums text-[20px] font-bold leading-tight tracking-tight text-black outline-none transition-colors focus:border-primary min-[380px]:text-[22px]"
         />
-        <small className="text-xs font-medium text-gray-400">{unit}</small>
+        <small className="text-xs font-semibold leading-tight text-gray-500">{unit}</small>
       </div>
       <button type="button" aria-label={`${increaseLabel}, ${label}`} className={btn}
         onPointerDown={start(1)} onPointerUp={stop} onPointerLeave={stop} onPointerCancel={stop} onKeyDown={key(1)}>
@@ -288,10 +291,10 @@ function Field({ label, htmlFor, children, wide = false }: { label: string; html
   const Tag = htmlFor ? 'label' : 'span'
   return (
     <div
-      className={`rounded-xl border border-transparent bg-gray-50 px-3 pb-3 pt-2 transition-all duration-200 ease-out-expo focus-within:border-primary focus-within:bg-white focus-within:shadow-[0_0_0_3px_rgba(18,132,199,0.1)] ${wide ? 'col-span-full' : ''}`}
+      className={`flex flex-col rounded-xl border border-transparent bg-gray-50 px-2 pb-2.5 pt-2 transition-all min-[380px]:px-2.5 duration-200 ease-out-expo focus-within:border-primary focus-within:bg-white focus-within:shadow-[0_0_0_3px_rgba(18,132,199,0.1)] ${wide ? 'col-span-full' : ''}`}
     >
-      <Tag htmlFor={htmlFor} className="mb-1 block text-xs font-medium text-gray-500">{label}</Tag>
-      {children}
+      <Tag htmlFor={htmlFor} className="mb-1 block text-xs font-semibold text-gray-500">{label}</Tag>
+      <div className="mt-auto">{children}</div>
     </div>
   )
 }
@@ -307,15 +310,15 @@ function Segment<T extends string | boolean>({
   onChange: (id: T) => void
 }) {
   return (
-    <div className="inline-flex gap-1 rounded-xl border border-gray-200 bg-gray-50 p-1">
+    <div className="inline-flex rounded-full border border-gray-200 bg-white p-0.5">
       {options.map((opt) => (
         <button
           key={String(opt.id)}
           type="button"
           aria-pressed={value === opt.id}
           onClick={() => onChange(opt.id)}
-          className={`min-h-9 rounded-lg px-4 text-sm font-semibold transition-all duration-200 ease-out-expo ${
-            value === opt.id ? 'bg-white text-black shadow-soft' : 'text-gray-500 hover:text-gray-700'
+          className={`min-h-9 rounded-full px-4 text-sm font-semibold transition-all duration-200 ease-out-expo ${
+            value === opt.id ? 'bg-primary text-white shadow-[0_2px_8px_rgba(18,132,199,0.3)]' : 'text-gray-500 hover:text-black'
           }`}
         >
           {opt.label}
@@ -331,10 +334,10 @@ function Pill({ pressed, onClick, children }: { pressed: boolean; onClick: () =>
       type="button"
       aria-pressed={pressed}
       onClick={onClick}
-      className={`min-h-11 rounded-xl border px-3.5 tabular-nums text-sm font-semibold transition-all duration-200 ease-out-expo active:scale-95 ${
+      className={`min-h-10 rounded-full border px-3.5 tabular-nums text-sm font-semibold transition-all duration-200 ease-out-expo active:scale-95 ${
         pressed
-          ? 'border-primary bg-primary-50 text-primary-600 shadow-[0_2px_8px_rgba(18,132,199,0.15)]'
-          : 'border-gray-200 bg-white text-gray-600 shadow-soft hover:border-gray-300 hover:text-black'
+          ? 'border-primary bg-primary text-white shadow-[0_2px_8px_rgba(18,132,199,0.3)]'
+          : 'border-gray-200 bg-white text-black hover:border-primary hover:text-primary'
       }`}
     >
       {children}
@@ -347,10 +350,13 @@ function DepthBars({
   items,
   unitM,
   onPick,
+  big = false,
 }: {
   items: { depth: number; value: string; heightPct: number; on: boolean }[]
   unitM: string
   onPick: (depth: number) => void
+  /** Valeurs en 13 px (minutes, .steps10.min du modèle) */
+  big?: boolean
 }) {
   return (
     <div className="mt-1.5 grid h-[120px] grid-cols-7 items-end gap-1">
@@ -362,14 +368,14 @@ function DepthBars({
           onClick={() => onPick(it.depth)}
           className="group flex h-full flex-col items-center justify-end rounded-lg"
         >
-          <b className={`mb-0.5 tabular-nums text-xs font-medium ${it.on ? 'text-black' : 'text-gray-500'}`}>{it.value}</b>
+          <b className={`mb-0.5 tabular-nums font-bold text-black ${big ? 'text-[13px]' : 'text-xs'}`}>{it.value}</b>
           <i
             className={`block w-full max-w-[42px] rounded-b-sm rounded-t-md transition-all duration-300 ease-out-expo ${
               it.on ? 'bg-primary' : 'bg-gray-200 group-hover:bg-primary-200'
             }`}
             style={{ height: `${it.heightPct}%` }}
           />
-          <span className={`mt-1 text-[11px] ${it.on ? 'font-semibold text-black' : 'text-gray-500'}`}>{it.depth} {unitM}</span>
+          <span className={`mt-1 text-[11px] ${it.on ? 'font-bold text-black' : 'font-medium text-gray-500'}`}>{it.depth} {unitM}</span>
         </button>
       ))}
     </div>
@@ -397,7 +403,7 @@ function TankPicker({
 }) {
   const presets = bi ? BI_VOLUMES_L : MONO_VOLUMES_L
   return (
-    <div className="grid items-center gap-x-4 gap-y-2.5 sm:grid-cols-[minmax(150px,220px)_1fr]">
+    <div className="grid items-center gap-x-4 gap-y-2 sm:grid-cols-[minmax(150px,220px)_1fr]">
       <div>
         <div className="mb-2">
           <Segment
@@ -685,7 +691,7 @@ export default function AirConsumption({ labels }: { labels: AirConsumptionLabel
     hidden: s.tab !== tab,
     className: 'space-y-3 animate-fade-in',
   })
-  const fieldsGrid = 'grid grid-cols-[repeat(auto-fit,minmax(150px,1fr))] gap-2.5'
+  const fieldsGrid = 'grid grid-cols-[repeat(auto-fit,minmax(140px,1fr))] gap-2.5'
 
   return (
     // Colonne flex : sur mobile, la barre d'onglets passe en dernier (order-last) et colle au bas de
@@ -697,7 +703,7 @@ export default function AirConsumption({ labels }: { labels: AirConsumptionLabel
           role="tablist"
           aria-label={labels.tablistAria}
           onKeyDown={onTabKey}
-          className="mx-auto flex max-w-3xl gap-1 min-[760px]:rounded-2xl min-[760px]:border min-[760px]:border-gray-200 min-[760px]:bg-gray-50 min-[760px]:p-1.5"
+          className="mx-auto flex max-w-3xl gap-1 min-[760px]:rounded-2xl min-[760px]:border min-[760px]:border-gray-200 min-[760px]:bg-white min-[760px]:p-1 min-[760px]:shadow-soft"
         >
           {TAB_IDS.map((id) => {
             const active = s.tab === id
@@ -711,10 +717,10 @@ export default function AirConsumption({ labels }: { labels: AirConsumptionLabel
                 aria-controls={`${baseId}-panel-${id}`}
                 tabIndex={active ? 0 : -1}
                 onClick={() => show(id)}
-                className={`flex min-h-11 flex-1 flex-col items-center justify-center gap-0.5 rounded-xl px-0.5 py-1.5 text-[11.5px] font-semibold transition-all duration-200 ease-out-expo min-[760px]:flex-row min-[760px]:gap-2 min-[760px]:py-2.5 min-[760px]:text-sm min-[760px]:font-medium ${
+                className={`flex min-h-11 flex-1 flex-col items-center justify-center gap-0.5 rounded-xl px-0.5 py-1.5 text-[11.5px] font-semibold transition-all duration-200 ease-out-expo min-[760px]:flex-row min-[760px]:gap-2 min-[760px]:py-2.5 min-[760px]:text-sm ${
                   active
-                    ? 'bg-primary-50 text-primary-600 min-[760px]:bg-white min-[760px]:text-black min-[760px]:shadow-lifted'
-                    : 'text-gray-500 hover:text-gray-700'
+                    ? 'bg-primary-50 text-primary-600'
+                    : 'text-gray-500 hover:text-black'
                 }`}
               >
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" aria-hidden="true" className="h-6 w-6 min-[760px]:h-5 min-[760px]:w-5">
@@ -741,7 +747,7 @@ export default function AirConsumption({ labels }: { labels: AirConsumptionLabel
             onBump={(dir) => bump('sac', dir)}
             onSet={(v) => setNum('sac', v)}
           />
-          <p className="mt-2 text-xs font-medium text-gray-500">
+          <p className="mt-2 text-[12.5px] font-medium text-gray-500">
             <Rich
               text={labels.pressure.hint}
               slots={{
@@ -759,9 +765,9 @@ export default function AirConsumption({ labels }: { labels: AirConsumptionLabel
           <div className="grid grid-cols-[110px_1fr] items-start gap-3 sm:grid-cols-[150px_1fr] sm:gap-4">
             <WaterColumn depthM={s.d} ariaLabel={labels.pressure.columnAria} unitM={u.m} fmt={fmt} onDepth={(d) => setNum('d', d)} />
             <div aria-live="polite">
-              <p className="text-xs font-semibold uppercase tracking-widest text-gray-400">{fill(labels.pressure.kicker, { depth: s.d })}</p>
-              <p key={p} className="tabular-nums text-[52px] font-bold leading-none tracking-tight text-primary animate-number-pop sm:text-[64px]">×{fmt.trim(p)}</p>
-              <p className="mt-1 text-sm font-medium text-gray-500">{labels.pressure.multiplierNote}</p>
+              <p className={KICKER}>{fill(labels.pressure.kicker, { depth: s.d })}</p>
+              <p key={p} className="mt-0.5 tabular-nums text-[52px] font-extrabold leading-none tracking-[-0.03em] text-primary animate-number-pop sm:text-[64px]">×{fmt.trim(p)}</p>
+              <p className="mt-1 text-[13px] font-medium text-gray-500">{labels.pressure.multiplierNote}</p>
               <div className="mt-3 grid grid-cols-[repeat(auto-fit,minmax(120px,1fr))] gap-2">
                 <Stat label={labels.pressure.statPressure} value={fmt.n(p, 1)} unit={u.bar} />
                 <Stat label={labels.pressure.statConso} value={fmt.n(s.sac * p)} unit={u.lpm} />
@@ -795,7 +801,7 @@ export default function AirConsumption({ labels }: { labels: AirConsumptionLabel
               on: m <= s.d,
             }))}
           />
-          <p className="mt-2.5 text-xs font-medium text-gray-500"><Rich text={labels.pressure.trapNote} /></p>
+          <p className="mt-2.5 text-[13px] font-medium text-gray-500"><Rich text={labels.pressure.trapNote} /></p>
         </Card>
       </section>
 
@@ -812,18 +818,18 @@ export default function AirConsumption({ labels }: { labels: AirConsumptionLabel
         </Card>
 
         <Card>
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-2" aria-live="polite">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-widest text-gray-400">{labels.conso.resultKicker}</p>
-              <p className="flex items-baseline gap-1.5">
-                <span key={conso.sacLpm} className="tabular-nums text-[40px] font-bold leading-none tracking-tight text-black animate-number-pop sm:text-[46px]">
+          <div className="flex items-center justify-between gap-3" aria-live="polite">
+            <div className="min-w-0">
+              <p className={KICKER}>{labels.conso.resultKicker}</p>
+              <p className="mt-1 flex items-baseline gap-1.5">
+                <span key={conso.sacLpm} className="tabular-nums text-[44px] font-extrabold leading-none tracking-[-0.02em] text-black animate-number-pop sm:text-[52px]">
                   {conso.valid ? fmt.n(conso.sacLpm, 1) : '–'}
                 </span>
-                <span className="text-base text-gray-400">{u.lpm}</span>
+                <span className="text-base font-semibold text-gray-500">{u.lpm}</span>
               </p>
             </div>
             {conso.valid && (
-              <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-sm font-semibold ${LEVEL_BADGE[level]}`}>
+              <span className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1 text-[13px] font-bold ${LEVEL_BADGE[level]}`}>
                 <i aria-hidden="true" className={`h-2 w-2 rounded-full ${LEVEL_FILL[level]}`} />
                 {labels.conso.levels[level]}
               </span>
@@ -918,8 +924,8 @@ export default function AirConsumption({ labels }: { labels: AirConsumptionLabel
               className="flex-1"
               style={{ background: rangeFill(s.d, MAX_DEPTH_M, SIDE_HEX.A) }}
             />
-            <p className="min-w-[78px] text-right tabular-nums text-2xl font-bold text-black">
-              {s.d}<span className="font-sans text-sm font-normal text-gray-400"> {u.m}</span>
+            <p className="min-w-[78px] text-right tabular-nums text-[26px] font-extrabold leading-none text-black">
+              {s.d}<span className="text-sm font-semibold text-gray-500"> {u.m}</span>
             </p>
           </div>
           <div className={`${fieldsGrid} mt-2.5`}>
@@ -950,8 +956,9 @@ export default function AirConsumption({ labels }: { labels: AirConsumptionLabel
               heightPct: autoVals[i] / autoVals[0] * 80,
               on: m === s.d,
             }))}
+            big
           />
-          <p className="mt-2 text-xs font-medium text-gray-500">{labels.autonomy.barsNote}</p>
+          <p className="mt-2 text-[12.5px] font-medium text-gray-500">{labels.autonomy.barsNote}</p>
         </Card>
       </section>
 
@@ -972,9 +979,9 @@ export default function AirConsumption({ labels }: { labels: AirConsumptionLabel
               { tag: 'B', key: 'kb', depth: s.kb, min: cmp.bMin, aria: labels.compare.depthB },
             ] as const).map((side) => (
               <div key={side.tag} className="rounded-2xl bg-gray-50 p-3 text-center">
-                <p className="flex justify-center text-sm font-medium"><SideTag side={side.tag} /></p>
-                <p className="tabular-nums text-3xl font-bold leading-tight text-black">
-                  {side.depth}<span className="font-sans text-base font-normal text-gray-400"> {u.m}</span>
+                <p className={`flex justify-center ${KICKER}`}><SideTag side={side.tag} className="!text-gray-500" /></p>
+                <p className="tabular-nums text-[30px] font-extrabold leading-tight text-black">
+                  {side.depth}<span className="text-[15px] font-semibold text-gray-500"> {u.m}</span>
                 </p>
                 <input
                   type="range"
@@ -993,19 +1000,19 @@ export default function AirConsumption({ labels }: { labels: AirConsumptionLabel
                     style={{ height: `${side.min / abMax * 100}%` }}
                   />
                 </div>
-                <p className="tabular-nums text-[34px] font-bold leading-none text-black" aria-live="polite">
+                <p className="tabular-nums text-[34px] font-extrabold leading-none text-black" aria-live="polite">
                   <span key={side.min} className="inline-block animate-number-pop">{fmt.n(shownMinutes(side.min))}</span>
-                  <span className="font-sans text-sm font-normal text-gray-400"> {u.min}</span>
+                  <span className="text-sm font-semibold text-gray-500"> {u.min}</span>
                 </p>
               </div>
             ))}
           </div>
-          <div className="mt-3 text-center text-[15px] text-gray-700" aria-live="polite">
+          <div className="mt-3 text-center text-[15px] font-medium text-gray-700" aria-live="polite">
             {s.ka === s.kb ? (
               <span className="text-gray-500">{labels.compare.sameDepth}</span>
             ) : (
               <>
-                <Rich text={fill(labels.compare.diff, { lo: cmp.loDepthM, hi: cmp.hiDepthM, diff: fmt.n(cmp.diffMin), ratio: fmt.trim(cmp.ratio) })} />
+                <Rich strongClass="text-xl font-bold text-black" text={fill(labels.compare.diff, { lo: cmp.loDepthM, hi: cmp.hiDepthM, diff: fmt.n(cmp.diffMin), ratio: fmt.trim(cmp.ratio) })} />
                 <br />
                 <span className="text-xs font-medium text-gray-500">
                   {fill(labels.compare.diffSub, { tank: tankName(myTank), pressure: s.P0, sac: fmt.n(s.sac, 1) })}
@@ -1016,16 +1023,16 @@ export default function AirConsumption({ labels }: { labels: AirConsumptionLabel
         </Card>
 
         <Card title={labels.compare.otherTanksTitle}>
-          <div className="mb-2 flex flex-wrap gap-3 text-xs font-medium text-gray-500">
+          <div className="mb-2 flex flex-wrap gap-3 text-xs font-semibold text-gray-500">
             <span><SideTag side="A" /> · {s.ka} {u.m}</span>
             <span><SideTag side="B" /> · {s.kb} {u.m}</span>
           </div>
           {tankRows.map((r) => (
             <div
               key={`${r.t.unitL}-${r.t.bi}`}
-              className={`-mx-2 grid grid-cols-[64px_1fr] items-center gap-2 rounded-lg px-2 py-1 text-sm font-medium ${r.me ? 'bg-primary-50' : ''}`}
+              className={`-mx-2 grid grid-cols-[64px_1fr] items-center gap-2 rounded-lg px-2 py-1 text-[13.5px] font-medium ${r.me ? 'bg-primary-50' : ''}`}
             >
-              <span className={`tabular-nums font-bold ${r.me ? 'text-primary-600' : 'text-gray-700'}`}>
+              <span className={`tabular-nums font-bold ${r.me ? 'text-primary-600' : 'text-black'}`}>
                 {tankName(r.t)}
                 {r.me && <span className="sr-only"> ({labels.tank.myTank})</span>}
               </span>
@@ -1038,7 +1045,7 @@ export default function AirConsumption({ labels }: { labels: AirConsumptionLabel
                     <span className="h-3 flex-1 overflow-hidden rounded bg-gray-100">
                       <i className={`block h-full rounded transition-[width] duration-300 ease-out-expo ${SIDE_BG[side]}`} style={{ width: `${val / barsMax * 100}%` }} />
                     </span>
-                    <b className="w-14 text-right tabular-nums text-[13px] font-medium text-black">{fmt.n(shownMinutes(val))} {u.min}</b>
+                    <b className="w-14 text-right tabular-nums text-[13px] font-bold text-black">{fmt.n(shownMinutes(val))} {u.min}</b>
                   </div>
                   )
                 })}
@@ -1055,7 +1062,7 @@ export default function AirConsumption({ labels }: { labels: AirConsumptionLabel
                 <tr>
                   <th className="sticky left-0 z-10 bg-white" />
                   {TANK_PRESETS.map((t) => (
-                    <th key={`${t.unitL}-${t.bi}`} scope="col" className="whitespace-nowrap p-0.5 font-sans text-[11px] font-semibold text-gray-500 sm:text-xs">
+                    <th key={`${t.unitL}-${t.bi}`} scope="col" className={`whitespace-nowrap p-0.5 text-[11px] font-semibold sm:text-xs ${sameTank(t, myTank) ? 'text-black' : 'text-gray-500'}`}>
                       {tankName(t)}
                     </th>
                   ))}
@@ -1066,7 +1073,7 @@ export default function AirConsumption({ labels }: { labels: AirConsumptionLabel
                   const tag = d === s.ka ? 'A' : d === s.kb ? 'B' : null
                   return (
                     <tr key={d}>
-                      <th scope="row" className={`sticky left-0 z-10 whitespace-nowrap bg-white py-0.5 pl-0 pr-1 text-left font-sans text-[11px] font-semibold sm:text-xs ${tag ? 'text-black' : 'text-gray-500'}`}>
+                      <th scope="row" className={`sticky left-0 z-10 whitespace-nowrap bg-white py-0.5 pl-0 pr-1 text-left text-[11px] font-semibold sm:text-xs ${tag ? 'text-black' : 'text-gray-500'}`}>
                         {tag && <SideTag side={tag} className="mr-1 text-[11px] font-medium" />}
                         {d} {u.m}
                       </th>

@@ -463,7 +463,7 @@ const dict = {
       statTank: 'Bloc 12 L · 200 bar vidé en',
       surface: 'Surface',
       trapTitle: 'Le piège des premiers mètres',
-      trapNote: 'De 0 à 10 m ta conso **double**. De 30 à 40 m : **+25 %** seulement. Touche une barre.',
+      trapNote: 'De 0 à 10 m ta conso **double**. De 30 à 40 m : **+25\u00a0%** seulement. Touche une barre.',
     },
     conso: {
       title: 'Ma dernière plongée',
