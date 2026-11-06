@@ -148,17 +148,17 @@ function Rich({ text, slots, strongClass = 'font-semibold text-black' }: { text:
 }
 
 function Card({ children, className = '' }: { children: ReactNode; className?: string }) {
-  return <div className={`rounded-2xl border border-gray-200 bg-white p-3.5 shadow-soft sm:p-4 ${className}`}>{children}</div>
+  return <div className={`rounded-2xl border border-gray-200 bg-white px-4 py-4 shadow-soft sm:p-5 ${className}`}>{children}</div>
 }
 
 /** Rappel discret de la loi physique (petit texte gris). `**texte**` = gras. */
 function LawNote({ title, text, className = '' }: { title: string; text: string; className?: string }) {
   return (
-    <p className={`flex gap-1.5 text-xs font-medium leading-relaxed text-gray-500 ${className}`}>
+    <p className={`flex gap-2 rounded-xl bg-primary-50/60 px-3 py-2 text-[13px] font-medium leading-relaxed text-gray-600 ${className}`}>
       <span aria-hidden="true" className="font-bold text-primary">ⓘ</span>
       <span>
-        <span className="font-semibold text-gray-700">{title} </span>
-        <Rich text={text} strongClass="font-semibold text-gray-700" />
+        <span className="font-semibold text-black">{title} </span>
+        <Rich text={text} />
       </span>
     </p>
   )
@@ -172,7 +172,7 @@ function Note({ children, className = '' }: { children: ReactNode; className?: s
 /** En-tête de bloc de saisie : numéro, titre, aide (.blk-h de l'original). */
 function InputHead({ no, title, help }: { no: number; title: string; help: string }) {
   return (
-    <div className="mb-2.5 flex items-start gap-2.5">
+    <div className="mb-4 flex items-start gap-2.5">
       <span className="mt-px flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-bold text-white">{no}</span>
       <div>
         <h2 className={T.sectionTitle}>{title}</h2>
@@ -185,7 +185,7 @@ function InputHead({ no, title, help }: { no: number; title: string; help: strin
 /** En-tête de bloc de résultat (.res-h de l'original). */
 function ResultHead({ title, help }: { title: string; help?: string }) {
   return (
-    <div className="mb-2.5">
+    <div className="mb-4">
       <h2 className={T.sectionTitle}>{title}</h2>
       {help && <p className={`mt-0.5 ${T.help}`}>{help}</p>}
     </div>
@@ -489,9 +489,18 @@ export default function GasBlender({ labels }: { labels: GasBlenderLabels }) {
   // en bas de l'écran (en descendant) ou quand son haut réapparaît sous la navbar (en remontant).
   // Une seule barre de défilement : toutes les sections restent accessibles.
   const inRef = useRef<HTMLDivElement>(null)
+  // Version de mise en page à comparer : ?v=2 = réglages en haut, résultats en dessous (pas de colonne collante).
+  const [stack, setStack] = useState(false)
+  useEffect(() => {
+    setStack(new URLSearchParams(window.location.search).get('v') === '2')
+  }, [])
   useEffect(() => {
     const el = inRef.current
     if (!el) return
+    if (stack) {
+      el.style.top = ''
+      return
+    }
     const mq = window.matchMedia('(min-width: 1024px)')
     const GAP = 16
     let top = headerH + GAP
@@ -517,7 +526,7 @@ export default function GasBlender({ labels }: { labels: GasBlenderLabels }) {
       window.removeEventListener('resize', apply)
       mq.removeEventListener('change', apply)
     }
-  }, [headerH])
+  }, [headerH, stack])
 
   // Lecture des saisies mémorisées (après montage, pour éviter un écart d'hydratation).
   useEffect(() => {
@@ -785,7 +794,7 @@ export default function GasBlender({ labels }: { labels: GasBlenderLabels }) {
     const good = view.good
     const title = view.bleed === null ? titleOf(sol.gases) : sol.steps.length ? fill(L.plan.titleBleed, { title: titleOf(sol.gases) }) : L.plan.titleBleedOnly
     return (
-      <Card className={good ? '!border-primary' : '!border-2 !border-amber-500'}>
+      <div className={`rounded-xl border p-3.5 sm:p-4 ${good ? 'border-primary' : 'border-2 border-amber-500'}`}>
         {/* En-tête : kicker + titre à gauche, % obtenu à droite (.planhead / .result de l'original) */}
         <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-1">
           <div className="min-w-0">
@@ -806,7 +815,7 @@ export default function GasBlender({ labels }: { labels: GasBlenderLabels }) {
         {planGrid(view)}
         {notes(sol)}
         <LawNote className="mt-3" title={L.laws.daltonTitle} text={L.laws.dalton} />
-      </Card>
+      </div>
     )
   }
   const tileCard = (t: Tile) => {
@@ -848,7 +857,7 @@ export default function GasBlender({ labels }: { labels: GasBlenderLabels }) {
     return (
       <div
         key={g.id}
-        className={`relative grid min-h-[88px] content-start gap-1 rounded-xl border border-l-[5px] border-gray-200 py-2.5 pl-3 pr-3 ${LEVEL_BORDER_L[t.level]} ${t.level === 'low' ? 'bg-red-50/70' : 'bg-white'}`}
+        className={`relative grid min-h-[96px] content-start gap-1 rounded-xl border-l-[5px] py-3 pl-3.5 pr-3 ${LEVEL_BORDER_L[t.level]} ${t.level === 'low' ? 'bg-red-50/70' : 'bg-gray-50'}`}
       >
         <MiniTank color={color} before={t.icon.before} after={t.icon.after} />
         <h3 className="flex items-center gap-1.5 pr-10 text-[15px] font-bold text-black">
@@ -856,7 +865,7 @@ export default function GasBlender({ labels }: { labels: GasBlenderLabels }) {
           <span className="min-w-0">{gasName(g.label)}</span>
           <small className="whitespace-nowrap text-[13px] font-semibold text-gray-500">{fmt.raw(Math.round(g.f * 1000) / 10)} %</small>
         </h3>
-        <p className={`pr-10 font-extrabold leading-tight ${LEVEL_TEXT[t.level]} ${t.level === 'off' ? 'text-base' : 'text-[21px]'}`}>
+        <p className={`pr-10 font-extrabold leading-tight ${LEVEL_TEXT[t.level]} ${t.level === 'off' ? 'text-base' : 'text-[24px]'}`}>
           {t.level === 'low' && <span aria-hidden="true">⚠ </span>}{status}
         </p>
         {lines.map((l, i) => (
@@ -905,14 +914,12 @@ export default function GasBlender({ labels }: { labels: GasBlenderLabels }) {
 
   const summaryChips = (sm: Summary) => {
     const chip = (key: string, label: string, value: string, unit: string | null, sub: ReactNode, warn = false) => (
-      <div key={key} className={`rounded-xl border bg-white px-3 py-2 ${warn ? 'border-red-600 bg-red-50/60' : 'border-gray-200'}`}>
+      <div key={key} className={`flex flex-col gap-1 rounded-xl px-3.5 py-3 ${warn ? 'border border-red-600 bg-red-50/60' : 'bg-gray-50'}`}>
         <p className={`text-[11px] font-semibold uppercase tracking-wide ${warn ? 'text-red-700' : 'text-gray-500'}`}>{label}</p>
-        <p className="text-xs font-medium leading-snug text-gray-500">
-          <b key={value} className={`inline-block animate-number-pop whitespace-nowrap tabular-nums text-[22px] font-extrabold leading-tight tracking-[-0.01em] ${warn ? 'text-red-700' : 'text-black'}`}>
-            {value}{unit && <span className={`ml-1 ${T.unit} tracking-normal`}>{unit}</span>}
-          </b>{' '}
-          {sub}
-        </p>
+        <b key={value} className={`animate-number-pop whitespace-nowrap tabular-nums text-[28px] font-extrabold leading-none tracking-[-0.02em] ${warn ? 'text-red-700' : 'text-black'}`}>
+          {value}{unit && <span className={`ml-1 ${T.unit} tracking-normal`}>{unit}</span>}
+        </b>
+        <p className="text-xs font-medium leading-snug text-gray-500">{sub}</p>
       </div>
     )
     const u = L.units
@@ -935,7 +942,7 @@ export default function GasBlender({ labels }: { labels: GasBlenderLabels }) {
     items.push(chip('mod', L.summary.mod, String(sm.mod.mod14), u.m,
       fill(L.summary.modSub, { m16: sm.mod.mod16 }) + (sm.mod.expectedDiffers ? fill(L.summary.modExpected, { mix: fmt.pct(sm.mod.f) }) : '')))
     if (sm.o2Alert) items.push(chip('alert', `⚠ ${L.summary.alert}`, L.summary.alertValue, null, L.summary.alertSub, true))
-    return <div className="grid grid-cols-[repeat(auto-fit,minmax(150px,1fr))] gap-2">{items}</div>
+    return <div className="grid grid-cols-[repeat(auto-fit,minmax(160px,1fr))] gap-2.5">{items}</div>
   }
 
   const summary = out.status === 'error' ? null : out.summary
@@ -958,8 +965,6 @@ export default function GasBlender({ labels }: { labels: GasBlenderLabels }) {
   )
 
   const detailsBox = 'group rounded-xl border border-gray-200 bg-white'
-  /** Desktop : filet + air au-dessus de chaque bloc de résultats, pour bien séparer les sections. */
-  const resSep = 'lg:border-t lg:border-gray-200 lg:pt-8'
   const summaryRow = 'flex min-h-12 cursor-pointer list-none items-center justify-between gap-2 px-4 py-2.5 marker:hidden [&::-webkit-details-marker]:hidden'
   const chevron = <span aria-hidden className="text-gray-500 transition-transform duration-200 group-open:rotate-180">⌄</span>
   const mixPresetMod = (m: number) => Math.floor((1.4 / (m / 100) - 1) * 10)
@@ -1004,14 +1009,16 @@ export default function GasBlender({ labels }: { labels: GasBlenderLabels }) {
         </div>
       </div>
 
-      <div className="flex flex-col gap-5 lg:grid lg:grid-cols-[400px_minmax(0,1fr)] lg:items-start lg:gap-8">
+      <div className={`flex flex-col gap-5 ${stack ? 'lg:gap-6' : 'lg:grid lg:grid-cols-[400px_minmax(0,1fr)] lg:items-start lg:gap-8'}`}>
         {/* ── Colonne saisies (mobile : sections réparties dans les onglets) ──
             Desktop : suit le défilement de la page (position calculée par inRef), sans barre de défilement propre. */}
-        <div ref={inRef} className="contents lg:sticky lg:flex lg:flex-col lg:gap-6">
+        <div ref={inRef} className={stack
+          ? 'contents lg:grid lg:grid-cols-2 lg:grid-rows-[auto_1fr] lg:items-start lg:gap-6'
+          : 'contents lg:sticky lg:flex lg:flex-col lg:gap-6'}>
           {/* 1. Tes blocs */}
           <section className={`order-1 lg:order-none ${vis('melange')}`}>
-            <InputHead no={1} title={L.tank.title} help={L.tank.help} />
             <Card>
+              <InputHead no={1} title={L.tank.title} help={L.tank.help} />
               <div className={fieldsGrid}>
                 {stepper('vol', L.tank.volume, L.units.litres)}
                 {stepper('nb', L.tank.count, L.units.blocks)}
@@ -1028,8 +1035,8 @@ export default function GasBlender({ labels }: { labels: GasBlenderLabels }) {
 
           {/* 2. Mélange voulu */}
           <section className={`order-2 lg:order-none ${vis('melange')}`}>
-            <InputHead no={2} title={L.mix.title} help={L.mix.help} />
             <Card>
+              <InputHead no={2} title={L.mix.title} help={L.mix.help} />
               <div className="mb-2 grid grid-cols-7 gap-1">
                 {MIXES.map((m) => {
                   const on = s.f2 === m
@@ -1066,9 +1073,9 @@ export default function GasBlender({ labels }: { labels: GasBlenderLabels }) {
           {cta('melange', 'order-3')}
 
           {/* 3. Gaz disponibles */}
-          <section className={`order-5 lg:order-none ${vis('stocks')}`}>
-            <InputHead no={3} title={L.gases.title} help={L.gases.help} />
+          <section className={`order-5 lg:order-none ${stack ? 'lg:col-start-2 lg:row-span-2 lg:row-start-1' : ''} ${vis('stocks')}`}>
             <Card>
+              <InputHead no={3} title={L.gases.title} help={L.gases.help} />
               <div className="grid min-w-0 gap-2.5">
                 {s.gases.map((g, i) => {
                   const color = gasColor(+g.f / 100)
@@ -1142,14 +1149,15 @@ export default function GasBlender({ labels }: { labels: GasBlenderLabels }) {
         </div>
 
         {/* ── Colonne résultats ── */}
-        <div className="contents lg:flex lg:flex-col lg:gap-8">
+        <div className={stack ? 'contents lg:grid lg:grid-cols-2 lg:items-start lg:gap-6' : 'contents lg:flex lg:flex-col lg:gap-6'}>
           {/* Plan de gonflage */}
-          <section className={`order-7 lg:order-none ${vis('plan')}`} aria-live="polite">
+          <section className={`order-7 lg:order-none ${stack ? 'lg:col-span-2' : ''} ${vis('plan')}`} aria-live="polite">
+            <Card>
             <ResultHead title={L.plan.title} help={L.plan.help} />
             {out.status === 'error' ? (
-              <Card>{out.errors.map((e) => <p key={e} role="alert" className="font-semibold text-red-700">{L.errors[e]}</p>)}</Card>
+              out.errors.map((e) => <p key={e} role="alert" className="font-semibold text-red-700">{L.errors[e]}</p>)
             ) : out.status === 'nothing' ? (
-              <Card><p className="text-center text-base font-semibold text-black">✓ {L.plan.nothing}</p></Card>
+              <p className="text-center text-base font-semibold text-black">✓ {L.plan.nothing}</p>
             ) : out.main.kind === 'plan' ? (
               planCard(out.main.plan)
             ) : (
@@ -1165,30 +1173,35 @@ export default function GasBlender({ labels }: { labels: GasBlenderLabels }) {
                 {out.main.best && planCard(out.main.best.plan)}
               </div>
             )}
+            </Card>
           </section>
 
           {/* Tes stocks */}
           {out.status === 'computed' && (
-            <section className={`order-4 lg:order-none ${resSep} ${vis('stocks')}`} aria-live="polite">
+            <section className={`order-4 lg:order-none ${stack ? 'lg:col-span-2' : ''} ${vis('stocks')}`} aria-live="polite">
+              <Card>
               <ResultHead title={L.stocks.title} help={L.stocks.help} />
               {out.ignored > 0 && <Note className="mb-2">{fill(out.ignored > 1 ? L.stocks.ignoredN : L.stocks.ignored1, { n: out.ignored })}</Note>}
-              <div className="grid grid-cols-[minmax(0,1fr)] gap-2 sm:grid-cols-[repeat(auto-fit,minmax(210px,1fr))]">{out.tiles.map(tileCard)}</div>
+              <div className="grid grid-cols-[minmax(0,1fr)] gap-2.5 sm:grid-cols-[repeat(auto-fit,minmax(220px,1fr))]">{out.tiles.map(tileCard)}</div>
+              </Card>
             </section>
           )}
 
           {/* En bref */}
           {summary && (
-            <section className={`order-8 lg:order-none ${resSep} ${vis('plan')}`} aria-live="polite">
+            <section className={`order-8 lg:order-none ${vis('plan')}`} aria-live="polite">
+              <Card>
               <ResultHead title={L.summary.title} help={L.summary.help} />
               {summaryChips(summary)}
+              </Card>
             </section>
           )}
 
           {/* Analyse finale */}
           {chosen && analysis && (
-            <section className={`order-9 lg:order-none ${resSep} ${vis('plan')}`}>
-              <ResultHead title={L.analysis.title} help={L.analysis.help} />
+            <section className={`order-9 lg:order-none ${vis('plan')}`}>
               <Card>
+              <ResultHead title={L.analysis.title} help={L.analysis.help} />
                 <Field label={L.analysis.field} htmlFor={fieldId('ana')}>
                   <Stepper
                     id={fieldId('ana')}
@@ -1263,7 +1276,8 @@ export default function GasBlender({ labels }: { labels: GasBlenderLabels }) {
 
           {/* Autres options (repliées) */}
           {out.status === 'computed' && out.alts.length > 0 && (
-            <section className={`order-10 lg:order-none ${resSep} ${vis('plan')}`}>
+            <section className={`order-10 lg:order-none ${stack ? 'lg:col-span-2' : ''} ${vis('plan')}`}>
+              <Card>
               <ResultHead title={L.alts.title} help={L.alts.help} />
               <div className="grid gap-2">
                 {out.alts.map((sol, i) => {
@@ -1290,12 +1304,13 @@ export default function GasBlender({ labels }: { labels: GasBlenderLabels }) {
                   )
                 })}
               </div>
+              </Card>
             </section>
           )}
 
           {/* Combinaisons écartées (repliées) */}
           {out.status === 'computed' && out.rejected.length > 0 && (
-            <details className={`order-11 lg:order-none ${detailsBox} ${vis('plan')}`}>
+            <details className={`order-11 lg:order-none ${stack ? 'lg:col-span-2' : ''} ${detailsBox} ${vis('plan')}`}>
               <summary className={summaryRow}>
                 <span className="text-[15px] font-semibold text-black">{L.rejected.title}</span>
                 <span className="ml-auto rounded-full bg-gray-100 px-2 py-0.5 text-xs font-bold tabular-nums text-gray-600">{out.rejected.length}</span>
