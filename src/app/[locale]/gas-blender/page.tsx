@@ -16,14 +16,14 @@ export async function generateMetadata({
     title: dict.metadata.gasBlender.title,
     description: dict.metadata.gasBlender.description,
     keywords: dict.metadata.gasBlender.keywords,
-    alternates: getAlternates('/gonflage-nitrox'),
+    alternates: getAlternates('/gas-blender'),
     openGraph: {
       title: dict.metadata.gasBlender.ogTitle,
       description: dict.metadata.gasBlender.ogDescription,
-      url: `${BASE_URL}/${locale}/gonflage-nitrox`,
+      url: `${BASE_URL}/${locale}/gas-blender`,
       images: [
         {
-          url: '/og-gonflage-nitrox.png',
+          url: '/og-gas-blender.png',
           width: 1200,
           height: 630,
           alt: `${dict.metadata.gasBlender.ogTitle} — Orque Tools`,
@@ -48,7 +48,7 @@ function withNitroxLink(text: string, locale: string, label: string) {
   )
 }
 
-export default async function GonflageNitroxPage({
+export default async function GasBlenderPage({
   params,
 }: {
   params: Promise<{ locale: string }>
@@ -62,7 +62,7 @@ export default async function GonflageNitroxPage({
       '@type': 'WebApplication',
       name: dict.gasBlender.jsonLd.appName,
       description: dict.gasBlender.jsonLd.appDescription,
-      url: `${BASE_URL}/${locale}/gonflage-nitrox`,
+      url: `${BASE_URL}/${locale}/gas-blender`,
       applicationCategory: 'UtilitiesApplication',
       operatingSystem: 'Web',
       inLanguage: locale,
@@ -91,7 +91,7 @@ export default async function GonflageNitroxPage({
           '@type': 'ListItem',
           position: 2,
           name: dict.gasBlender.jsonLd.appName,
-          item: `${BASE_URL}/${locale}/gonflage-nitrox`,
+          item: `${BASE_URL}/${locale}/gas-blender`,
         },
       ],
     },

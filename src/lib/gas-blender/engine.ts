@@ -1,4 +1,4 @@
-// Moteur de calcul de l'outil « Gonflage nitrox » (slug : gonflage-nitrox).
+// Moteur de calcul de l'outil « Gonflage nitrox » (slug : gas-blender).
 // Transcription fidèle de `version beta outils/Gas blender/gas-blender.html`.
 // Méthode des pressions partielles : gaz parfaits, isotherme, lecture manomètre à 10 bar près.
 // Aucune lecture du DOM ni d'état React, aucun texte affiché : le composant formate tout.

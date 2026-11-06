@@ -51,7 +51,7 @@ const dict = {
         "Calcule ta conso surface en L/min, vois pourquoi elle double dès 10 m et combien de minutes dure ton bloc selon la profondeur. Gratuit.",
     },
     gasBlender: {
-      title: 'Calcul gonflage nitrox : gas blender pressions partielles',
+      title: 'Gas blender : calcul de gonflage nitrox par pressions partielles',
       description:
         'Calcule ton gonflage nitrox par pressions partielles : O2 pur, tampons en cascade, compresseur. Étapes au manomètre, prof. max. Gratuit, sans inscription.',
       keywords: [
@@ -68,7 +68,7 @@ const dict = {
         'calculateur gonflage plongée',
         'analyse nitrox après gonflage',
       ],
-      ogTitle: 'Calcul de gonflage nitrox — Gas blender',
+      ogTitle: 'Gas blender — calcul de gonflage nitrox',
       ogDescription:
         "Bloc, mélange voulu, gaz disponibles : obtiens les étapes de gonflage par pressions partielles, à lire au manomètre à 10 bar près. Gratuit.",
     },
@@ -146,9 +146,9 @@ const dict = {
         keywords: ['SAC', 'L/min', 'autonomie', 'bloc'],
       },
       {
-        id: 'gonflage-nitrox',
+        id: 'gas-blender',
         tag: 'Gonflage',
-        title: 'Calculateur de gonflage nitrox',
+        title: 'Gas blender',
         description:
           "Bloc, mélange voulu et gaz disponibles : les étapes de gonflage par pressions partielles, à lire au manomètre.",
         keywords: ['pressions partielles', 'O2 pur', 'tampons', 'cascade'],
@@ -617,8 +617,8 @@ const dict = {
   },
   gasBlender: {
     breadcrumbHome: 'Outils',
-    breadcrumbCurrent: 'Gonflage nitrox',
-    title: 'Calcul de gonflage nitrox',
+    breadcrumbCurrent: 'Gas blender',
+    title: 'Gas blender · Gonflage nitrox',
     subtitle:
       "Indique ton bloc, le mélange voulu et les gaz que tu as : l'outil te donne les étapes de gonflage, lecture manomètre à 10 bar près.",
     learnMore: 'Comprendre le gonflage nitrox',
@@ -676,7 +676,7 @@ const dict = {
       ],
     },
     jsonLd: {
-      appName: 'Calculateur de gonflage nitrox',
+      appName: 'Gas blender — calcul de gonflage nitrox',
       appDescription:
         "Calculateur gratuit de gonflage air et nitrox par pressions partielles : étapes à lire au manomètre avec O2 pur, tampons en cascade ou compresseur, vérification des stocks, profondeur max et analyse finale.",
       breadcrumbHome: 'Orque Tools',
@@ -956,7 +956,7 @@ const dict = {
       { id: 'nitrox', label: 'Nitrox', live: true },
       { id: 'convertisseur', label: 'Convertisseur', live: true },
       { id: 'consommation', label: 'Consommation', live: true },
-      { id: 'gonflage-nitrox', label: 'Gonflage', live: true },
+      { id: 'gas-blender', label: 'Gas blender', live: true },
       { id: 'decompression', label: 'Décompression', live: false },
       { id: 'flottabilite', label: 'Flottabilité', live: false },
       { id: 'devis', label: 'Devis', live: false },

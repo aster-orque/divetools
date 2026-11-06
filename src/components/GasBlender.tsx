@@ -31,7 +31,7 @@ import {
   sanitizeState,
   sanitizeTab,
   stockState,
-} from '@/lib/gonflage-nitrox/engine'
+} from '@/lib/gas-blender/engine'
 import type {
   BlendGas,
   BlendState,
@@ -47,7 +47,7 @@ import type {
   Summary,
   TabId,
   Tile,
-} from '@/lib/gonflage-nitrox/engine'
+} from '@/lib/gas-blender/engine'
 
 type Dict = Awaited<ReturnType<typeof getDictionary>>
 /** Textes de l'outil : bloc `gasBlender` des dictionnaires fr/en. */
@@ -60,10 +60,11 @@ const HOLD_INTERVAL_MS = 70
 /** Marge (px) laissée sous la navbar quand on remonte au haut de l'outil en changeant d'onglet. */
 const TOOL_SCROLL_GAP_PX = 12
 
-/** Couleurs des gaz : O2 pur bleu Orque, nitrox ambre, air gris-bleu (résiduel : gris hachuré). */
-const GAS_BG: Record<GasColor, string> = { o2: 'bg-primary', nx: 'bg-amber-500', air: 'bg-slate-500' }
-const GAS_FILL: Record<GasColor, string> = { o2: 'fill-primary', nx: 'fill-amber-500', air: 'fill-slate-500' }
-const GAS_BORDER_L: Record<GasColor, string> = { o2: 'border-l-primary', nx: 'border-l-amber-500', air: 'border-l-slate-500' }
+/** Couleurs des gaz (code usuel en station de gonflage, demandé par Maxime) : O2 vert, nitrox jaune,
+ *  air bleu Orque (résiduel : gris hachuré). Le vert reste réservé à l'O2, jamais aux états « OK ». */
+const GAS_BG: Record<GasColor, string> = { o2: 'bg-green-600', nx: 'bg-yellow-400', air: 'bg-primary' }
+const GAS_FILL: Record<GasColor, string> = { o2: 'fill-green-600', nx: 'fill-yellow-400', air: 'fill-primary' }
+const GAS_BORDER_L: Record<GasColor, string> = { o2: 'border-l-green-600', nx: 'border-l-yellow-400', air: 'border-l-primary' }
 
 /** Niveaux d'état (tuiles, analyse) : OK en bleu Orque, ambre / rouge pour les alertes. */
 type Level = 'ok' | 'mid' | 'low' | 'off'
@@ -483,6 +484,41 @@ export default function GasBlender({ labels }: { labels: GasBlenderLabels }) {
     return () => ro.disconnect()
   }, [])
 
+  // Desktop : colonne de saisie « collante intelligente », sans défilement interne.
+  // Elle défile avec la page ; si elle est plus haute que l'écran, elle se bloque quand son bas arrive
+  // en bas de l'écran (en descendant) ou quand son haut réapparaît sous la navbar (en remontant).
+  // Une seule barre de défilement : toutes les sections restent accessibles.
+  const inRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    const el = inRef.current
+    if (!el) return
+    const mq = window.matchMedia('(min-width: 1024px)')
+    const GAP = 16
+    let top = headerH + GAP
+    let lastY = window.scrollY
+    const apply = () => {
+      if (!mq.matches) { el.style.top = ''; return }
+      const max = headerH + GAP
+      const min = Math.min(max, window.innerHeight - el.offsetHeight - GAP)
+      const y = window.scrollY
+      top = Math.max(min, Math.min(max, top - (y - lastY)))
+      lastY = y
+      el.style.top = `${top}px`
+    }
+    apply()
+    const ro = new ResizeObserver(apply)
+    ro.observe(el)
+    window.addEventListener('scroll', apply, { passive: true })
+    window.addEventListener('resize', apply)
+    mq.addEventListener('change', apply)
+    return () => {
+      ro.disconnect()
+      window.removeEventListener('scroll', apply)
+      window.removeEventListener('resize', apply)
+      mq.removeEventListener('change', apply)
+    }
+  }, [headerH])
+
   // Lecture des saisies mémorisées (après montage, pour éviter un écart d'hydratation).
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -636,7 +672,7 @@ export default function GasBlender({ labels }: { labels: GasBlenderLabels }) {
     return (
       <div className="mt-3">
         <div className="flex h-6 overflow-hidden rounded-md text-xs font-bold">
-          <i className="flex items-center overflow-hidden whitespace-nowrap bg-primary px-2 not-italic text-white" style={{ width: `${o}%` }}>
+          <i className="flex items-center overflow-hidden whitespace-nowrap bg-green-700 px-2 not-italic text-white" style={{ width: `${o}%` }}>
             {fill(L.plan.compO2, { v: fmt.f1(o) })}
           </i>
           <i className="flex flex-1 items-center justify-end overflow-hidden whitespace-nowrap bg-gray-200 px-2 not-italic text-black">
@@ -929,7 +965,7 @@ export default function GasBlender({ labels }: { labels: GasBlenderLabels }) {
   const mixPresetMod = (m: number) => Math.floor((1.4 / (m / 100) - 1) * 10)
 
   return (
-    <div ref={rootRef} className="flex flex-col" style={{ '--gb-header': `${headerH}px` } as CSSProperties}>
+    <div ref={rootRef} className="flex flex-col">
       {/* ── Barre d'onglets mobile : en haut, collée sous la navbar ── */}
       <div
         style={{ top: headerH }}
@@ -970,8 +1006,8 @@ export default function GasBlender({ labels }: { labels: GasBlenderLabels }) {
 
       <div className="flex flex-col gap-5 lg:grid lg:grid-cols-[400px_minmax(0,1fr)] lg:items-start lg:gap-8">
         {/* ── Colonne saisies (mobile : sections réparties dans les onglets) ──
-            Desktop : collée sous la navbar, avec son propre défilement si elle dépasse l'écran (comme le modèle). */}
-        <div className="contents lg:sticky lg:top-[calc(var(--gb-header)+16px)] lg:-mx-2 lg:flex lg:max-h-[calc(100vh-var(--gb-header)-32px)] lg:flex-col lg:gap-6 lg:overflow-y-auto lg:px-2 lg:pb-2 lg:[scrollbar-width:thin]">
+            Desktop : suit le défilement de la page (position calculée par inRef), sans barre de défilement propre. */}
+        <div ref={inRef} className="contents lg:sticky lg:flex lg:flex-col lg:gap-6">
           {/* 1. Tes blocs */}
           <section className={`order-1 lg:order-none ${vis('melange')}`}>
             <InputHead no={1} title={L.tank.title} help={L.tank.help} />

@@ -12,7 +12,7 @@ const SLUGS: Record<string, string> = {
   nitrox: '/nitrox',
   convertisseur: '/convertisseur',
   consommation: '/consommation',
-  'gonflage-nitrox': '/gonflage-nitrox',
+  'gas-blender': '/gas-blender',
   decompression: '/decompression',
   flottabilite: '/flottabilite',
   devis: '/devis',
@@ -83,7 +83,7 @@ export default function Navbar({
           </Link>
 
           {/* Desktop nav */}
-          <div className="hidden min-w-0 items-center gap-4 whitespace-nowrap text-sm min-[1100px]:flex xl:gap-6">
+          <div className="hidden min-w-0 items-center gap-3.5 whitespace-nowrap text-sm min-[1100px]:flex xl:gap-5">
             {NAV_LINKS.map((link) =>
               link.live ? (
                 <Link

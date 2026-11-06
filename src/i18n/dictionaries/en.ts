@@ -51,7 +51,7 @@ const dict = {
         'Work out your SAC rate in L/min, see why it doubles at 10 m and how many minutes your cylinder lasts at each depth. Free.',
     },
     gasBlender: {
-      title: 'Nitrox Blending Calculator — Partial Pressure Gas Blender',
+      title: 'Gas Blender — Partial Pressure Nitrox Blending Calculator',
       description:
         'Plan your nitrox fill by partial pressure blending: pure O2, cascaded banks, compressor. Gauge steps to 10 bar, MOD at ppO2 1.4. Free, no sign-up.',
       keywords: [
@@ -68,7 +68,7 @@ const dict = {
         'scuba gas blending calculator',
         'nitrox analysis after filling',
       ],
-      ogTitle: 'Nitrox Blending Calculator — Gas Blender',
+      ogTitle: 'Gas Blender — Nitrox Blending Calculator',
       ogDescription:
         'Cylinder, target mix, available gases: get partial pressure blending steps to read on the gauge to the nearest 10 bar. Free.',
     },
@@ -147,9 +147,9 @@ const dict = {
         keywords: ['SAC', 'L/min', 'gas time', 'cylinder'],
       },
       {
-        id: 'gonflage-nitrox',
+        id: 'gas-blender',
         tag: 'Gas blending',
-        title: 'Nitrox Blending Calculator',
+        title: 'Gas Blender',
         description:
           'Cylinder, target mix and available gases: partial pressure blending steps to read on the gauge.',
         keywords: ['partial pressure', 'pure O2', 'banks', 'cascade'],
@@ -613,8 +613,8 @@ const dict = {
   },
   gasBlender: {
     breadcrumbHome: 'Tools',
-    breadcrumbCurrent: 'Nitrox blending',
-    title: 'Nitrox Blending Calculator',
+    breadcrumbCurrent: 'Gas blender',
+    title: 'Gas Blender · Nitrox blending',
     subtitle:
       'Enter your cylinder, the mix you want and the gases you have: the tool gives you the partial pressure blending steps, read on the gauge to the nearest 10 bar.',
     learnMore: 'Understand nitrox blending',
@@ -672,7 +672,7 @@ const dict = {
       ],
     },
     jsonLd: {
-      appName: 'Nitrox Blending Calculator',
+      appName: 'Gas Blender — Nitrox Blending Calculator',
       appDescription:
         'Free air and nitrox partial pressure blending calculator: gauge steps with pure O2, cascaded banks or a compressor, stock check, MOD and final analysis.',
       breadcrumbHome: 'Orque Tools',
@@ -946,7 +946,7 @@ const dict = {
       { id: 'nitrox', label: 'Nitrox', live: true },
       { id: 'convertisseur', label: 'Converter', live: true },
       { id: 'consommation', label: 'Air consumption', live: true },
-      { id: 'gonflage-nitrox', label: 'Gas blending', live: true },
+      { id: 'gas-blender', label: 'Gas blender', live: true },
       { id: 'decompression', label: 'Decompression', live: false },
       { id: 'flottabilite', label: 'Buoyancy', live: false },
       { id: 'devis', label: 'Quotes', live: false },

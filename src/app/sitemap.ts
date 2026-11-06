@@ -53,14 +53,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
       },
     },
     {
-      url: `${BASE_URL}/fr/gonflage-nitrox`,
+      url: `${BASE_URL}/fr/gas-blender`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
       priority: 0.9,
       alternates: {
         languages: {
-          fr: `${BASE_URL}/fr/gonflage-nitrox`,
-          en: `${BASE_URL}/en/gonflage-nitrox`,
+          fr: `${BASE_URL}/fr/gas-blender`,
+          en: `${BASE_URL}/en/gas-blender`,
         },
       },
     },
@@ -113,14 +113,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
       },
     },
     {
-      url: `${BASE_URL}/en/gonflage-nitrox`,
+      url: `${BASE_URL}/en/gas-blender`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
       priority: 0.9,
       alternates: {
         languages: {
-          fr: `${BASE_URL}/fr/gonflage-nitrox`,
-          en: `${BASE_URL}/en/gonflage-nitrox`,
+          fr: `${BASE_URL}/fr/gas-blender`,
+          en: `${BASE_URL}/en/gas-blender`,
         },
       },
     },
