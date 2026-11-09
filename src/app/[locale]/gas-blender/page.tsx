@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import GasBlender from '@/components/GasBlender'
 import DisclaimerModal from '@/components/DisclaimerModal'
 import { getDictionary } from '@/i18n/get-dictionary'
-import { Locale, BASE_URL, getAlternates } from '@/i18n/config'
+import { Locale, BASE_URL, getAlternates, socialMeta } from '@/i18n/config'
 
 export async function generateMetadata({
   params,
@@ -17,19 +17,11 @@ export async function generateMetadata({
     description: dict.metadata.gasBlender.description,
     keywords: dict.metadata.gasBlender.keywords,
     alternates: getAlternates('/gas-blender', locale),
-    openGraph: {
+    ...socialMeta(locale, '/gas-blender', {
       title: dict.metadata.gasBlender.ogTitle,
       description: dict.metadata.gasBlender.ogDescription,
-      url: `${BASE_URL}/${locale}/gas-blender`,
-      images: [
-        {
-          url: '/og-gas-blender.png',
-          width: 1200,
-          height: 630,
-          alt: `${dict.metadata.gasBlender.ogTitle} — Orque Tools`,
-        },
-      ],
-    },
+      image: '/og-gas-blender.png',
+    }),
   }
 }
 

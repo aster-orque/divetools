@@ -23,3 +23,30 @@ export function getAlternates(path: string = '', locale: string = DEFAULT_LOCALE
     },
   }
 }
+
+/**
+ * Balises de partage d'une page outil (Open Graph + Twitter/X).
+ * À utiliser dans chaque generateMetadata : un `openGraph` ou `twitter` défini dans une page
+ * remplace entièrement celui du layout (sinon X affiche le titre et l'image de l'accueil).
+ */
+export function socialMeta(locale: string, path: string, o: { title: string; description: string; image: string }) {
+  const en = locale === 'en'
+  return {
+    openGraph: {
+      type: 'website' as const,
+      locale: en ? 'en_US' : 'fr_FR',
+      alternateLocale: [en ? 'fr_FR' : 'en_US'],
+      siteName: 'Orque Tools',
+      url: `${BASE_URL}/${isValidLocale(locale) ? locale : DEFAULT_LOCALE}${path}`,
+      title: o.title,
+      description: o.description,
+      images: [{ url: o.image, width: 1200, height: 630, alt: `${o.title} — Orque Tools` }],
+    },
+    twitter: {
+      card: 'summary_large_image' as const,
+      title: o.title,
+      description: o.description,
+      images: [o.image],
+    },
+  }
+}

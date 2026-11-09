@@ -49,6 +49,18 @@ Un outil `<slug>` (slug en français, minuscules, tirets : `gas-blender`, `conso
 7. `src/app/sitemap.ts` : URLs fr et en avec alternates.
 8. `public/og-<slug>.png` (1200×630).
 
+## Règles SEO (à respecter pour chaque outil)
+
+- `metadata.<clé>.title` : le layout ajoute « | Orque Tools » (14 caractères). Viser **≤ 60 caractères au total**,
+  mot-clé principal en tête (ex. « Gas blender plongée : calcul de gonflage nitrox »).
+- `description` : **≤ 155 caractères**, avec le mot-clé et ce que l'outil donne concrètement.
+- `alternates: getAlternates('/<slug>', locale)` : la canonical pointe vers la page **dans sa propre langue**.
+- Partage : `...socialMeta(locale, '/<slug>', { title, description, image })` dans generateMetadata
+  (Open Graph complet + Twitter/X ; sans ça, X affiche le titre et l'image de l'accueil).
+- JSON-LD WebApplication + BreadcrumbList + FAQPage (FAQ identique au texte de la page).
+- Contenu pédagogique et FAQ dans un `<details>` « Comprendre… », avec liens internes vers les autres outils.
+- Après mise en ligne : vérifier sur tools.orque.co (titre, canonical FR/EN, og:image, sitemap, redirection /<slug>).
+
 ## Agents du projet (.claude/agents)
 
 Pipeline pour publier un nouvel outil à partir d'un HTML brut : commande `/nouvel-outil`.
