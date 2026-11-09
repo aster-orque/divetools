@@ -36,7 +36,7 @@ export async function generateMetadata({
   return {
     title: dict.metadata.home.title,
     description: dict.metadata.home.description,
-    alternates: getAlternates(),
+    alternates: getAlternates('', locale),
   }
 }
 

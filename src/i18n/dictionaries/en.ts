@@ -51,10 +51,12 @@ const dict = {
         'Work out your SAC rate in L/min, see why it doubles at 10 m and how many minutes your cylinder lasts at each depth. Free.',
     },
     gasBlender: {
-      title: 'Gas Blender — Partial Pressure Nitrox Blending Calculator',
+      title: 'Gas Blender: Nitrox Blending Calculator',
       description:
-        'Plan your nitrox fill by partial pressure blending: pure O2, cascaded banks, compressor. Gauge steps to 10 bar, MOD at ppO2 1.4. Free, no sign-up.',
+        'Free gas blender: plan your nitrox fill by partial pressure blending with pure O2, cascaded banks or a compressor. Gauge steps to 10 bar, MOD, analysis.',
       keywords: [
+        'gas blender',
+        'scuba gas blender',
         'nitrox blending calculator',
         'partial pressure blending',
         'gas blender calculator',
@@ -646,6 +648,10 @@ const dict = {
       title: 'Frequently asked questions',
       items: [
         {
+          q: 'What is a gas blender?',
+          a: 'In diving, a gas blender is both the person who mixes breathing gases at the fill station and the calculator that tells them which pressures to add. This gas blender works out an air or nitrox fill by partial pressure blending, from what is left in your cylinder and the gases you have: pure O2, nitrox or air banks, a compressor. Handling pure oxygen requires specific gas blender training.',
+        },
+        {
           q: 'How do you calculate a partial pressure nitrox blend?',
           a: 'Work out the pressure to add (final pressure − remaining pressure) and the oxygen that added gas must contain (target % × final pressure − remaining % × remaining pressure). With two gases, for example pure O2 and air, you then get how many bar of each to put in. The tool does this for every combination of your gases, rounds to 10 bar for the gauge and checks the resulting mix.',
         },
@@ -751,6 +757,25 @@ const dict = {
       incomplete: 'Incomplete data',
       nothing: 'Nothing to add',
       none: 'No solution with this stock',
+    },
+    flow: {
+      tankChip: '{vol} L · {p} bar at {f}%',
+      tankChipRamp: '{n} × {vol} L · {p} bar at {f}%',
+      mixChip: 'Nx{m} · {p} bar · {mod} m max',
+      gasesChip1: '1 gas',
+      gasesChipN: '{n} gases',
+      planChip: '{done}/{n} steps done',
+      planLocked: 'Complete steps 1 to 3',
+      stepTip: 'Tap a step number once it is done.',
+      stepCheck: 'Mark step {n} as done',
+      stepUncheck: 'Mark step {n} as not done',
+      stocksOk: 'Enough gas',
+      stocksMid: 'Tight on gas',
+      stocksLow: 'Not enough gas',
+      anaLocked: 'After filling',
+      anaHint: 'Tick the plan steps as you go: the analysis unlocks once the cylinder is filled.',
+      anaUnlock: 'Analyse now',
+      summaryChip: 'Recap',
     },
     errors: {
       incomplete: 'Enter the cylinder and the target mix.',

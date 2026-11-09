@@ -53,7 +53,7 @@ export async function generateMetadata({
         'max-snippet': -1,
       },
     },
-    alternates: getAlternates(),
+    alternates: getAlternates('', locale),
   }
 }
 

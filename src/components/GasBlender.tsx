@@ -169,25 +169,46 @@ function Note({ children, className = '' }: { children: ReactNode; className?: s
   return <p className={`rounded-lg bg-amber-50 px-3 py-1.5 text-[13px] font-medium leading-snug text-amber-800 ${className}`}>{children}</p>
 }
 
-/** En-tête de bloc de saisie : numéro, titre, aide (.blk-h de l'original). */
-function InputHead({ no, title, help }: { no: number; title: string; help: string }) {
+/** État d'une étape numérotée : faite (pastille pleine), en cours (contour bleu), verrouillée (grise). */
+type StepState = 'done' | 'todo' | 'locked'
+type ChipTone = 'neutral' | 'ok' | 'mid' | 'low' | 'locked'
+const CHIP_TONE: Record<ChipTone, string> = {
+  neutral: 'bg-gray-100 text-gray-700',
+  ok: 'bg-primary-50 text-primary-600',
+  mid: 'bg-amber-50 text-amber-700',
+  low: 'bg-red-50 text-red-700',
+  locked: 'bg-gray-100 text-gray-500',
+}
+
+/** En-tête de section : numéro d'étape (optionnel), titre + phrase de contexte à côté, aide dessous. */
+function SectionHead({ no, state = 'done', title, help, chip, tone = 'neutral' }: {
+  no?: number; state?: StepState; title: string; help?: string; chip?: ReactNode; tone?: ChipTone
+}) {
+  const badge = state === 'done' ? 'bg-primary text-white'
+    : state === 'todo' ? 'border-2 border-primary bg-white text-primary'
+    : 'bg-gray-200 text-gray-500'
   return (
     <div className="mb-4 flex items-start gap-2.5">
-      <span className="mt-px flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-bold text-white">{no}</span>
-      <div>
-        <h2 className={T.sectionTitle}>{title}</h2>
-        <p className={`mt-0.5 ${T.help}`}>{help}</p>
+      {no !== undefined && (
+        <span className={`mt-px flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-sm font-bold transition-colors duration-200 ${badge}`}>{no}</span>
+      )}
+      <div className="min-w-0 flex-1">
+        <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
+          <h2 className={`${T.sectionTitle} ${state === 'locked' ? '!text-gray-500' : ''}`}>{title}</h2>
+          {chip && <span className={`whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-bold tabular-nums ${CHIP_TONE[tone]}`}>{chip}</span>}
+        </div>
+        {help && <p className={`mt-0.5 ${T.help}`}>{help}</p>}
       </div>
     </div>
   )
 }
 
-/** En-tête de bloc de résultat (.res-h de l'original). */
-function ResultHead({ title, help }: { title: string; help?: string }) {
+/** Contenu d'une section verrouillée : grisé et inactif tant que l'étape précédente n'est pas faite. */
+function Lockable({ locked, children }: { locked: boolean; children: ReactNode }) {
   return (
-    <div className="mb-4">
-      <h2 className={T.sectionTitle}>{title}</h2>
-      {help && <p className={`mt-0.5 ${T.help}`}>{help}</p>}
+    <div aria-disabled={locked || undefined} inert={locked || undefined}
+      className={`transition-opacity duration-300 ${locked ? 'pointer-events-none select-none opacity-40 grayscale' : ''}`}>
+      {children}
     </div>
   )
 }
@@ -290,7 +311,7 @@ function Stepper({
 function Field({ label, htmlFor, children }: { label: string; htmlFor?: string; children: ReactNode }) {
   return (
     <div className={`flex min-w-0 items-center justify-between gap-2 rounded-xl border border-transparent bg-gray-50 py-1.5 pl-3 pr-1.5 transition-all duration-200 ease-out-expo lg:flex-col lg:items-stretch lg:gap-1 lg:px-2.5 lg:pb-2 lg:pt-2 ${FOCUS_RING}`}>
-      <label htmlFor={htmlFor} className={`block min-w-0 ${T.fieldLabel} lg:text-xs lg:font-semibold lg:text-gray-500`}>{label}</label>
+      <label htmlFor={htmlFor} className={`block min-w-0 ${T.fieldLabel} lg:text-center lg:text-xs lg:font-semibold lg:text-gray-500`}>{label}</label>
       {children}
     </div>
   )
@@ -326,7 +347,7 @@ function GasField({
   const shown = value === '' ? '' : String(value)
   return (
     <label
-      className={`flex min-w-0 flex-col justify-between gap-0.5 rounded-lg border bg-gray-50 px-2 pb-1.5 pt-1.5 transition-all duration-200 ease-out-expo ${
+      className={`flex min-w-0 flex-col items-center justify-between gap-0.5 rounded-lg border bg-gray-50 px-2 pb-1.5 pt-1.5 text-center transition-all duration-200 ease-out-expo ${
         bad ? 'border-red-600 bg-red-50' : `border-transparent ${FOCUS_RING}`
       }`}
     >
@@ -345,7 +366,7 @@ function GasField({
           onValue(e.target.value)
         }}
         onBlur={() => setDraft(null)}
-        className="w-full min-w-0 border-0 bg-transparent p-0 text-[19px] font-extrabold leading-tight tabular-nums text-black outline-none placeholder:text-gray-400"
+        className="w-full min-w-0 border-0 bg-transparent p-0 text-center text-[19px] font-extrabold leading-tight tabular-nums text-black outline-none placeholder:text-gray-400"
       />
     </label>
   )
@@ -489,18 +510,9 @@ export default function GasBlender({ labels }: { labels: GasBlenderLabels }) {
   // en bas de l'écran (en descendant) ou quand son haut réapparaît sous la navbar (en remontant).
   // Une seule barre de défilement : toutes les sections restent accessibles.
   const inRef = useRef<HTMLDivElement>(null)
-  // Version de mise en page à comparer : ?v=2 = réglages en haut, résultats en dessous (pas de colonne collante).
-  const [stack, setStack] = useState(false)
-  useEffect(() => {
-    setStack(new URLSearchParams(window.location.search).get('v') === '2')
-  }, [])
   useEffect(() => {
     const el = inRef.current
     if (!el) return
-    if (stack) {
-      el.style.top = ''
-      return
-    }
     const mq = window.matchMedia('(min-width: 1024px)')
     const GAP = 16
     let top = headerH + GAP
@@ -526,7 +538,7 @@ export default function GasBlender({ labels }: { labels: GasBlenderLabels }) {
       window.removeEventListener('resize', apply)
       mq.removeEventListener('change', apply)
     }
-  }, [headerH, stack])
+  }, [headerH])
 
   // Lecture des saisies mémorisées (après montage, pour éviter un écart d'hydratation).
   useEffect(() => {
@@ -594,6 +606,30 @@ export default function GasBlender({ labels }: { labels: GasBlenderLabels }) {
     return { ...prev, ana: bumpValue(cur, dir, FIELD_SPECS.ana), anaKey: aKey }
   })
   const setAna = (v: number) => setS((prev) => ({ ...prev, ana: v, anaKey: aKey }))
+
+  // ── Parcours progressif : 1-3 saisies → 4 gonflage (étapes à cocher) → 5 analyse ──
+  const mainView: PlanView | null = out.status !== 'computed' ? null
+    : out.main.kind === 'plan' ? out.main.plan : out.main.best?.plan ?? null
+  const stepCount = mainView ? mainView.sol.steps.length + (mainView.bleed !== null ? 1 : 0) : 0
+  // Les coches repartent de zéro dès que le plan change.
+  const planSig = mainView ? `${mainView.bleed ?? ''}|${mainView.sol.steps.map((st) => `${st.gas.id}:${st.gauge}`).join(',')}` : ''
+  const [progress, setProgress] = useState<{ sig: string; done: number[]; unlocked: boolean }>({ sig: '', done: [], unlocked: false })
+  const cur = progress.sig === planSig ? progress : { sig: planSig, done: [], unlocked: false }
+  const doneSteps = cur.done
+  const toggleStep = (n: number) => setProgress(() => {
+    const done = cur.done.includes(n) ? cur.done.filter((x) => x !== n) : [...cur.done, n]
+    return { sig: planSig, done, unlocked: cur.unlocked || done.length >= stepCount }
+  })
+  const unlockAnalysis = () => setProgress({ sig: planSig, done: cur.done, unlocked: true })
+  const allDone = stepCount > 0 && doneSteps.length >= stepCount
+  const anaUnlocked = cur.unlocked || allDone
+  const anaTouched = s.anaKey === aKey
+
+  const errs = out.status === 'error' ? out.errors : []
+  const ok1 = s.vol > 0 && s.p1 >= 0 && s.f1 >= 0 && s.f1 <= 100
+  const ok2 = s.p2 > 0 && s.f2 >= 0 && s.f2 <= 100
+  const ok3 = !errs.includes('noGas') && !s.gases.some((g) => Object.values(gasFieldErrors(g)).some(Boolean))
+  const planLocked = out.status === 'error'
 
   // ── Formatage des noms ──
   const gasName = (l: GasLabel) => {
@@ -716,10 +752,28 @@ export default function GasBlender({ labels }: { labels: GasBlenderLabels }) {
   }
 
   /** Étapes : lignes séparées par un filet (.step de l'original). */
-  const stepsList = (view: PlanView) => {
+  const stepsList = (view: PlanView, checkable = false) => {
     let i = 0
     const row = 'flex items-center gap-3 border-t border-gray-200 py-3'
-    const num = 'flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gray-100 text-[13px] font-bold text-black'
+    const numBase = 'flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[13px] font-bold'
+    /** Numéro d'étape ; sur le plan principal, on le touche pour cocher l'étape une fois faite. */
+    const numEl = (n: number) => {
+      if (!checkable) return <span className={`${numBase} bg-gray-100 text-black`}>{n}</span>
+      const done = doneSteps.includes(n)
+      return (
+        <button
+          type="button"
+          aria-pressed={done}
+          aria-label={fill(done ? L.flow.stepUncheck : L.flow.stepCheck, { n })}
+          onClick={() => toggleStep(n)}
+          className="-m-2 flex h-11 w-11 shrink-0 items-center justify-center rounded-full"
+        >
+          <span className={`${numBase} transition-all duration-200 ease-out-expo ${done ? 'bg-primary text-white' : 'border-2 border-primary bg-white text-primary hover:bg-primary-50'}`}>
+            {done ? '✓' : n}
+          </span>
+        </button>
+      )
+    }
     const to = (small: string, value: string) => (
       <div className="shrink-0 text-right">
         <small className="block text-[11px] font-semibold leading-tight text-gray-500">{small}</small>
@@ -732,7 +786,7 @@ export default function GasBlender({ labels }: { labels: GasBlenderLabels }) {
       <ol>
         {view.bleed !== null && (
           <li className={row}>
-            <span className={num}>{++i}</span>
+            {numEl(++i)}
             <div className="min-w-0 flex-1">
               <p className="text-[15px] font-bold leading-snug text-black">{ramp ? L.plan.bleedRamp : L.plan.bleedBlock}</p>
               <p className={`mt-0.5 ${T.small}`}>{L.plan.bleedMeta}</p>
@@ -744,8 +798,8 @@ export default function GasBlender({ labels }: { labels: GasBlenderLabels }) {
           const tight = st.rest !== null && st.rest - st.gauge < STEP
           const members = st.gas.members
           return (
-            <li key={k} className={row}>
-              <span className={num}>{++i}</span>
+            <li key={k} className={`${row} ${checkable && doneSteps.includes(i + 1) ? 'opacity-60' : ''}`}>
+              {numEl(++i)}
               <div className="min-w-0 flex-1">
                 <p className="flex items-center gap-1.5 text-[15px] font-bold leading-snug text-black"><Dot color={gasColor(st.gas.f)} />{withPct(st.gas)}</p>
                 <p className={`mt-0.5 tabular-nums ${T.small}`}>
@@ -779,13 +833,16 @@ export default function GasBlender({ labels }: { labels: GasBlenderLabels }) {
   }
 
   /** Bloc dessiné + légende à gauche (côte à côte sur mobile), étapes à droite (.plangrid de l'original). */
-  const planGrid = (view: PlanView) => (
+  const planGrid = (view: PlanView, checkable = false) => (
     <div className="mt-3 grid gap-1.5 sm:grid-cols-[124px_minmax(0,1fr)] sm:items-start sm:gap-4">
       <div className="flex items-center justify-center gap-4 sm:block">
         <div className="w-[118px] sm:w-full"><TankSvg view={view} fmt={fmt} aria={L.plan.tankAria} /></div>
         {legend(view)}
       </div>
-      <div className="min-w-0">{stepsList(view)}</div>
+      <div className="min-w-0">
+        {checkable && <p className={`mb-1 ${T.small}`}>{L.flow.stepTip}</p>}
+        {stepsList(view, checkable)}
+      </div>
     </div>
   )
 
@@ -812,7 +869,7 @@ export default function GasBlender({ labels }: { labels: GasBlenderLabels }) {
           </div>
         </div>
         {compBar(sol)}
-        {planGrid(view)}
+        {planGrid(view, true)}
         {notes(sol)}
         <LawNote className="mt-3" title={L.laws.daltonTitle} text={L.laws.dalton} />
       </div>
@@ -914,7 +971,7 @@ export default function GasBlender({ labels }: { labels: GasBlenderLabels }) {
 
   const summaryChips = (sm: Summary) => {
     const chip = (key: string, label: string, value: string, unit: string | null, sub: ReactNode, warn = false) => (
-      <div key={key} className={`flex flex-col gap-1 rounded-xl px-3.5 py-3 ${warn ? 'border border-red-600 bg-red-50/60' : 'bg-gray-50'}`}>
+      <div key={key} className={`flex flex-col items-center gap-1 rounded-xl px-3.5 py-3 text-center ${warn ? 'border border-red-600 bg-red-50/60' : 'bg-gray-50'}`}>
         <p className={`text-[11px] font-semibold uppercase tracking-wide ${warn ? 'text-red-700' : 'text-gray-500'}`}>{label}</p>
         <b key={value} className={`animate-number-pop whitespace-nowrap tabular-nums text-[28px] font-extrabold leading-none tracking-[-0.02em] ${warn ? 'text-red-700' : 'text-black'}`}>
           {value}{unit && <span className={`ml-1 ${T.unit} tracking-normal`}>{unit}</span>}
@@ -1009,16 +1066,15 @@ export default function GasBlender({ labels }: { labels: GasBlenderLabels }) {
         </div>
       </div>
 
-      <div className={`flex flex-col gap-5 ${stack ? 'lg:gap-6' : 'lg:grid lg:grid-cols-[400px_minmax(0,1fr)] lg:items-start lg:gap-8'}`}>
+      <div className="flex flex-col gap-5 lg:grid lg:grid-cols-[400px_minmax(0,1fr)] lg:items-start lg:gap-8">
         {/* ── Colonne saisies (mobile : sections réparties dans les onglets) ──
             Desktop : suit le défilement de la page (position calculée par inRef), sans barre de défilement propre. */}
-        <div ref={inRef} className={stack
-          ? 'contents lg:grid lg:grid-cols-2 lg:grid-rows-[auto_1fr] lg:items-start lg:gap-6'
-          : 'contents lg:sticky lg:flex lg:flex-col lg:gap-6'}>
+        <div ref={inRef} className="contents lg:sticky lg:flex lg:flex-col lg:gap-6">
           {/* 1. Tes blocs */}
           <section className={`order-1 lg:order-none ${vis('melange')}`}>
             <Card>
-              <InputHead no={1} title={L.tank.title} help={L.tank.help} />
+              <SectionHead no={1} state={ok1 ? 'done' : 'todo'} title={L.tank.title} help={L.tank.help}
+                chip={fill(ramp ? L.flow.tankChipRamp : L.flow.tankChip, { n: nb, vol: fmt.raw(s.vol), p: fmt.raw(s.p1), f: fmt.raw(s.f1) })} />
               <div className={fieldsGrid}>
                 {stepper('vol', L.tank.volume, L.units.litres)}
                 {stepper('nb', L.tank.count, L.units.blocks)}
@@ -1036,7 +1092,8 @@ export default function GasBlender({ labels }: { labels: GasBlenderLabels }) {
           {/* 2. Mélange voulu */}
           <section className={`order-2 lg:order-none ${vis('melange')}`}>
             <Card>
-              <InputHead no={2} title={L.mix.title} help={L.mix.help} />
+              <SectionHead no={2} state={ok2 ? 'done' : 'todo'} title={L.mix.title} help={L.mix.help}
+                chip={fill(L.flow.mixChip, { m: fmt.raw(s.f2), p: fmt.raw(s.p2), mod: mod(s.f2 / 100, 1.4) })} />
               <div className="mb-2 grid grid-cols-7 gap-1">
                 {MIXES.map((m) => {
                   const on = s.f2 === m
@@ -1073,9 +1130,10 @@ export default function GasBlender({ labels }: { labels: GasBlenderLabels }) {
           {cta('melange', 'order-3')}
 
           {/* 3. Gaz disponibles */}
-          <section className={`order-5 lg:order-none ${stack ? 'lg:col-start-2 lg:row-span-2 lg:row-start-1' : ''} ${vis('stocks')}`}>
+          <section className={`order-5 lg:order-none ${vis('stocks')}`}>
             <Card>
-              <InputHead no={3} title={L.gases.title} help={L.gases.help} />
+              <SectionHead no={3} state={ok3 ? 'done' : 'todo'} title={L.gases.title} help={L.gases.help}
+                chip={fill(s.gases.length > 1 ? L.flow.gasesChipN : L.flow.gasesChip1, { n: s.gases.length })} tone={ok3 ? 'neutral' : 'low'} />
               <div className="grid min-w-0 gap-2.5">
                 {s.gases.map((g, i) => {
                   const color = gasColor(+g.f / 100)
@@ -1149,13 +1207,15 @@ export default function GasBlender({ labels }: { labels: GasBlenderLabels }) {
         </div>
 
         {/* ── Colonne résultats ── */}
-        <div className={stack ? 'contents lg:grid lg:grid-cols-2 lg:items-start lg:gap-6' : 'contents lg:flex lg:flex-col lg:gap-6'}>
+        <div className="contents lg:flex lg:flex-col lg:gap-6">
           {/* Plan de gonflage */}
-          <section className={`order-7 lg:order-none ${stack ? 'lg:col-span-2' : ''} ${vis('plan')}`} aria-live="polite">
+          <section className={`order-7 lg:order-none ${vis('plan')}`} aria-live="polite">
             <Card>
-            <ResultHead title={L.plan.title} help={L.plan.help} />
+            <SectionHead no={4} state={planLocked ? 'locked' : allDone || out.status === 'nothing' ? 'done' : 'todo'} title={L.plan.title} help={L.plan.help}
+              chip={planLocked ? L.flow.planLocked : stepCount ? fill(L.flow.planChip, { done: doneSteps.length, n: stepCount }) : undefined}
+              tone={planLocked ? 'locked' : allDone ? 'ok' : 'neutral'} />
             {out.status === 'error' ? (
-              out.errors.map((e) => <p key={e} role="alert" className="font-semibold text-red-700">{L.errors[e]}</p>)
+              out.errors.map((e) => <p key={e} role="alert" className="rounded-xl bg-gray-50 px-3 py-2.5 text-sm font-semibold text-gray-600">🔒 {L.errors[e]}</p>)
             ) : out.status === 'nothing' ? (
               <p className="text-center text-base font-semibold text-black">✓ {L.plan.nothing}</p>
             ) : out.main.kind === 'plan' ? (
@@ -1178,21 +1238,13 @@ export default function GasBlender({ labels }: { labels: GasBlenderLabels }) {
 
           {/* Tes stocks */}
           {out.status === 'computed' && (
-            <section className={`order-4 lg:order-none ${stack ? 'lg:col-span-2' : ''} ${vis('stocks')}`} aria-live="polite">
+            <section className={`order-4 lg:order-none ${vis('stocks')}`} aria-live="polite">
               <Card>
-              <ResultHead title={L.stocks.title} help={L.stocks.help} />
+              <SectionHead title={L.stocks.title} help={L.stocks.help}
+                chip={stockBadge === 'low' ? L.flow.stocksLow : stockBadge === 'mid' ? L.flow.stocksMid : L.flow.stocksOk}
+                tone={stockBadge ?? 'ok'} />
               {out.ignored > 0 && <Note className="mb-2">{fill(out.ignored > 1 ? L.stocks.ignoredN : L.stocks.ignored1, { n: out.ignored })}</Note>}
               <div className="grid grid-cols-[minmax(0,1fr)] gap-2.5 sm:grid-cols-[repeat(auto-fit,minmax(220px,1fr))]">{out.tiles.map(tileCard)}</div>
-              </Card>
-            </section>
-          )}
-
-          {/* En bref */}
-          {summary && (
-            <section className={`order-8 lg:order-none ${vis('plan')}`} aria-live="polite">
-              <Card>
-              <ResultHead title={L.summary.title} help={L.summary.help} />
-              {summaryChips(summary)}
               </Card>
             </section>
           )}
@@ -1201,7 +1253,18 @@ export default function GasBlender({ labels }: { labels: GasBlenderLabels }) {
           {chosen && analysis && (
             <section className={`order-9 lg:order-none ${vis('plan')}`}>
               <Card>
-              <ResultHead title={L.analysis.title} help={L.analysis.help} />
+              <SectionHead no={5} state={!anaUnlocked ? 'locked' : anaTouched ? 'done' : 'todo'} title={L.analysis.title} help={L.analysis.help}
+                chip={anaUnlocked ? undefined : L.flow.anaLocked} tone="locked" />
+              {!anaUnlocked && (
+                <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-xl bg-gray-50 px-3 py-2.5">
+                  <p className="min-w-0 flex-1 text-[13px] font-medium leading-snug text-gray-600">{L.flow.anaHint}</p>
+                  <button type="button" onClick={unlockAnalysis}
+                    className="min-h-11 whitespace-nowrap rounded-full border border-gray-200 bg-white px-4 text-[13px] font-semibold text-black transition-all duration-200 ease-out-expo hover:border-primary hover:text-primary active:scale-95">
+                    {L.flow.anaUnlock}
+                  </button>
+                </div>
+              )}
+              <Lockable locked={!anaUnlocked}>
                 <Field label={L.analysis.field} htmlFor={fieldId('ana')}>
                   <Stepper
                     id={fieldId('ana')}
@@ -1270,15 +1333,16 @@ export default function GasBlender({ labels }: { labels: GasBlenderLabels }) {
                     </>
                   )}
                 </div>
+              </Lockable>
               </Card>
             </section>
           )}
 
           {/* Autres options (repliées) */}
           {out.status === 'computed' && out.alts.length > 0 && (
-            <section className={`order-10 lg:order-none ${stack ? 'lg:col-span-2' : ''} ${vis('plan')}`}>
+            <section className={`order-10 lg:order-none ${vis('plan')}`}>
               <Card>
-              <ResultHead title={L.alts.title} help={L.alts.help} />
+              <SectionHead title={L.alts.title} help={L.alts.help} />
               <div className="grid gap-2">
                 {out.alts.map((sol, i) => {
                   const view: PlanView = { sol, p1: out.p1, p2: out.p2, bleed: null, good: sol.dev <= TOL }
@@ -1308,9 +1372,19 @@ export default function GasBlender({ labels }: { labels: GasBlenderLabels }) {
             </section>
           )}
 
+          {/* En bref : récap, en dernier */}
+          {summary && (
+            <section className={`order-11 lg:order-none ${vis('plan')}`} aria-live="polite">
+              <Card>
+              <SectionHead title={L.summary.title} help={L.summary.help} chip={L.flow.summaryChip} />
+              {summaryChips(summary)}
+              </Card>
+            </section>
+          )}
+
           {/* Combinaisons écartées (repliées) */}
           {out.status === 'computed' && out.rejected.length > 0 && (
-            <details className={`order-11 lg:order-none ${stack ? 'lg:col-span-2' : ''} ${detailsBox} ${vis('plan')}`}>
+            <details className={`order-12 lg:order-none ${detailsBox} ${vis('plan')}`}>
               <summary className={summaryRow}>
                 <span className="text-[15px] font-semibold text-black">{L.rejected.title}</span>
                 <span className="ml-auto rounded-full bg-gray-100 px-2 py-0.5 text-xs font-bold tabular-nums text-gray-600">{out.rejected.length}</span>

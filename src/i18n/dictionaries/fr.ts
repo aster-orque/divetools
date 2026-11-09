@@ -51,12 +51,15 @@ const dict = {
         "Calcule ta conso surface en L/min, vois pourquoi elle double dès 10 m et combien de minutes dure ton bloc selon la profondeur. Gratuit.",
     },
     gasBlender: {
-      title: 'Gas blender : calcul de gonflage nitrox par pressions partielles',
+      title: 'Gas blender plongée : calcul de gonflage nitrox',
       description:
-        'Calcule ton gonflage nitrox par pressions partielles : O2 pur, tampons en cascade, compresseur. Étapes au manomètre, prof. max. Gratuit, sans inscription.',
+        'Gas blender gratuit : calcule ton gonflage nitrox par pressions partielles (O2 pur, tampons en cascade, compresseur). Étapes au manomètre, prof. max.',
       keywords: [
+        'gas blender',
+        'gas blender plongée',
         'calcul gonflage nitrox',
         'gas blender nitrox',
+        'calcul mélange nitrox',
         'calculateur mélange nitrox',
         'gonflage nitrox pression partielle',
         'pression partielle gonflage',
@@ -650,6 +653,10 @@ const dict = {
       title: 'Questions fréquentes',
       items: [
         {
+          q: "Qu'est-ce qu'un gas blender ?",
+          a: "En plongée, le gas blender désigne à la fois la personne qui fabrique les mélanges en station de gonflage et l'outil de calcul qui lui donne les pressions à mettre. Ce gas blender calcule un gonflage air ou nitrox par pressions partielles, à partir de ce qu'il reste dans ton bloc et des gaz dont tu disposes : O2 pur, tampons de nitrox ou d'air, compresseur. Manipuler de l'O2 pur demande une formation spécifique de gonfleur nitrox.",
+        },
+        {
           q: 'Comment calculer un gonflage nitrox par pressions partielles ?',
           a: "Calcule la pression à ajouter (pression finale − pression restante) et l'oxygène que doit contenir ce gaz ajouté (% voulu × pression finale − % restant × pression restante). Avec deux gaz, par exemple O2 pur et air, on en déduit combien de bar de chacun mettre. L'outil fait ce calcul pour toutes tes combinaisons de gaz, arrondit à 10 bar pour le manomètre et vérifie le mélange obtenu.",
         },
@@ -760,6 +767,25 @@ const dict = {
       incomplete: 'Données incomplètes',
       nothing: 'Rien à ajouter',
       none: 'Aucune solution avec ces stocks',
+    },
+    flow: {
+      tankChip: '{vol} L · {p} bar à {f} %',
+      tankChipRamp: '{n} × {vol} L · {p} bar à {f} %',
+      mixChip: 'Nx{m} · {p} bar · {mod} m max',
+      gasesChip1: '1 gaz',
+      gasesChipN: '{n} gaz',
+      planChip: '{done}/{n} étapes faites',
+      planLocked: 'Complète les étapes 1 à 3',
+      stepTip: "Touche le numéro d'une étape une fois faite.",
+      stepCheck: "Marquer l'étape {n} comme faite",
+      stepUncheck: "Marquer l'étape {n} comme à faire",
+      stocksOk: 'Stocks suffisants',
+      stocksMid: 'Stock juste',
+      stocksLow: 'Stock insuffisant',
+      anaLocked: 'Après le gonflage',
+      anaHint: "Coche les étapes du plan au fur et à mesure : l'analyse se débloque quand le bloc est gonflé.",
+      anaUnlock: 'Analyser maintenant',
+      summaryChip: 'Récap',
     },
     errors: {
       incomplete: 'Renseigne le bloc et le mélange voulu.',

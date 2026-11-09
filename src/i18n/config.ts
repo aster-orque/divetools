@@ -11,9 +11,11 @@ export function getLocalePath(locale: Locale, path: string = '') {
   return `/${locale}${path}`
 }
 
-export function getAlternates(path: string = '') {
+/** canonical = la page dans sa propre langue (sinon Google n'indexe pas la version EN). */
+export function getAlternates(path: string = '', locale: string = DEFAULT_LOCALE) {
+  const self = isValidLocale(locale) ? locale : DEFAULT_LOCALE
   return {
-    canonical: `${BASE_URL}/fr${path}`,
+    canonical: `${BASE_URL}/${self}${path}`,
     languages: {
       fr: `${BASE_URL}/fr${path}`,
       en: `${BASE_URL}/en${path}`,

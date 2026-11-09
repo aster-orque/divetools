@@ -16,7 +16,7 @@ export async function generateMetadata({
     title: dict.metadata.gasBlender.title,
     description: dict.metadata.gasBlender.description,
     keywords: dict.metadata.gasBlender.keywords,
-    alternates: getAlternates('/gas-blender'),
+    alternates: getAlternates('/gas-blender', locale),
     openGraph: {
       title: dict.metadata.gasBlender.ogTitle,
       description: dict.metadata.gasBlender.ogDescription,
