@@ -22,7 +22,7 @@ export async function generateMetadata({
     title: dict.metadata.consumption.title,
     description: dict.metadata.consumption.description,
     keywords: dict.metadata.consumption.keywords,
-    alternates: getAlternates('/consommation'),
+    alternates: getAlternates('/consommation', locale),
     openGraph: {
       title: dict.metadata.consumption.ogTitle,
       description: dict.metadata.consumption.ogDescription,

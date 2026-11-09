@@ -20,6 +20,7 @@ const TOOLS_CONFIG: Record<string, ToolConfig> = {
   flottabilite: { slug: '/flottabilite', status: 'soon', icon: '\u2696' },
   convertisseur: { slug: '/convertisseur', status: 'live', icon: '\u21c4' },
   consommation: { slug: '/consommation', status: 'live', icon: '\uD83D\uDCA8' },
+  'gas-blender': { slug: '/gas-blender', status: 'live', icon: '\uD83E\uDDEA' },
   volumes: { slug: '/volumes', status: 'soon', icon: '\uD83E\uDEE7' },
   devis: { slug: '/devis', status: 'soon', icon: '\uD83D\uDCCB' },
 }
@@ -35,7 +36,7 @@ export async function generateMetadata({
   return {
     title: dict.metadata.home.title,
     description: dict.metadata.home.description,
-    alternates: getAlternates(),
+    alternates: getAlternates('', locale),
   }
 }
 

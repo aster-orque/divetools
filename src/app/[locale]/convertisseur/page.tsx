@@ -16,7 +16,7 @@ export async function generateMetadata({
     title: dict.metadata.convertisseur.title,
     description: dict.metadata.convertisseur.description,
     keywords: dict.metadata.convertisseur.keywords,
-    alternates: getAlternates('/convertisseur'),
+    alternates: getAlternates('/convertisseur', locale),
     openGraph: {
       title: dict.metadata.convertisseur.ogTitle,
       description: dict.metadata.convertisseur.ogDescription,

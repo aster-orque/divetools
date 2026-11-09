@@ -17,7 +17,7 @@ export async function generateMetadata({
     title: dict.metadata.nitrox.title,
     description: dict.metadata.nitrox.description,
     keywords: dict.metadata.nitrox.keywords,
-    alternates: getAlternates('/nitrox'),
+    alternates: getAlternates('/nitrox', locale),
     openGraph: {
       title: dict.metadata.nitrox.ogTitle,
       description: dict.metadata.nitrox.ogDescription,
