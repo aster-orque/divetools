@@ -9,9 +9,9 @@ const dict = {
         'Calculateurs gratuits pour plongeurs sous-marins : Nitrox, décompression, flottabilité et plus.',
     },
     convertisseur: {
-      title: 'Convertisseur Pression & Profondeur — Bar, PSI, Mètres, Pieds',
+      title: 'Convertisseur bar psi et profondeur plongée',
       description:
-        'Convertisseur pression-profondeur gratuit pour plongeurs : bar ↔ psi, mètres ↔ pieds, pression absolue ↔ profondeur, eau douce vs eau salée. Calculs instantanés, sans inscription.',
+        'Convertisseur gratuit pour plongeurs : bar ↔ psi, mètres ↔ pieds, pression absolue ↔ profondeur, eau douce ou salée. Instantané, sans inscription.',
       keywords: [
         'convertisseur pression plongée',
         'bar psi conversion',
@@ -29,9 +29,9 @@ const dict = {
         'Conversions instantanées pression ↔ profondeur : bar, psi, mètres, pieds. Eau douce vs salée, pression absolue et relative.',
     },
     consumption: {
-      title: 'Calcul consommation air plongée : conso surface et autonomie',
+      title: 'Calcul consommation air plongée et autonomie',
       description:
-        "Calcule ta consommation d'air en plongée (conso surface en L/min), vois pourquoi elle double dès 10 m et l'autonomie de ton bloc. Gratuit, sans inscription.",
+        "Calcule ta consommation d'air en plongée (L/min en surface), vois pourquoi elle double dès 10 m et l'autonomie de ton bloc. Gratuit, sans inscription.",
       keywords: [
         'calcul consommation air plongée',
         'calculer sa conso plongée',
@@ -98,9 +98,9 @@ const dict = {
         "Prépare, analyse, calcule ta MOD : l'outil remplit ton étiquette nitrox et ta ligne du registre de gonflage. Gratuit, sans inscription.",
     },
     nitrox: {
-      title: 'Calculateur Nitrox — MOD, EAD, Meilleur Mélange et CNS',
+      title: 'Calculateur nitrox : MOD, EAD, mélange, CNS',
       description:
-        'Calculateur nitrox gratuit : calculez la profondeur maximale (MOD), la profondeur air équivalente (EAD), le meilleur mélange pour votre plongée et la toxicité oxygène CNS selon la table NOAA. Outil en ligne, sans inscription.',
+        'Calculateur nitrox gratuit : profondeur max (MOD), profondeur air équivalente (EAD), meilleur mélange et toxicité CNS (table NOAA). Sans inscription.',
       keywords: [
         'calculateur nitrox',
         'calculateur MOD nitrox',

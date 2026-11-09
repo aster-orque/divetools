@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import AirConsumption from '@/components/AirConsumption'
 import DisclaimerModal from '@/components/DisclaimerModal'
 import { getDictionary } from '@/i18n/get-dictionary'
-import { Locale, BASE_URL, getAlternates } from '@/i18n/config'
+import { Locale, BASE_URL, getAlternates, socialMeta } from '@/i18n/config'
 
 /* viewport-fit=cover : la barre d'onglets mobile de l'outil utilise
    env(safe-area-inset-bottom) pour éviter la barre d'accueil iOS. */
@@ -23,19 +23,11 @@ export async function generateMetadata({
     description: dict.metadata.consumption.description,
     keywords: dict.metadata.consumption.keywords,
     alternates: getAlternates('/consommation', locale),
-    openGraph: {
+    ...socialMeta(locale, '/consommation', {
       title: dict.metadata.consumption.ogTitle,
       description: dict.metadata.consumption.ogDescription,
-      url: `${BASE_URL}/${locale}/consommation`,
-      images: [
-        {
-          url: '/og-consommation.png',
-          width: 1200,
-          height: 630,
-          alt: `${dict.metadata.consumption.ogTitle} — Orque Tools`,
-        },
-      ],
-    },
+      image: '/og-consommation.png',
+    }),
   }
 }
 

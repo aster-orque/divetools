@@ -3,7 +3,7 @@ import Image from 'next/image'
 import NitroxCalculator from '@/components/NitroxCalculator'
 import DisclaimerModal from '@/components/DisclaimerModal'
 import { getDictionary } from '@/i18n/get-dictionary'
-import { Locale, BASE_URL, getAlternates } from '@/i18n/config'
+import { Locale, BASE_URL, getAlternates, socialMeta } from '@/i18n/config'
 
 export async function generateMetadata({
   params,
@@ -18,19 +18,11 @@ export async function generateMetadata({
     description: dict.metadata.nitrox.description,
     keywords: dict.metadata.nitrox.keywords,
     alternates: getAlternates('/nitrox', locale),
-    openGraph: {
+    ...socialMeta(locale, '/nitrox', {
       title: dict.metadata.nitrox.ogTitle,
       description: dict.metadata.nitrox.ogDescription,
-      url: `${BASE_URL}/${locale}/nitrox`,
-      images: [
-        {
-          url: '/og-nitrox.png',
-          width: 1200,
-          height: 630,
-          alt: `${dict.metadata.nitrox.ogTitle} — Orque Tools`,
-        },
-      ],
-    },
+      image: '/og-nitrox.png',
+    }),
   }
 }
 

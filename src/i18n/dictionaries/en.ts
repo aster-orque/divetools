@@ -9,7 +9,7 @@ const dict = {
         'Free calculators for scuba divers: Nitrox, decompression, buoyancy and more.',
     },
     convertisseur: {
-      title: 'Pressure & Depth Converter — Bar, PSI, Metres, Feet',
+      title: 'Pressure & Depth Converter: Bar, PSI, Feet',
       description:
         'Free pressure-depth converter for divers: bar ↔ psi, metres ↔ feet, absolute pressure ↔ depth, fresh vs salt water. Instant calculations, no sign-up.',
       keywords: [
@@ -29,7 +29,7 @@ const dict = {
         'Instant pressure ↔ depth conversions: bar, psi, metres, feet. Fresh vs salt water, absolute and gauge pressure.',
     },
     consumption: {
-      title: 'SAC Rate Calculator — Scuba Air Consumption & Gas Time',
+      title: 'SAC Rate Calculator: Scuba Air Consumption',
       description:
         'Work out your scuba SAC rate in L/min from your last dive, see why it doubles at 10 m and how long your cylinder lasts at depth. Free, no sign-up.',
       keywords: [
@@ -97,9 +97,9 @@ const dict = {
         'Prepare, analyse, work out your MOD: the tool fills in your nitrox label and your fill log line. Free, no sign-up.',
     },
     nitrox: {
-      title: 'Nitrox Calculator — MOD, EAD, Best Mix & CNS',
+      title: 'Nitrox Calculator: MOD, EAD, Best Mix & CNS',
       description:
-        'Free nitrox calculator: compute Maximum Operating Depth (MOD), Equivalent Air Depth (EAD), best mix for your dive and CNS oxygen toxicity from the NOAA table. Online tool, no sign-up required.',
+        'Free nitrox calculator: Maximum Operating Depth (MOD), Equivalent Air Depth (EAD), best mix and CNS oxygen toxicity (NOAA table). No sign-up.',
       keywords: [
         'nitrox calculator',
         'MOD nitrox calculator',
