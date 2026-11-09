@@ -39,6 +39,7 @@ const config: Config = {
         'slide-up-4': 'slideUp 0.45s cubic-bezier(0.22,1,0.36,1) 0.2s both',
         'scale-in': 'scaleIn 0.3s cubic-bezier(0.22,1,0.36,1)',
         'number-pop': 'numberPop 0.35s cubic-bezier(0.34,1.56,0.64,1)',
+        'label-pulse': 'labelPulse 1.6s ease-in-out infinite',
       },
       keyframes: {
         fadeIn: {
@@ -52,6 +53,9 @@ const config: Config = {
         scaleIn: {
           '0%': { opacity: '0', transform: 'scale(0.95)' },
           '100%': { opacity: '1', transform: 'scale(1)' },
+        },
+        labelPulse: {
+          '50%': { boxShadow: '0 0 0 .5cqw rgba(18,132,199,.6), 0 0 0 1.6cqw rgba(18,132,199,.14)' },
         },
         numberPop: {
           '0%': { transform: 'scale(0.9)', opacity: '0.6' },

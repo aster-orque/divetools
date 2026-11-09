@@ -21,6 +21,7 @@ const TOOLS_CONFIG: Record<string, ToolConfig> = {
   convertisseur: { slug: '/convertisseur', status: 'live', icon: '\u21c4' },
   consommation: { slug: '/consommation', status: 'live', icon: '\uD83D\uDCA8' },
   'gas-blender': { slug: '/gas-blender', status: 'live', icon: '\uD83E\uDDEA' },
+  'etiquette-nitrox': { slug: '/etiquette-nitrox', status: 'live', icon: '\uD83C\uDFF7\uFE0F' },
   volumes: { slug: '/volumes', status: 'soon', icon: '\uD83E\uDEE7' },
   devis: { slug: '/devis', status: 'soon', icon: '\uD83D\uDCCB' },
 }
