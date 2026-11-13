@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { DEFAULT_LOCALE, isValidLocale } from './i18n/config'
 
-const KNOWN_PAGES = ['nitrox', 'convertisseur', 'consommation', 'decompression', 'flottabilite', 'volumes', 'devis', 'gas-blender', 'etiquette-nitrox']
+const KNOWN_PAGES = ['nitrox', 'convertisseur', 'consommation', 'decompression', 'flottabilite', 'volumes', 'devis', 'gas-blender', 'etiquette-nitrox', 'saturation-azote']
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl

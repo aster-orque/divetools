@@ -14,6 +14,7 @@ const SLUGS: Record<string, string> = {
   consommation: '/consommation',
   'gas-blender': '/gas-blender',
   'etiquette-nitrox': '/etiquette-nitrox',
+  'saturation-azote': '/saturation-azote',
   decompression: '/decompression',
   flottabilite: '/flottabilite',
   devis: '/devis',

@@ -77,6 +77,18 @@ export default function sitemap(): MetadataRoute.Sitemap {
       },
     },
     {
+      url: `${BASE_URL}/fr/saturation-azote`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.9,
+      alternates: {
+        languages: {
+          fr: `${BASE_URL}/fr/saturation-azote`,
+          en: `${BASE_URL}/en/saturation-azote`,
+        },
+      },
+    },
+    {
       url: `${BASE_URL}/en`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
@@ -145,6 +157,18 @@ export default function sitemap(): MetadataRoute.Sitemap {
         languages: {
           fr: `${BASE_URL}/fr/etiquette-nitrox`,
           en: `${BASE_URL}/en/etiquette-nitrox`,
+        },
+      },
+    },
+    {
+      url: `${BASE_URL}/en/saturation-azote`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.9,
+      alternates: {
+        languages: {
+          fr: `${BASE_URL}/fr/saturation-azote`,
+          en: `${BASE_URL}/en/saturation-azote`,
         },
       },
     },
