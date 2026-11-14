@@ -109,7 +109,7 @@ export default function CompressorCalculator({ labels }: { labels: Labels }) {
   const gainCls = !ok ? 'text-black' : R.gain >= 0 ? 'text-primary-600' : 'text-red-700'
 
   return (
-    <div className="flex flex-col gap-3 pb-20 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:items-stretch lg:gap-7 lg:pb-0">
+    <div className="flex flex-col gap-3 pb-20 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:items-start lg:gap-7 lg:pb-0">
       <div className="flex min-w-0 flex-col gap-3">
         <Card>
           <SectionHead no={1} title={L.s1.title} help={L.s1.help} />
@@ -164,11 +164,6 @@ export default function CompressorCalculator({ labels }: { labels: Labels }) {
           </Fold>
         </Card>
 
-        <div>
-          <HowCard title={L.how.title}>
-            <HowBlocks sections={L.how.sections} foot={L.how.foot} />
-          </HowCard>
-        </div>
       </div>
 
       <div className="flex min-w-0 flex-col gap-3">
@@ -279,7 +274,7 @@ export default function CompressorCalculator({ labels }: { labels: Labels }) {
           </div>
         </Card>
 
-        <Card className="lg:flex-1">
+        <Card>
           <SectionHead title={L.facts.title} className="mb-3" />
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
             {([
@@ -297,6 +292,12 @@ export default function CompressorCalculator({ labels }: { labels: Labels }) {
             <button type="button" className={secondaryBtn} onClick={() => { setS(DEFAULT_STATE); say(L.resetDone) }}>{L.reset}</button>
           </div>
         </Card>
+
+        <div>
+          <HowCard title={L.how.title}>
+            <HowBlocks sections={L.how.sections} foot={L.how.foot} />
+          </HowCard>
+        </div>
       </div>
 
       {/* Barre résultat fixe en bas sur mobile */}
