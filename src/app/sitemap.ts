@@ -89,6 +89,66 @@ export default function sitemap(): MetadataRoute.Sitemap {
       },
     },
     {
+      url: `${BASE_URL}/fr/mod`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.9,
+      alternates: {
+        languages: {
+          fr: `${BASE_URL}/fr/mod`,
+          en: `${BASE_URL}/en/mod`,
+        },
+      },
+    },
+    {
+      url: `${BASE_URL}/fr/ppo2`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.9,
+      alternates: {
+        languages: {
+          fr: `${BASE_URL}/fr/ppo2`,
+          en: `${BASE_URL}/en/ppo2`,
+        },
+      },
+    },
+    {
+      url: `${BASE_URL}/fr/ead`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.9,
+      alternates: {
+        languages: {
+          fr: `${BASE_URL}/fr/ead`,
+          en: `${BASE_URL}/en/ead`,
+        },
+      },
+    },
+    {
+      url: `${BASE_URL}/fr/best-mix`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.9,
+      alternates: {
+        languages: {
+          fr: `${BASE_URL}/fr/best-mix`,
+          en: `${BASE_URL}/en/best-mix`,
+        },
+      },
+    },
+    {
+      url: `${BASE_URL}/fr/lestage`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.9,
+      alternates: {
+        languages: {
+          fr: `${BASE_URL}/fr/lestage`,
+          en: `${BASE_URL}/en/lestage`,
+        },
+      },
+    },
+    {
       url: `${BASE_URL}/en`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
@@ -169,6 +229,66 @@ export default function sitemap(): MetadataRoute.Sitemap {
         languages: {
           fr: `${BASE_URL}/fr/saturation-azote`,
           en: `${BASE_URL}/en/saturation-azote`,
+        },
+      },
+    },
+    {
+      url: `${BASE_URL}/en/mod`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.9,
+      alternates: {
+        languages: {
+          fr: `${BASE_URL}/fr/mod`,
+          en: `${BASE_URL}/en/mod`,
+        },
+      },
+    },
+    {
+      url: `${BASE_URL}/en/ppo2`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.9,
+      alternates: {
+        languages: {
+          fr: `${BASE_URL}/fr/ppo2`,
+          en: `${BASE_URL}/en/ppo2`,
+        },
+      },
+    },
+    {
+      url: `${BASE_URL}/en/ead`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.9,
+      alternates: {
+        languages: {
+          fr: `${BASE_URL}/fr/ead`,
+          en: `${BASE_URL}/en/ead`,
+        },
+      },
+    },
+    {
+      url: `${BASE_URL}/en/best-mix`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.9,
+      alternates: {
+        languages: {
+          fr: `${BASE_URL}/fr/best-mix`,
+          en: `${BASE_URL}/en/best-mix`,
+        },
+      },
+    },
+    {
+      url: `${BASE_URL}/en/lestage`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.9,
+      alternates: {
+        languages: {
+          fr: `${BASE_URL}/fr/lestage`,
+          en: `${BASE_URL}/en/lestage`,
         },
       },
     },
