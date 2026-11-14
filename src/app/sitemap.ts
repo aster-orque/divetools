@@ -149,6 +149,66 @@ export default function sitemap(): MetadataRoute.Sitemap {
       },
     },
     {
+      url: `${BASE_URL}/fr/cns`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.9,
+      alternates: {
+        languages: {
+          fr: `${BASE_URL}/fr/cns`,
+          en: `${BASE_URL}/en/cns`,
+        },
+      },
+    },
+    {
+      url: `${BASE_URL}/fr/cns-intervalle`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.9,
+      alternates: {
+        languages: {
+          fr: `${BASE_URL}/fr/cns-intervalle`,
+          en: `${BASE_URL}/en/cns-intervalle`,
+        },
+      },
+    },
+    {
+      url: `${BASE_URL}/fr/cns-reduction`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.9,
+      alternates: {
+        languages: {
+          fr: `${BASE_URL}/fr/cns-reduction`,
+          en: `${BASE_URL}/en/cns-reduction`,
+        },
+      },
+    },
+    {
+      url: `${BASE_URL}/fr/otu`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.9,
+      alternates: {
+        languages: {
+          fr: `${BASE_URL}/fr/otu`,
+          en: `${BASE_URL}/en/otu`,
+        },
+      },
+    },
+    {
+      url: `${BASE_URL}/fr/plongee-altitude`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.9,
+      alternates: {
+        languages: {
+          fr: `${BASE_URL}/fr/plongee-altitude`,
+          en: `${BASE_URL}/en/plongee-altitude`,
+        },
+      },
+    },
+    {
       url: `${BASE_URL}/en`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
@@ -289,6 +349,66 @@ export default function sitemap(): MetadataRoute.Sitemap {
         languages: {
           fr: `${BASE_URL}/fr/lestage`,
           en: `${BASE_URL}/en/lestage`,
+        },
+      },
+    },
+    {
+      url: `${BASE_URL}/en/cns`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.9,
+      alternates: {
+        languages: {
+          fr: `${BASE_URL}/fr/cns`,
+          en: `${BASE_URL}/en/cns`,
+        },
+      },
+    },
+    {
+      url: `${BASE_URL}/en/cns-intervalle`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.9,
+      alternates: {
+        languages: {
+          fr: `${BASE_URL}/fr/cns-intervalle`,
+          en: `${BASE_URL}/en/cns-intervalle`,
+        },
+      },
+    },
+    {
+      url: `${BASE_URL}/en/cns-reduction`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.9,
+      alternates: {
+        languages: {
+          fr: `${BASE_URL}/fr/cns-reduction`,
+          en: `${BASE_URL}/en/cns-reduction`,
+        },
+      },
+    },
+    {
+      url: `${BASE_URL}/en/otu`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.9,
+      alternates: {
+        languages: {
+          fr: `${BASE_URL}/fr/otu`,
+          en: `${BASE_URL}/en/otu`,
+        },
+      },
+    },
+    {
+      url: `${BASE_URL}/en/plongee-altitude`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.9,
+      alternates: {
+        languages: {
+          fr: `${BASE_URL}/fr/plongee-altitude`,
+          en: `${BASE_URL}/en/plongee-altitude`,
         },
       },
     },
