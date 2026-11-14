@@ -16,8 +16,12 @@ type ToolConfig = {
 
 const TOOLS_CONFIG: Record<string, ToolConfig> = {
   nitrox: { slug: '/nitrox', status: 'live', icon: 'N\u2082', image: '/Nx.png' },
+  mod: { slug: '/mod', status: 'live', icon: '\u21a7' },
+  ppo2: { slug: '/ppo2', status: 'live', icon: 'O\u2082' },
+  ead: { slug: '/ead', status: 'live', icon: '\u2248' },
+  'best-mix': { slug: '/best-mix', status: 'live', icon: '%' },
   decompression: { slug: '/decompression', status: 'soon', icon: '\u23F1' },
-  flottabilite: { slug: '/flottabilite', status: 'soon', icon: '\u2696' },
+  lestage: { slug: '/lestage', status: 'live', icon: '\u2696' },
   convertisseur: { slug: '/convertisseur', status: 'live', icon: '\u21c4' },
   consommation: { slug: '/consommation', status: 'live', icon: '\uD83D\uDCA8' },
   'gas-blender': { slug: '/gas-blender', status: 'live', icon: '\uD83E\uDDEA' },
