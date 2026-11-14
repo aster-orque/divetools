@@ -9,7 +9,7 @@ import {
 } from '@/lib/best-mix/engine'
 import type { BestMixState, NumKey } from '@/lib/best-mix/engine'
 import {
-  Box, Card, Formula, Pill, SectionHead, Stepper, T, clampTo, copyText, fill, makeNum, secondaryBtn, stepValue, useHeaderHeight,
+  Box, Card, Formula, Pill, SectionHead, Stepper, T, clampTo, copyText, fill, makeNum, secondaryBtn, stepValue,
   usePersistentState, useToast,
 } from './tool-ui'
 import type { Tone } from './tool-ui'
@@ -17,29 +17,12 @@ import type { Tone } from './tool-ui'
 type Labels = typeof fr.bestMix
 
 /** Couleurs des gaz (code couleur Orque) : O2 vert, nitrox jaune, air bleu ; azote en gris. */
-const GAS = { o2: '#16a34a', nx: '#eab308', air: '#1284c7', n2: '#d1d5db' }
-
-function Tank({ o2 }: { o2: number }) {
-  const top = 22, h = 92, fillH = (Math.max(0, Math.min(1, o2 / 100))) * h
-  return (
-    <svg viewBox="0 0 58 120" aria-hidden="true" className="w-[58px] shrink-0">
-      <defs><clipPath id="bm-tc"><rect x="6" y={top} width="46" height={h} rx="18" /></clipPath></defs>
-      <rect x="21" y="4" width="16" height="12" rx="3" fill="#9ca3af" />
-      <rect x="17" y="14" width="24" height="10" rx="4" fill="#9ca3af" />
-      <g clipPath="url(#bm-tc)">
-        <rect x="6" y={top} width="46" height={h} fill={GAS.n2} />
-        <rect x="6" y={top + h - fillH} width="46" height={fillH} fill={GAS.o2} style={{ transition: 'all .25s' }} />
-      </g>
-      <rect x="6" y={top} width="46" height={h} rx="18" fill="none" stroke="#131418" strokeOpacity=".25" strokeWidth="2" />
-    </svg>
-  )
-}
+const GAS = { o2: '#16a34a', nx: '#eab308', air: '#1284c7' }
 
 export default function BestMixCalculator({ labels }: { labels: Labels }) {
   const L = labels
   const n = useMemo(() => makeNum(L.numberLocale), [L.numberLocale])
   const [s, setS] = usePersistentState<BestMixState>(STORAGE_KEY, DEFAULT_STATE, sanitizeState)
-  const headerH = useHeaderHeight()
   const toast = useToast()
 
   const n1 = (v: number) => n.upTo(v, 1)
@@ -62,14 +45,14 @@ export default function BestMixCalculator({ labels }: { labels: Labels }) {
   if (b < 21) {
     tone = 'low'
     cap = L.res.none
-    big = <>{n1(Math.floor(raw * 10 + EPS) / 10)}<em className="ml-0.5 text-xl font-bold not-italic text-gray-500">% O2</em></>
+    big = <>{n1(Math.floor(raw * 10 + EPS) / 10)}<em className="ml-1.5 text-xl font-bold not-italic tracking-normal text-gray-500">% O2</em></>
     ln = L.res.lessThanAir
     box.push(['low', L.box.airTooRich, fill(L.box.airTooRichLine, { d: n1(d), pp: n2(ppO2(21, d)), lim: ppTxt(pp), m: mod(21, pp) })])
   } else {
     cap = b >= 100 ? L.res.o2 : L.res.yours
     big = b >= 100
-      ? <>O2<em className="ml-0.5 text-xl font-bold not-italic text-gray-500">100 %</em></>
-      : <>Nx{b}<em className="ml-0.5 text-xl font-bold not-italic text-gray-500">{b} % O2</em></>
+      ? <>O2<em className="ml-1.5 text-xl font-bold not-italic tracking-normal text-gray-500">100 %</em></>
+      : <>Nx{b}<em className="ml-1.5 text-xl font-bold not-italic tracking-normal text-gray-500">{b} % O2</em></>
     ln = fill(L.res.line, { d: n1(d), pp: ppTxt(pp) })
     if (b < 22) box.push(['mid', L.box.airOk, L.box.airOkLine])
     if (pp > 1.4 + EPS) { tone = 'mid'; box.push(['mid', L.box.over14, fill(L.box.over14Line, { pp: ppTxt(pp) })]) }
@@ -79,8 +62,7 @@ export default function BestMixCalculator({ labels }: { labels: Labels }) {
   if (b >= 21 && density(b, d) > 6.2) box.push(['mid', L.box.dense, fill(L.box.denseLine, { d: n1(d) })])
   if (b > 40 && b < 100) box.push(['info', L.box.over40, L.box.over40Line])
   const shown = b < 21 ? raw : b
-  const resBorder = tone === 'ok' ? 'border-primary' : tone === 'mid' ? 'border-amber-500' : 'border-red-600'
-  const bigTone = tone === 'ok' ? 'text-primary' : tone === 'mid' ? 'text-amber-700' : 'text-red-700'
+  const bigTone = tone === 'ok' ? 'text-black' : tone === 'mid' ? 'text-amber-700' : 'text-red-700'
 
   const kpi = (label: string, value: ReactNode, sub: string, wide = false) => (
     <div key={label} className={`min-w-0 rounded-xl bg-gray-50 px-2.5 py-2 ${wide ? 'col-span-3' : 'col-span-2'}`}>
@@ -126,8 +108,8 @@ export default function BestMixCalculator({ labels }: { labels: Labels }) {
   const pick = clubPick(d, pp)
 
   return (
-    <div className="flex flex-col gap-3 lg:grid lg:grid-cols-[minmax(0,1fr)_460px] lg:items-start lg:gap-6">
-      <div className="flex min-w-0 flex-col gap-3 lg:sticky lg:order-2" style={{ top: headerH + 16 }}>
+    <div className="flex flex-col gap-3 lg:grid lg:grid-cols-[460px_minmax(0,1fr)] lg:items-start lg:gap-6">
+      <div className="flex min-w-0 flex-col gap-3">
         <Card>
           <SectionHead no={1} title={L.s1.title} help={L.s1.help} />
           <Stepper label={L.s1.depth} unit="m" ariaLabel={L.s1.depthAria} {...stp('d', n1(s.d))} />
@@ -154,21 +136,16 @@ export default function BestMixCalculator({ labels }: { labels: Labels }) {
           </div>
         </Card>
 
-        <section aria-live="polite" className={`rounded-2xl border-2 bg-white px-4 py-4 shadow-soft sm:p-5 ${resBorder}`}>
-          <div className="flex items-center gap-3.5">
-            <Tank o2={shown} />
-            <div>
-              <p className="mb-1 text-[13px] font-semibold text-gray-500">{cap}</p>
-              <p key={b} className={`animate-number-pop text-5xl font-extrabold leading-none tracking-[-0.02em] tabular-nums max-[380px]:text-[40px] ${bigTone}`}>{big}</p>
-              <p className="mt-1 text-sm font-medium text-gray-700">{ln}</p>
-            </div>
-          </div>
-          <div aria-hidden className="mb-1 mt-3.5 flex h-3 overflow-hidden rounded-md" style={{ background: GAS.n2 }}>
-            <i className="block transition-[width] duration-300" style={{ width: `${shown}%`, background: GAS.o2 }} />
+        <Card aria-live="polite">
+          <p className="text-[12.5px] font-semibold text-gray-500">{cap}</p>
+          <p key={b} className={`my-1 animate-number-pop text-[56px] font-extrabold leading-none tracking-[-0.02em] tabular-nums max-[380px]:text-[46px] ${bigTone}`}>{big}</p>
+          <p className="text-[13.5px] font-medium text-gray-500">{ln}</p>
+          <div aria-hidden className="mb-1 mt-3.5 flex h-2 overflow-hidden rounded-full bg-gray-200">
+            <i className="block rounded-full transition-[width] duration-300" style={{ width: `${shown}%`, background: GAS.o2 }} />
           </div>
           <div className="flex justify-between text-xs font-medium text-gray-500">
-            <span>O2 {b < 21 ? n1(Math.floor(raw * 10) / 10) : b} %</span>
-            <span>N2 {b < 21 ? n1(100 - Math.floor(raw * 10) / 10) : 100 - b} %</span>
+            <span><b className="font-bold text-black">O2</b> {b < 21 ? n1(Math.floor(raw * 10) / 10) : b} %</span>
+            <span><b className="font-bold text-black">N2</b> {b < 21 ? n1(100 - Math.floor(raw * 10) / 10) : 100 - b} %</span>
           </div>
           <div className="mt-3 grid grid-cols-6 gap-1.5">
             {b >= 21 ? (
@@ -192,10 +169,10 @@ export default function BestMixCalculator({ labels }: { labels: Labels }) {
           <button type="button" className={`${secondaryBtn} mt-3 w-full`} onClick={() => copyText(slate(), toast.say, L.toast.copied, L.toast.fail)}>
             {L.copy}
           </button>
-        </section>
+        </Card>
       </div>
 
-      <div className="flex min-w-0 flex-col gap-3 lg:order-1">
+      <div className="flex min-w-0 flex-col gap-3">
         <Card>
           <h3 className="mb-1 text-[15px] font-bold text-black">{L.club.title}</h3>
           <p className={`mb-2.5 ${T.help}`}>{L.club.help}</p>

@@ -9,15 +9,15 @@ import {
 import type { EadResult, EadState, NumKey } from '@/lib/ead/engine'
 import {
   Box, Card, Choice, Formula, SectionHead, Segmented, Stepper, SubLabel, T, clampTo, copyText, fill, makeNum, secondaryBtn,
-  stepValue, useHeaderHeight, usePersistentState, useToast,
+  stepValue, useHeaderHeight, usePersistentState, useToast, ZONE_FILL, ZoneDefs, ZoneLegend,
 } from './tool-ui'
 import type { Tone } from './tool-ui'
 
 type Labels = typeof fr.ead
 
-const COL = { ok: '#1284c7', mid: '#f59e0b', bad: '#dc2626', nx: '#eab308', air: '#1284c7' }
+const COL = { real: '#bae6fd', equiv: '#1284c7' }
 const TILE: Record<Tone, string> = {
-  ok: 'border-primary/40 bg-gray-50',
+  ok: 'border-transparent bg-gray-50',
   mid: 'border-amber-500 bg-amber-50',
   low: 'border-red-600 bg-red-50',
   info: 'border-transparent bg-gray-50',
@@ -46,9 +46,14 @@ function ZoneBar({ r, label, aria }: { r: EadResult; label: (d: number) => strin
   const lx = Math.max(18, Math.min(W - 18, px))
   return (
     <svg ref={ref} viewBox={`0 0 ${W} 58`} role="img" aria-label={aria} className="block h-auto w-full overflow-visible">
-      <rect x="0" y="16" width={a} height="14" rx="3" fill={COL.ok} />
-      <rect x={a} y="16" width={Math.max(0, b - a)} height="14" fill={COL.mid} />
-      <rect x={b} y="16" width={Math.max(0, W - b)} height="14" rx="3" fill={COL.bad} />
+      <ZoneDefs horizontal />
+      <clipPath id="ead-zone"><rect x="0" y="16" width={W} height="14" rx="5" /></clipPath>
+      <g clipPath="url(#ead-zone)">
+        <rect x="0" y="16" width={a} height="14" fill={ZONE_FILL.ok} />
+        <rect x={a} y="16" width={Math.max(0, b - a)} height="14" fill={ZONE_FILL.mid} />
+        <rect x={b} y="16" width={Math.max(0, W - b)} height="14" fill={ZONE_FILL.bad} />
+      </g>
+      {b > 0 && b < W && <line x1={b} x2={b} y1="13" y2="33" stroke="#dc2626" strokeWidth="2" strokeDasharray="3 2" />}
       {ticks.map((t) => (
         <g key={t}>
           <line x1={x(t)} x2={x(t)} y1="30" y2="34" stroke="#9ca3af" />
@@ -175,8 +180,8 @@ export default function EadCalculator({ labels }: { labels: Labels }) {
       )}
       <div className="mt-3.5 grid gap-2">
         {[
-          { k: L.res.real, v: mStr(s.d), w: (s.d / sc) * 100, c: COL.nx },
-          { k: L.res.equiv, v: r.noN2 ? '—' : mStr(r.ead), w: r.noN2 ? 0 : (r.ead / sc) * 100, c: COL.air },
+          { k: L.res.real, v: mStr(s.d), w: (s.d / sc) * 100, c: COL.real },
+          { k: L.res.equiv, v: r.noN2 ? '—' : mStr(r.ead), w: r.noN2 ? 0 : (r.ead / sc) * 100, c: COL.equiv },
         ].map((b) => (
           <div key={b.k} className="grid grid-cols-[96px_1fr] items-center gap-2 text-[12.5px] font-medium text-gray-500">
             <span className="leading-tight">{b.k}<b className="block text-sm font-bold tabular-nums text-black">{b.v}</b></span>
@@ -201,10 +206,8 @@ export default function EadCalculator({ labels }: { labels: Labels }) {
       <p className={`mt-2 ${T.small}`}>{L.o2.note}</p>
       <div className="mt-3">
         <ZoneBar r={r} label={mStr} aria={L.o2.zoneAria} />
-        <div className="mt-1 flex flex-wrap gap-3 text-[11.5px] font-medium text-gray-500">
-          {[[COL.ok, L.o2.z1], [COL.mid, L.o2.z2], [COL.bad, L.o2.z3]].map(([c, t]) => (
-            <span key={t}><i className="mr-1 inline-block h-2.5 w-2.5 rounded-[3px] align-[-1px]" style={{ background: c }} />{t}</span>
-          ))}
+        <div className="mt-1.5">
+          <ZoneLegend items={[{ k: 'ok', label: L.o2.z1 }, { k: 'mid', label: L.o2.z2 }, { k: 'bad', label: L.o2.z3 }]} />
         </div>
       </div>
       <div className="mt-3 grid grid-cols-2 gap-2">

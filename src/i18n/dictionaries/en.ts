@@ -2436,6 +2436,10 @@ const dict = {
         'The suggested weight is rounded to the nearest 0.5 kg. Preset cylinder weights come from manufacturer and dealer data sheets (Luxfer, Faber): the real tare is stamped on your cylinder’s shoulder. Always do a weight check at the start of a dive.',
       ],
     },
+    theory: {
+      title: 'Theoretical result: do a weight check',
+      line: 'This calculation gives a starting point, not your exact weight. Cylinder weight varies from one manufacturer to another, even for the same capacity: trust the tare stamped on the shoulder, and always check your weight in the water (steps below).',
+    },
     estimatedTag: ' (estimated)',
     copyText: 'Weighting\nUsual: {a}, {ea}, weight {lest} kg{est}\nNew: {b}, {eb}\nAdjustment: {delta} → new weight {rounded} kg (check it in the water)',
     toast: { copied: 'Result copied', fail: 'Copy not possible', swapped: 'Cylinders swapped: your starting weight is now {kg} kg' },

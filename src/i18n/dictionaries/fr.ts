@@ -2455,6 +2455,10 @@ const dict = {
         "Le lest proposé est arrondi au 0,5 kg le plus proche. Les masses des blocs prédéfinis viennent de fiches de fabricants et de revendeurs (Luxfer, Faber) : la tare réelle est gravée sur l'ogive de ton bloc. Fais toujours une pesée en début de plongée.",
       ],
     },
+    theory: {
+      title: 'Résultat théorique : fais une pesée',
+      line: "Ce calcul donne un point de départ, pas ton lest exact. Le poids d'un bloc varie d'un fabricant à l'autre, même à capacité égale : fie-toi à la tare gravée sur l'ogive, et vérifie toujours ton lest dans l'eau (étapes plus bas).",
+    },
     estimatedTag: ' (estimé)',
     copyText: 'Lestage\nHabituel : {a}, {ea}, lest {lest} kg{est}\nNouveau : {b}, {eb}\nAjustement : {delta} → nouveau lest {rounded} kg (à vérifier par une pesée)',
     toast: { copied: 'Résultat copié', fail: 'Copie impossible', swapped: 'Blocs inversés : ton lest de départ est maintenant {kg} kg' },

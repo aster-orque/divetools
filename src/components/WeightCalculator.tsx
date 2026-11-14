@@ -12,8 +12,8 @@ import { Box, Card, Stepper, SubLabel, T, copyText, fill, makeNum, secondaryBtn,
 type Labels = typeof fr.lestage
 type Which = 'A' | 'B'
 
-/** A = config habituelle (bleu Orque), B = nouvelle config (orange). */
-const COL = { A: '#1284c7', B: '#ea580c' }
+/** Couleurs Orque : A = config habituelle (noir), B = nouvelle config (bleu Orque). */
+const COL = { A: '#131418', B: '#1284c7' }
 const SUIT_IDS: Suit[] = ['aucune', '3', '5', '7', 'etanche']
 const WATER_IDS: Water[] = ['douce', 'mer', 'sale']
 
@@ -94,7 +94,7 @@ export default function WeightCalculator({ labels }: { labels: Labels }) {
   const ch = r.change
   const verdictCls = Math.abs(ch) < 0.25 ? 'same' : ch > 0 ? 'add' : 'rem'
   const big = verdictCls === 'same' ? L.res.keep : fill(ch > 0 ? L.res.add : L.res.remove, { kg: half(Math.abs(ch)) })
-  const bigColor = verdictCls === 'add' ? COL.B : verdictCls === 'rem' ? COL.A : '#131418'
+  const bigColor = verdictCls === 'same' ? '#131418' : COL.B
   const matName = (m: Metal) => L.mat[m]
   const desc = (c: Tank) => fill(L.desc, {
     bi: c.n > 1 ? L.biPrefix : '', v: n.d(c.v, c.v % 1 ? 1 : 0), mat: matName(c.mat), m: nf(c.m, 1), p: c.p,
@@ -303,6 +303,7 @@ export default function WeightCalculator({ labels }: { labels: Labels }) {
               )}
             </div>
             {warns.map(([t, line]) => <Box key={line} tone={t === 'mid' ? 'mid' : 'info'}>{line}</Box>)}
+            <Box tone="mid" title={L.theory.title}>{L.theory.line}</Box>
             <div className="mt-3 grid grid-cols-2 gap-2">
               <button type="button" className={secondaryBtn} onClick={copy}>{L.res.copy}</button>
               <button type="button" className={secondaryBtn} onClick={reset}>{L.res.reset}</button>

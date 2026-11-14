@@ -366,3 +366,45 @@ export function clampTo(v: number, min: number, max: number) {
   return Math.min(max, Math.max(min, v))
 }
 export const isNum = (x: unknown): x is number => typeof x === 'number' && Number.isFinite(x)
+
+/**
+ * Zones de profondeur, même langage graphique que la jauge MOD : eau en dégradé bleu Orque
+ * (zone OK), hachures orange claires (au-delà de ta limite), hachures rouges claires (danger).
+ */
+export const ZONE_FILL = { ok: 'url(#zone-ok)', mid: 'url(#zone-mid)', bad: 'url(#zone-bad)' } as const
+export function ZoneDefs({ horizontal = false }: { horizontal?: boolean }) {
+  return (
+    <defs>
+      <linearGradient id="zone-ok" x1="0" y1="0" x2={horizontal ? '1' : '0'} y2={horizontal ? '0' : '1'}>
+        <stop offset="0" stopColor="#bae6fd" />
+        <stop offset="1" stopColor="#0369a1" />
+      </linearGradient>
+      <pattern id="zone-mid" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+        <rect width="8" height="8" fill="#fffbeb" />
+        <line x1="0" y1="0" x2="0" y2="8" stroke="#f59e0b" strokeWidth="3" opacity=".45" />
+      </pattern>
+      <pattern id="zone-bad" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+        <rect width="8" height="8" fill="#f9fafb" />
+        <line x1="0" y1="0" x2="0" y2="8" stroke="#dc2626" strokeWidth="3" opacity=".35" />
+      </pattern>
+    </defs>
+  )
+}
+/** Pastilles de légende assorties aux zones. */
+export const ZONE_SWATCH = {
+  ok: { background: 'linear-gradient(180deg,#bae6fd,#0369a1)' },
+  mid: { background: 'repeating-linear-gradient(45deg,rgba(245,158,11,.5) 0 2px,#fffbeb 2px 5px)' },
+  bad: { background: 'repeating-linear-gradient(45deg,rgba(220,38,38,.4) 0 2px,#f9fafb 2px 5px)' },
+} as const
+export function ZoneLegend({ items }: { items: { k: keyof typeof ZONE_SWATCH; label: string }[] }) {
+  return (
+    <div className="flex flex-wrap gap-x-3.5 gap-y-1.5 text-xs font-medium text-gray-500">
+      {items.map((it) => (
+        <span key={it.label}>
+          <i className="mr-1.5 inline-block h-2.5 w-2.5 rounded-[3px] align-[-1px] ring-1 ring-inset ring-black/5" style={ZONE_SWATCH[it.k]} />
+          {it.label}
+        </span>
+      ))}
+    </div>
+  )
+}

@@ -9,14 +9,12 @@ import {
 import type { Env, Level, NumKey, PpState } from '@/lib/ppo2/engine'
 import {
   Bullets, Card, Formula, HowCard, Pill, SectionHead, Segmented, Stepper, SubLabel, T, clampTo, fill, makeNum, stepValue,
-  useHeaderHeight, usePersistentState,
+  useHeaderHeight, usePersistentState, ZONE_FILL, ZoneDefs, ZoneLegend,
 } from './tool-ui'
 
 type Labels = typeof fr.ppo2
 
-const COL = { ok: '#1284c7', mid: '#f59e0b', bad: '#dc2626' }
 const cls = (l: Level): 'ok' | 'mid' | 'low' => (l === 'ok' ? 'ok' : l === 'mid' ? 'mid' : 'low')
-const ROW_BORDER = { ok: 'border-l-primary', mid: 'border-l-amber-500', low: 'border-l-red-600' }
 
 /** Colonne d'eau : zones de ppO2 selon la profondeur, paliers 3-6-9 m, profondeur choisie. */
 function WaterColumn({ s, E, limTxt, t16, t016, depthTxt, aria }: {
@@ -32,12 +30,12 @@ function WaterColumn({ s, E, limTxt, t16, t016, depthTxt, aria }: {
   const band = (a: number, b: number, col: string) => {
     a = Math.max(a, 0)
     b = Math.min(b, H)
-    if (b > a) bands.push(<rect key={`${a}-${col}`} x={X0} y={y(a)} width={X1 - X0} height={y(b) - y(a)} fill={col} opacity=".85" />)
+    if (b > a) bands.push(<rect key={`${a}-${col}`} x={X0} y={y(a)} width={X1 - X0} height={y(b) - y(a)} fill={col} />)
   }
-  band(0, hyp, COL.bad)
-  band(hyp, Math.max(hyp, mL), COL.ok)
-  band(Math.max(hyp, mL), Math.max(hyp, m16), COL.mid)
-  band(Math.max(hyp, m16), H, COL.bad)
+  band(0, hyp, ZONE_FILL.bad)
+  band(hyp, Math.max(hyp, mL), ZONE_FILL.ok)
+  band(Math.max(hyp, mL), Math.max(hyp, m16), ZONE_FILL.mid)
+  band(Math.max(hyp, m16), H, ZONE_FILL.bad)
   const step = H <= 30 ? 5 : H <= 80 ? 10 : 20
   const ticks: number[] = []
   for (let m = 0; m <= H; m += step) ticks.push(m)
@@ -47,8 +45,13 @@ function WaterColumn({ s, E, limTxt, t16, t016, depthTxt, aria }: {
   const yd = y(d)
   return (
     <svg viewBox={`0 0 ${W} 302`} role="img" aria-label={aria} className="block h-auto w-full">
-      <rect x={X0} y={Tp} width={X1 - X0} height={B - Tp} rx="6" fill="#f3f4f6" />
-      {bands}
+      <ZoneDefs />
+      <clipPath id="pp-col"><rect x={X0} y={Tp} width={X1 - X0} height={B - Tp} rx="8" /></clipPath>
+      <g clipPath="url(#pp-col)">
+        <rect x={X0} y={Tp} width={X1 - X0} height={B - Tp} fill="#f3f4f6" />
+        {bands}
+      </g>
+      {s.lim < 1.6 && m16 > 0 && m16 < H && <line x1={X0} x2={X1} y1={y(m16)} y2={y(m16)} stroke="#dc2626" strokeWidth="2" strokeDasharray="4 3" />}
       {ticks.map((m) => <text key={m} x={X0 - 5} y={y(m) + 3.5} fontSize="10" fontWeight="500" textAnchor="end" fill="#6b7280">{m}</text>)}
       {[3, 6, 9].map((p) => p < H && <line key={p} x1={X0} x2={X1} y1={y(p)} y2={y(p)} stroke="#fff" strokeWidth="1" strokeDasharray="3 3" />)}
       {marks.map(([m, t]) => m > 0 && m < H && <text key={t} x={X1 + 4} y={y(m) + 3.5} fontSize="9.5" fontWeight="500" fill="#6b7280">{t}</text>)}
@@ -110,12 +113,14 @@ export default function PpO2Calculator({ labels }: { labels: Labels }) {
   const row = (label: string, sub: string, val: number, me = false) => {
     const c = cls(level(val, s.lim))
     return (
-      <div key={label + sub} className={`grid grid-cols-[1fr_auto] items-center gap-x-2.5 rounded-xl border-l-4 px-3 py-2 ${ROW_BORDER[c]} ${me ? 'bg-primary-50' : 'bg-gray-50'}`}>
+      <div key={label + sub} className={`grid grid-cols-[1fr_auto] items-center gap-x-2.5 rounded-xl px-3 py-2 ${
+        c === 'mid' ? 'bg-amber-50' : c === 'low' ? 'bg-red-50' : me ? 'bg-primary-50' : 'bg-gray-50'
+      }`}>
         <span className="text-[14px] font-semibold text-black">
           {label}
           {sub && <small className="block text-xs font-medium text-gray-500">{sub}</small>}
         </span>
-        <b className="text-[22px] font-extrabold tabular-nums text-black">{f2(disp(val))}<em className="ml-0.5 text-xs font-semibold not-italic text-gray-500">bar</em></b>
+        <b className={`text-[22px] font-extrabold tabular-nums ${c === 'mid' ? 'text-amber-700' : c === 'low' ? 'text-red-700' : 'text-black'}`}>{f2(disp(val))}<em className="ml-0.5 text-xs font-semibold not-italic text-gray-500">bar</em></b>
       </div>
     )
   }
@@ -231,10 +236,12 @@ export default function PpO2Calculator({ labels }: { labels: Labels }) {
               )}
             </div>
           </div>
-          <div className="mt-2.5 flex flex-wrap gap-x-3.5 gap-y-1.5 text-xs font-medium text-gray-500">
-            <span><i className="mr-1.5 inline-block h-2.5 w-2.5 rounded-[3px] align-[-1px]" style={{ background: COL.ok }} />{fill(L.legend.ok, { lim: limTxt })}</span>
-            {s.lim < 1.6 && <span><i className="mr-1.5 inline-block h-2.5 w-2.5 rounded-[3px] align-[-1px]" style={{ background: COL.mid }} />{fill(L.legend.mid, { lim: limTxt })}</span>}
-            <span><i className="mr-1.5 inline-block h-2.5 w-2.5 rounded-[3px] align-[-1px]" style={{ background: COL.bad }} />{L.legend.bad}</span>
+          <div className="mt-2.5">
+            <ZoneLegend items={[
+              { k: 'ok', label: fill(L.legend.ok, { lim: limTxt }) },
+              ...(s.lim < 1.6 ? [{ k: 'mid' as const, label: fill(L.legend.mid, { lim: limTxt }) }] : []),
+              { k: 'bad', label: L.legend.bad },
+            ]} />
           </div>
         </Card>
 
