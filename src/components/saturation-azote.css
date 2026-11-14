@@ -185,3 +185,8 @@
 .sa .bub { animation: sa-rise 1.6s linear infinite; }
 .sa .paused .bub { animation-play-state: paused; }
 @media (prefers-reduced-motion: reduce) { .sa .bub { animation: none; } }
+.sa details.why { margin-top: 14px; }
+.sa details.why .in p { font-size: 14px; font-weight: 500; line-height: 1.55; margin: 10px 0 0; }
+.sa details.why .in p:last-child { margin-bottom: 8px; }
+.sa details.why .in .fx { font-weight: 700; font-variant-numeric: tabular-nums; background: #f3f4f6; border-radius: 8px; padding: 8px 12px; }
+.sa details.why .in .mine { color: var(--primary); }

@@ -1648,6 +1648,16 @@ const dict = {
       cmpEnd: '<strong>Après {t} en surface :</strong> {n} au lieu de {a}.',
       advNote:
         'Vue détaillée : le corps n\'absorbe pas l\'azote partout à la même vitesse. Les <b style="color:var(--fast)">tissus rapides</b> (sang, cerveau) se remplissent et se vident en quelques minutes, les <b style="color:var(--slow)">tissus lents</b> (graisses, os) mettent des heures : ils continuent même de se charger un peu au-dessus de 12 m.',
+      why: {
+        title: 'Pourquoi ×5,3 à 40 m, et pas ×5 ?',
+        p1: "À 40 m, la pression ambiante est de 5 bar, 5 fois celle de la surface. On pourrait donc penser que le corps peut contenir 5 fois plus d'azote.",
+        p2: "Mais le modèle de Bühlmann tient compte de la <b>vapeur d'eau</b> dans les poumons. Elle occupe toujours environ 0,063 bar (0,0627 exactement), quelle que soit la profondeur. L'azote respiré se calcule donc sur ce qui reste :",
+        fx1: 'PiN₂ = (Pamb − 0,0627) × 0,79',
+        fx2: 'À 40 m : (5 − 0,0627) ÷ (1 − 0,0627) = 4,937 ÷ 0,937 ≈ ×5,3',
+        p3: "C'est valable à toutes les profondeurs : ×2,1 à 10 m, ×3,1 à 20 m, ×6,3 à 50 m.",
+        mine: "Avec tes réglages, à l'air à {d} m : ({p} − 0,0627) ÷ ({s} − 0,0627) ≈ <b>×{x}</b> au lieu de ×{r}.",
+        p4: "Attention, ce n'est pas immédiat : c'est le maximum que les tissus pourraient contenir à cette profondeur. Chacun absorbe l'azote à sa vitesse : la quantité réellement stockée dépend de la profondeur et de la durée de la plongée.",
+      },
       curvesTitle: 'Les mêmes tissus en courbes',
       curvesNote: "Pointillés : l'azote respiré. Les tissus rapides le suivent de près, les lents à peine.",
       d16Title: 'Pour aller plus loin : les 16 compartiments du modèle',
@@ -1831,6 +1841,10 @@ const dict = {
         {
           q: 'Pourquoi parle-t-on de 12 m pour la désaturation ?',
           a: "C'est une convention d'enseignement. Après une plongée saturante, on considère qu'on se charge encore sous 12 m et qu'on désature au-dessus. Dans le modèle, chaque tissu a son propre moment de bascule ; les tissus lents peuvent même se charger un peu au-dessus de 12 m, sans jamais approcher leur limite.",
+        },
+        {
+          q: 'Pourquoi 5,3 fois plus d’azote à 40 m, et pas 5 fois ?',
+          a: "À 40 m, la pression est 5 fois celle de la surface. Mais le modèle de Bühlmann déduit la vapeur d'eau des poumons, environ 0,063 bar à toute profondeur : (5 − 0,063) ÷ (1 − 0,063) ≈ 5,3. Les tissus peuvent donc contenir jusqu'à 5,3 fois plus d'azote qu'en surface, mais seulement après un temps suffisant : chacun se charge à sa vitesse.",
         },
         {
           q: 'Le nitrox réduit-il la saturation en azote ?',

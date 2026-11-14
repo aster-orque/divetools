@@ -1630,6 +1630,16 @@ const dict = {
       cmpEnd: '<strong>After {t} at the surface:</strong> {n} instead of {a}.',
       advNote:
         'Detailed view: the body does not absorb nitrogen at the same speed everywhere. <b style="color:var(--fast)">Fast tissues</b> (blood, brain) fill and empty in a few minutes, <b style="color:var(--slow)">slow tissues</b> (fat, bone) take hours: they even keep loading a little above 12 m.',
+      why: {
+        title: 'Why ×5.3 at 40 m, and not ×5?',
+        p1: 'At 40 m, ambient pressure is 5 bar, 5 times the surface pressure. You might think the body can hold 5 times more nitrogen.',
+        p2: 'But the Bühlmann model accounts for <b>water vapour</b> in the lungs. It always takes up about 0.063 bar (0.0627 exactly), whatever the depth. Inspired nitrogen is calculated on what is left:',
+        fx1: 'PiN₂ = (Pamb − 0.0627) × 0.79',
+        fx2: 'At 40 m: (5 − 0.0627) ÷ (1 − 0.0627) = 4.937 ÷ 0.937 ≈ ×5.3',
+        p3: 'This holds at every depth: ×2.1 at 10 m, ×3.1 at 20 m, ×6.3 at 50 m.',
+        mine: 'With your settings, on air at {d} m: ({p} − 0.0627) ÷ ({s} − 0.0627) ≈ <b>×{x}</b> instead of ×{r}.',
+        p4: 'Careful, it is not instant: this is the most the tissues could hold at that depth. Each one takes up nitrogen at its own pace: how much is actually stored depends on the depth and length of the dive.',
+      },
       curvesTitle: 'The same tissues as curves',
       curvesNote: 'Dotted line: the nitrogen breathed. Fast tissues follow it closely, slow ones barely.',
       d16Title: 'Going further: the 16 compartments of the model',
@@ -1813,6 +1823,10 @@ const dict = {
         {
           q: 'Why do we talk about 12 m for off-gassing?',
           a: 'It is a teaching convention. After a saturating dive, we consider that you still load below 12 m and off-gas above it. In the model, each tissue switches at its own moment; slow tissues can even load a little above 12 m, without ever approaching their limit.',
+        },
+        {
+          q: 'Why 5.3 times more nitrogen at 40 m, and not 5 times?',
+          a: 'At 40 m, pressure is 5 times the surface pressure. But the Bühlmann model subtracts water vapour in the lungs, about 0.063 bar at any depth: (5 − 0.063) ÷ (1 − 0.063) ≈ 5.3. Tissues can therefore hold up to 5.3 times more nitrogen than at the surface, but only given enough time: each loads at its own pace.',
         },
         {
           q: 'Does nitrox reduce nitrogen loading?',

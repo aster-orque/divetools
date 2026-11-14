@@ -120,6 +120,18 @@ export default function NitrogenSaturation({ labels, locale }: { labels: Labels;
             <button type="button" data-v="5">{L.speeds[2]}</button>
           </span>
         </div>
+        <details className="more why" id="sa-why">
+          <summary>{L.why.title}</summary>
+          <div className="in">
+            <p>{L.why.p1}</p>
+            <p dangerouslySetInnerHTML={{ __html: L.why.p2 }} />
+            <p className="fx">{L.why.fx1}</p>
+            <p className="fx">{L.why.fx2}</p>
+            <p>{L.why.p3}</p>
+            <p className="mine" id="sa-whyMine" />
+            <p>{L.why.p4}</p>
+          </div>
+        </details>
         <div className="cmp" id="sa-cmpAir" hidden>
           <h3 id="sa-cmpTitle" />
           <div className="cmp-vals" id="sa-cmpVals" />
