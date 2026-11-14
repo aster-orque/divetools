@@ -350,7 +350,9 @@ export default function WeightCalculator({ labels }: { labels: Labels }) {
           </Card>
 
           <Card>
-            <SubLabel first>{L.check.title}</SubLabel>
+            <SubLabel first>{L.check.beforeTitle}</SubLabel>
+            <p className="mb-1 text-[13.5px] font-medium leading-relaxed text-gray-700">{L.check.before}</p>
+            <SubLabel>{L.check.title}</SubLabel>
             <ol className="grid gap-1.5 text-[13.5px] font-medium text-gray-700">
               {L.check.steps.map((st, i) => (
                 <li key={i} className="flex items-baseline gap-2">

@@ -2432,6 +2432,8 @@ const dict = {
       foot: "Positif : le bloc tire vers la surface. Négatif : il tire vers le fond. Il s'allège au fil de la plongée car tu respires son gaz.",
     },
     check: {
+      beforeTitle: 'Teste ton lest avant la plongée',
+      before: "En surface, gilet vide, poumons pleins et en respirant calmement : tu dois flotter avec l'eau au niveau des yeux. Expire à fond : tu dois commencer à descendre. Sinon, ajuste avant de partir.",
       title: 'Vérifie ton lest à la fin de la plongée',
       steps: [
         'Arrête-toi au palier, vers 3 à 5 m, avec environ {res} bar dans le bloc.',
@@ -2457,7 +2459,7 @@ const dict = {
     },
     theory: {
       title: 'Résultat théorique : fais une pesée',
-      line: "Ce calcul donne un point de départ, pas ton lest exact. Le poids d'un bloc varie d'un fabricant à l'autre, même à capacité égale : fie-toi à la tare gravée sur l'ogive, et vérifie toujours ton lest dans l'eau (étapes plus bas).",
+      line: "Ce calcul donne un point de départ, pas ton lest exact. Le poids d'un bloc varie d'un fabricant à l'autre, même à capacité égale : fie-toi à la tare gravée sur l'ogive, et teste toujours ton lest dans l'eau : en surface avant la plongée, puis au palier en fin de plongée (étapes plus bas).",
     },
     estimatedTag: ' (estimé)',
     copyText: 'Lestage\nHabituel : {a}, {ea}, lest {lest} kg{est}\nNouveau : {b}, {eb}\nAjustement : {delta} → nouveau lest {rounded} kg (à vérifier par une pesée)',

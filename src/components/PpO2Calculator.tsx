@@ -54,7 +54,8 @@ function WaterColumn({ s, E, limTxt, t16, t016, depthTxt, aria }: {
       {s.lim < 1.6 && m16 > 0 && m16 < H && <line x1={X0} x2={X1} y1={y(m16)} y2={y(m16)} stroke="#dc2626" strokeWidth="2" strokeDasharray="4 3" />}
       {ticks.map((m) => <text key={m} x={X0 - 5} y={y(m) + 3.5} fontSize="10" fontWeight="500" textAnchor="end" fill="#6b7280">{m}</text>)}
       {[3, 6, 9].map((p) => p < H && <line key={p} x1={X0} x2={X1} y1={y(p)} y2={y(p)} stroke="#fff" strokeWidth="1" strokeDasharray="3 3" />)}
-      {marks.map(([m, t]) => m > 0 && m < H && <text key={t} x={X1 + 4} y={y(m) + 3.5} fontSize="9.5" fontWeight="500" fill="#6b7280">{t}</text>)}
+      {/* Repères masqués s'ils tombent sous l'étiquette de profondeur (évite le chevauchement) */}
+      {marks.map(([m, t]) => m > 0 && m < H && Math.abs(y(m) - Math.min(Math.max(yd, Tp + 8), B - 2)) > 12 && <text key={t} x={X1 + 4} y={y(m) + 3.5} fontSize="9.5" fontWeight="500" fill="#6b7280">{t}</text>)}
       <line x1={X0 - 2} x2={X1 + 2} y1={yd} y2={yd} stroke="#131418" strokeWidth="2.5" />
       <circle cx={(X0 + X1) / 2} cy={yd} r="5" fill="#131418" stroke="#fff" strokeWidth="2" />
       <text x={X1 + 4} y={Math.min(Math.max(yd, Tp + 8), B - 2) + 4} fontSize="11" fontWeight="700" fill="#131418">{depthTxt}</text>

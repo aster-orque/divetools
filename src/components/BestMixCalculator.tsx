@@ -62,7 +62,7 @@ export default function BestMixCalculator({ labels }: { labels: Labels }) {
   if (b >= 21 && density(b, d) > 6.2) box.push(['mid', L.box.dense, fill(L.box.denseLine, { d: n1(d) })])
   if (b > 40 && b < 100) box.push(['info', L.box.over40, L.box.over40Line])
   const shown = b < 21 ? raw : b
-  const bigTone = tone === 'ok' ? 'text-black' : tone === 'mid' ? 'text-amber-700' : 'text-red-700'
+  const bigTone = tone === 'low' ? 'text-red-700' : 'text-black'
 
   const kpi = (label: string, value: ReactNode, sub: string, wide = false) => (
     <div key={label} className={`min-w-0 rounded-xl bg-gray-50 px-2.5 py-2 ${wide ? 'col-span-3' : 'col-span-2'}`}>

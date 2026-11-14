@@ -2413,6 +2413,8 @@ const dict = {
       foot: 'Positive: the cylinder pulls towards the surface. Negative: it pulls towards the bottom. It gets lighter during the dive as you breathe its gas.',
     },
     check: {
+      beforeTitle: 'Test your weight before the dive',
+      before: 'At the surface, BCD empty, lungs full and breathing calmly: you should float with the water at eye level. Breathe out fully: you should start to sink. If not, adjust before you go down.',
       title: 'Check your weight at the end of the dive',
       steps: [
         'Stop at the safety stop, around 3 to 5 m, with about {res} bar in the cylinder.',
@@ -2438,7 +2440,7 @@ const dict = {
     },
     theory: {
       title: 'Theoretical result: do a weight check',
-      line: 'This calculation gives a starting point, not your exact weight. Cylinder weight varies from one manufacturer to another, even for the same capacity: trust the tare stamped on the shoulder, and always check your weight in the water (steps below).',
+      line: 'This calculation gives a starting point, not your exact weight. Cylinder weight varies from one manufacturer to another, even for the same capacity: trust the tare stamped on the shoulder, and always test your weight in the water: at the surface before the dive, then at the safety stop at the end (steps below).',
     },
     estimatedTag: ' (estimated)',
     copyText: 'Weighting\nUsual: {a}, {ea}, weight {lest} kg{est}\nNew: {b}, {eb}\nAdjustment: {delta} → new weight {rounded} kg (check it in the water)',
