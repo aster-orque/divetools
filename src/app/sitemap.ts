@@ -209,6 +209,66 @@ export default function sitemap(): MetadataRoute.Sitemap {
       },
     },
     {
+      url: `${BASE_URL}/fr/end`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.9,
+      alternates: {
+        languages: {
+          fr: `${BASE_URL}/fr/end`,
+          en: `${BASE_URL}/en/end`,
+        },
+      },
+    },
+    {
+      url: `${BASE_URL}/fr/trimix-composition`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.9,
+      alternates: {
+        languages: {
+          fr: `${BASE_URL}/fr/trimix-composition`,
+          en: `${BASE_URL}/en/trimix-composition`,
+        },
+      },
+    },
+    {
+      url: `${BASE_URL}/fr/courants`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.9,
+      alternates: {
+        languages: {
+          fr: `${BASE_URL}/fr/courants`,
+          en: `${BASE_URL}/en/courants`,
+        },
+      },
+    },
+    {
+      url: `${BASE_URL}/fr/bilan-thermique`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.9,
+      alternates: {
+        languages: {
+          fr: `${BASE_URL}/fr/bilan-thermique`,
+          en: `${BASE_URL}/en/bilan-thermique`,
+        },
+      },
+    },
+    {
+      url: `${BASE_URL}/fr/compresseur`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.9,
+      alternates: {
+        languages: {
+          fr: `${BASE_URL}/fr/compresseur`,
+          en: `${BASE_URL}/en/compresseur`,
+        },
+      },
+    },
+    {
       url: `${BASE_URL}/en`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
@@ -409,6 +469,66 @@ export default function sitemap(): MetadataRoute.Sitemap {
         languages: {
           fr: `${BASE_URL}/fr/plongee-altitude`,
           en: `${BASE_URL}/en/plongee-altitude`,
+        },
+      },
+    },
+    {
+      url: `${BASE_URL}/en/end`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.9,
+      alternates: {
+        languages: {
+          fr: `${BASE_URL}/fr/end`,
+          en: `${BASE_URL}/en/end`,
+        },
+      },
+    },
+    {
+      url: `${BASE_URL}/en/trimix-composition`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.9,
+      alternates: {
+        languages: {
+          fr: `${BASE_URL}/fr/trimix-composition`,
+          en: `${BASE_URL}/en/trimix-composition`,
+        },
+      },
+    },
+    {
+      url: `${BASE_URL}/en/courants`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.9,
+      alternates: {
+        languages: {
+          fr: `${BASE_URL}/fr/courants`,
+          en: `${BASE_URL}/en/courants`,
+        },
+      },
+    },
+    {
+      url: `${BASE_URL}/en/bilan-thermique`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.9,
+      alternates: {
+        languages: {
+          fr: `${BASE_URL}/fr/bilan-thermique`,
+          en: `${BASE_URL}/en/bilan-thermique`,
+        },
+      },
+    },
+    {
+      url: `${BASE_URL}/en/compresseur`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.9,
+      alternates: {
+        languages: {
+          fr: `${BASE_URL}/fr/compresseur`,
+          en: `${BASE_URL}/en/compresseur`,
         },
       },
     },

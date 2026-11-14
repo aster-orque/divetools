@@ -839,6 +839,10 @@ export function mountSaturation(root: HTMLElement, L: UILabels, locale: string):
     $('#sa-leadN').textContent = isPeda() ? L.leadPeda : L.leadSimple
     $('#sa-more').hidden = isPeda()
     $('#sa-checks').hidden = isPeda()
+    // « Pourquoi ×5,3 et pas ×5 » : la vapeur d'eau (PH2O) est déduite de la pression ambiante, à l'air.
+    $('#sa-why').hidden = isPeda()
+    const paW = E.pAmb(S.depth, S.sp), trim = (n: number, d: number) => n.toLocaleString(nf, { maximumFractionDigits: d })
+    $('#sa-whyMine').innerHTML = tpl(L.why.mine, { d: S.depth, p: trim(paW, 2), s: trim(S.sp, 2), x: fmt(E.piN2(paW, E.AIR) / surfEq(), 1), r: trim(paW / S.sp, 1) })
     const plus = `<b style="color:var(--pi)">+</b> <b style="color:var(--n2)">+</b>`
     $('#sa-lgCharge').textContent = isPeda() ? L.legendChargePeda : L.legendCharge
     $('#sa-lgChargeI').style.background = isPeda() ? PEDA_IN : ''
