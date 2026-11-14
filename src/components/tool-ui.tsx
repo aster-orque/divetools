@@ -408,3 +408,112 @@ export function ZoneLegend({ items }: { items: { k: keyof typeof ZONE_SWATCH; la
     </div>
   )
 }
+
+/**
+ * Jauge horizontale (CNS, OTU) : piste grise, zones de vigilance hachurées (même langage que la
+ * jauge MOD), remplissage bleu Orque, orange ou rouge selon le niveau, repères et graduations.
+ */
+export function Gauge({ max, value, tone, ghost, zones = [], ticks = [], scale = [], hatchUntil }: {
+  max: number; value: number; tone: 'ok' | 'mid' | 'low'
+  /** Valeur de départ en gris clair derrière le remplissage (ex. CNS en sortant). */
+  ghost?: number
+  zones?: { from: number; to: number; k: 'mid' | 'bad' }[]
+  ticks?: { v: number; dashed?: boolean }[]
+  scale?: { v: number; label: string }[]
+  /** Part hachurée au début du remplissage (ex. résiduel). */
+  hatchUntil?: number
+}) {
+  const pc = (v: number) => `${Math.min(100, Math.max(0, (v / max) * 100))}%`
+  const fillCls = tone === 'ok' ? 'bg-primary' : tone === 'mid' ? 'bg-amber-500' : 'bg-red-600'
+  return (
+    <div aria-hidden>
+      <div className="relative mt-3 h-3.5 rounded-full bg-gray-100">
+        <div className="absolute inset-0 overflow-hidden rounded-full">
+          {zones.map((z) => (
+            <i key={`${z.from}-${z.k}`} className="absolute inset-y-0 opacity-70" style={{ left: pc(z.from), width: `calc(${pc(z.to)} - ${pc(z.from)})`, ...ZONE_SWATCH[z.k] }} />
+          ))}
+          {ghost !== undefined && ghost > 0 && <i className="absolute inset-y-0 left-0 rounded-full bg-gray-300/70" style={{ width: pc(ghost) }} />}
+          <i className={`absolute inset-y-0 left-0 rounded-full transition-[width] duration-300 ease-out-expo ${fillCls}`} style={{ width: pc(value) }} />
+          {hatchUntil !== undefined && hatchUntil > 0 && (
+            <i className="absolute inset-y-0 left-0 rounded-l-full" style={{ width: pc(Math.min(hatchUntil, value)), background: 'repeating-linear-gradient(135deg,rgba(255,255,255,.55) 0 3px,transparent 3px 6px)' }} />
+          )}
+        </div>
+        {ticks.map((t) => (
+          <i key={t.v} className={`absolute -bottom-1 -top-1 w-0 border-l-2 ${t.dashed ? 'border-dashed border-black/50' : 'border-black/40'}`} style={{ left: pc(t.v) }} />
+        ))}
+      </div>
+      {scale.length > 0 && (
+        <div className="relative mt-1.5 h-4 text-[11px] font-medium tabular-nums text-gray-500">
+          {scale.map((s, i) => (
+            <span key={s.v} className="absolute whitespace-nowrap" style={{
+              left: pc(s.v),
+              transform: i === 0 && s.v === 0 ? 'none' : s.v >= max ? 'translateX(-100%)' : 'translateX(-50%)',
+            }}>{s.label}</span>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+/** Heure (hh:mm) avec bouton optionnel ; vide = non renseignée. */
+export function TimeField({ label, sub, value, onChange, aria, clearLabel, action }: {
+  label: ReactNode; sub?: ReactNode; value: string; onChange: (v: string) => void; aria: string; clearLabel?: string
+  action?: { label: string; onClick: () => void }
+}) {
+  return (
+    <div className={`flex min-w-0 items-center justify-between gap-2 rounded-xl border border-transparent bg-gray-50 py-1.5 pl-3 pr-1.5 ${FOCUS_RING}`}>
+      <span className="min-w-0 text-[14px] font-semibold leading-snug text-gray-700">
+        {label}
+        {sub && <small className="block text-xs font-medium text-gray-500">{sub}</small>}
+      </span>
+      <div className="flex shrink-0 items-center gap-1.5">
+        {action && (
+          <button type="button" onClick={action.onClick}
+            className="min-h-10 rounded-full border border-primary px-3 text-[13px] font-semibold text-primary transition-colors hover:bg-primary hover:text-white">
+            {action.label}
+          </button>
+        )}
+        <div className="flex flex-col items-center">
+          <input type="time" aria-label={aria} value={value} onChange={(e) => onChange(e.target.value)}
+            className="min-h-11 w-[124px] rounded-xl border border-gray-200 bg-white px-2 text-center text-[19px] font-bold tabular-nums text-black outline-none focus:border-primary" />
+          {clearLabel && value && (
+            <button type="button" onClick={() => onChange('')} className="pt-0.5 text-xs font-medium text-gray-500 underline underline-offset-2 hover:text-primary">{clearLabel}</button>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/** Tuile de chiffre clé (petit libellé, gros chiffre, ligne d'aide). */
+export function Tile({ label, value, sub, tone }: { label: ReactNode; value: ReactNode; sub?: ReactNode; tone?: 'mid' | 'low' }) {
+  return (
+    <div className={`min-w-0 rounded-xl border px-3 py-2 ${tone === 'low' ? 'border-red-200 bg-red-50' : tone === 'mid' ? 'border-amber-200 bg-amber-50' : 'border-gray-200 bg-white'}`}>
+      <small className="block text-xs font-semibold text-gray-500">{label}</small>
+      <b className={`block text-[22px] font-extrabold leading-tight tabular-nums ${tone === 'low' ? 'text-red-700' : tone === 'mid' ? 'text-amber-700' : 'text-black'}`}>{value}</b>
+      {sub && <div className="mt-0.5 text-[11.5px] font-medium leading-snug text-gray-500">{sub}</div>}
+    </div>
+  )
+}
+
+/** Unité en petit gris après un gros chiffre. */
+export function U({ children }: { children: ReactNode }) {
+  return <em className="ml-0.5 text-[0.55em] font-semibold not-italic tracking-normal text-gray-500">{children}</em>
+}
+
+/** Couleurs de niveau (texte, encadré, remplissage) : bleu Orque, orange, rouge. */
+export type Lvl = 'ok' | 'mid' | 'low'
+export const LVL_TXT: Record<Lvl, string> = { ok: 'text-primary-600', mid: 'text-amber-700', low: 'text-red-700' }
+export const LVL_BOX: Record<Lvl, string> = { ok: 'border-l-primary bg-gray-50', mid: 'border-l-amber-500 bg-amber-50', low: 'border-l-red-600 bg-red-50' }
+export const LVL_FILL: Record<Lvl, string> = { ok: 'bg-primary', mid: 'bg-amber-500', low: 'bg-red-600' }
+
+/** Encadré de verdict (titre coloré + texte). */
+export function Verdict({ tone, title, children }: { tone: Lvl; title: ReactNode; children?: ReactNode }) {
+  return (
+    <div className={`mt-2.5 rounded-xl border-l-[5px] px-3 py-2.5 ${LVL_BOX[tone]}`}>
+      <p className={`text-[15px] font-extrabold leading-snug ${LVL_TXT[tone]}`}>{title}</p>
+      {children && <p className="text-[13px] font-medium leading-snug text-gray-600">{children}</p>}
+    </div>
+  )
+}

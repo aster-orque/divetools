@@ -20,6 +20,11 @@ const SLUGS: Record<string, string> = {
   ead: '/ead',
   'best-mix': '/best-mix',
   lestage: '/lestage',
+  cns: '/cns',
+  'cns-intervalle': '/cns-intervalle',
+  'cns-reduction': '/cns-reduction',
+  otu: '/otu',
+  'plongee-altitude': '/plongee-altitude',
   decompression: '/decompression',
   devis: '/devis',
 }
