@@ -517,3 +517,64 @@ export function Verdict({ tone, title, children }: { tone: Lvl; title: ReactNode
     </div>
   )
 }
+
+/**
+ * Contenu d'une carte « Comment c'est calculé » : sections titrées, chaque ligne est un paragraphe,
+ * une formule (préfixe `fx:`) ou une puce (préfixe `• `). Le **gras** est rendu.
+ */
+export function HowBlocks({ sections, foot }: { sections: readonly { h: string; items: readonly string[] }[]; foot?: string }) {
+  return (
+    <>
+      {sections.map((s) => {
+        const out: ReactNode[] = []
+        let bullets: string[] = []
+        const flush = (k: string) => {
+          if (bullets.length) out.push(<Bullets key={k} items={bullets.map((b) => <Rich key={b} text={b} />)} />)
+          bullets = []
+        }
+        s.items.forEach((it, i) => {
+          if (it.startsWith('• ')) { bullets.push(it.slice(2)); return }
+          flush(`b${i}`)
+          out.push(it.startsWith('fx:') ? <Formula key={i}>{it.slice(3).trim()}</Formula> : <p key={i}><Rich text={it} /></p>)
+        })
+        flush('end')
+        return (
+          <div key={s.h} className="space-y-2 pt-1">
+            <h3 className="text-[14px] font-bold text-black">{s.h}</h3>
+            {out}
+          </div>
+        )
+      })}
+      {foot && <p className={`pt-1 ${T.small}`}>{foot}</p>}
+    </>
+  )
+}
+
+/** Interrupteur (libellé à gauche, bascule à droite). */
+export function Toggle({ label, sub, on, onChange, className = '' }: { label: ReactNode; sub?: ReactNode; on: boolean; onChange: (v: boolean) => void; className?: string }) {
+  return (
+    <label className={`flex min-h-12 cursor-pointer items-center justify-between gap-3 rounded-xl bg-gray-50 px-3 py-2 ${className}`}>
+      <span className="text-[14px] font-semibold leading-snug text-gray-700">
+        {label}
+        {sub && <small className="block text-xs font-medium text-gray-500">{sub}</small>}
+      </span>
+      <input type="checkbox" checked={on} onChange={(e) => onChange(e.target.checked)} className="peer sr-only" />
+      <span aria-hidden className={`relative h-7 w-12 shrink-0 rounded-full transition-colors peer-focus-visible:ring-2 peer-focus-visible:ring-primary ${on ? 'bg-primary' : 'bg-gray-300'}`}>
+        <i className={`absolute top-0.5 h-6 w-6 rounded-full bg-white shadow transition-all ${on ? 'left-[22px]' : 'left-0.5'}`} />
+      </span>
+    </label>
+  )
+}
+
+/** Bloc repliable à l'intérieur d'une carte (réglages avancés). */
+export function Fold({ title, sub, open, onToggle, children }: { title: ReactNode; sub?: ReactNode; open?: boolean; onToggle?: (open: boolean) => void; children: ReactNode }) {
+  return (
+    <details open={open} onToggle={(e) => onToggle?.((e.currentTarget as HTMLDetailsElement).open)} className="group mt-3 rounded-xl border border-gray-200 px-3 py-2.5">
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-2 text-[13.5px] font-semibold text-black marker:hidden [&::-webkit-details-marker]:hidden">
+        <span>{title}{sub && <small className="ml-1.5 text-xs font-medium text-gray-500">{sub}</small>}</span>
+        <span aria-hidden className="text-lg font-normal text-gray-400 transition-transform duration-200 group-open:rotate-45">+</span>
+      </summary>
+      <div className="mt-2.5">{children}</div>
+    </details>
+  )
+}

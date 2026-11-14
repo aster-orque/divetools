@@ -25,6 +25,11 @@ const SLUGS: Record<string, string> = {
   'cns-reduction': '/cns-reduction',
   otu: '/otu',
   'plongee-altitude': '/plongee-altitude',
+  end: '/end',
+  'trimix-composition': '/trimix-composition',
+  courants: '/courants',
+  'bilan-thermique': '/bilan-thermique',
+  compresseur: '/compresseur',
   decompression: '/decompression',
   devis: '/devis',
 }
@@ -37,13 +42,15 @@ export default function Navbar({
   labels: {
     links: { id: string; label: string; live: boolean; group?: string }[]
     nitroxGroup: string
+    groups: Record<string, string>
     bookDive: string
     soonBadge: string
     onAster: string
   }
 }) {
   const [open, setOpen] = useState(false)
-  const [groupOpen, setGroupOpen] = useState(false)
+  /* Menu déroulant ouvert (id du groupe) */
+  const [groupOpen, setGroupOpen] = useState<string | null>(null)
   const groupRef = useRef<HTMLDivElement>(null)
   const pathname = usePathname()
 
@@ -53,26 +60,25 @@ export default function Navbar({
     live: link.live,
     group: link.group,
   }))
-  /* Desktop : les outils nitrox sont regroupés dans un menu déroulant « Nitrox », placé à la
-     position du premier d'entre eux ; les autres outils en ligne restent des liens directs. */
-  const groupLinks = NAV_LINKS.filter((link) => link.live && link.group === 'nitrox')
-  const groupActive = groupLinks.some((link) => link.href === pathname)
-  const firstGroupIndex = NAV_LINKS.findIndex((link) => link.live && link.group === 'nitrox')
+  /* Desktop : les outils d'un même groupe (Nitrox, Trimix, Conditions) sont réunis dans un menu
+     déroulant, placé à la position du premier d'entre eux ; les autres restent des liens directs. */
+  const groupLinks = (g: string) => NAV_LINKS.filter((link) => link.live && link.group === g)
+  const firstGroupIndex = (g: string) => NAV_LINKS.findIndex((link) => link.live && link.group === g)
 
   // Close on route change
   useEffect(() => {
     setOpen(false)
-    setGroupOpen(false)
+    setGroupOpen(null)
   }, [pathname])
 
   // Ferme le menu Nitrox au clic à l'extérieur ou sur Échap
   useEffect(() => {
     if (!groupOpen) return
     const onDown = (e: MouseEvent) => {
-      if (groupRef.current && !groupRef.current.contains(e.target as Node)) setGroupOpen(false)
+      if (groupRef.current && !groupRef.current.contains(e.target as Node)) setGroupOpen(null)
     }
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setGroupOpen(false)
+      if (e.key === 'Escape') setGroupOpen(null)
     }
     document.addEventListener('mousedown', onDown)
     document.addEventListener('keydown', onKey)
@@ -124,42 +130,46 @@ export default function Navbar({
           <div className="hidden min-w-0 items-center gap-3.5 whitespace-nowrap text-sm min-[1100px]:flex xl:gap-5">
             {NAV_LINKS.map((link, i) => {
               if (!link.live) return null
-              if (link.group === 'nitrox') {
-                if (i !== firstGroupIndex) return null
+              if (link.group) {
+                const g = link.group
+                if (i !== firstGroupIndex(g)) return null
+                const items = groupLinks(g)
+                const groupActive = items.some((l) => l.href === pathname)
+                const isOpen = groupOpen === g
                 return (
                   <div
-                    key="nitrox-group"
-                    ref={groupRef}
+                    key={`${g}-group`}
+                    ref={isOpen ? groupRef : undefined}
                     className="relative"
-                    onMouseEnter={() => setGroupOpen(true)}
-                    onMouseLeave={() => setGroupOpen(false)}
+                    onMouseEnter={() => setGroupOpen(g)}
+                    onMouseLeave={() => setGroupOpen(null)}
                   >
                     <button
                       type="button"
-                      aria-expanded={groupOpen}
+                      aria-expanded={isOpen}
                       aria-haspopup="true"
-                      onClick={() => setGroupOpen((v) => !v)}
+                      onClick={() => setGroupOpen((v) => (v === g ? null : g))}
                       className={`relative flex items-center gap-1 font-medium transition-colors duration-200 after:absolute after:-bottom-1 after:left-0 after:h-0.5 after:rounded-full after:bg-primary after:transition-all after:duration-200 after:ease-out-expo ${
                         groupActive ? 'text-primary after:w-full' : 'text-gray-700 after:w-0 hover:text-primary hover:after:w-full'
                       }`}
                     >
-                      {labels.nitroxGroup}
-                      <svg aria-hidden className={`h-3.5 w-3.5 transition-transform duration-200 ${groupOpen ? 'rotate-180' : ''}`} viewBox="0 0 20 20" fill="currentColor">
+                      {labels.groups[g] ?? labels.nitroxGroup}
+                      <svg aria-hidden className={`h-3.5 w-3.5 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} viewBox="0 0 20 20" fill="currentColor">
                         <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.06l3.71-3.83a.75.75 0 111.08 1.04l-4.25 4.39a.75.75 0 01-1.08 0L5.21 8.27a.75.75 0 01.02-1.06z" clipRule="evenodd" />
                       </svg>
                     </button>
                     {/* pt-3 : pont invisible entre le bouton et le menu, pour ne pas le perdre au survol */}
-                    <div className={`absolute left-1/2 top-full -translate-x-1/2 pt-3 transition-all duration-200 ease-out-expo ${groupOpen ? 'visible opacity-100' : 'invisible -translate-y-1 opacity-0'}`}>
+                    <div className={`absolute left-1/2 top-full -translate-x-1/2 pt-3 transition-all duration-200 ease-out-expo ${isOpen ? 'visible opacity-100' : 'invisible -translate-y-1 opacity-0'}`}>
                       <div className="min-w-[210px] rounded-xl border border-gray-200 bg-white p-1.5 shadow-float">
-                        {groupLinks.map((g) => (
+                        {items.map((l) => (
                           <Link
-                            key={g.href}
-                            href={g.href}
+                            key={l.href}
+                            href={l.href}
                             className={`block rounded-lg px-3 py-2 text-sm font-medium transition-colors duration-150 ${
-                              pathname === g.href ? 'bg-primary-50 text-primary' : 'text-gray-700 hover:bg-gray-50 hover:text-primary'
+                              pathname === l.href ? 'bg-primary-50 text-primary' : 'text-gray-700 hover:bg-gray-50 hover:text-primary'
                             }`}
                           >
-                            {g.label}
+                            {l.label}
                           </Link>
                         ))}
                       </div>
